@@ -1,14 +1,13 @@
-const CACHE_NAME = 'dashboard-pwa-v2';
+const CACHE_NAME = 'dashboard-pwa-v3';
 const ASSETS_TO_CACHE = [
-  './',
-  './index.html',
-  './styles.css',
-  './app.js',
-  './manifest.webmanifest',
-  './icons/icon.svg',
-  './icons/favicon.svg',
-  './icons/icon-192.png',
-  './icons/icon-512.png',
+  '/',
+  '/styles.css',
+  '/app.js',
+  '/manifest.webmanifest',
+  '/icons/icon.svg',
+  '/icons/favicon.svg',
+  '/icons/icon-192.png',
+  '/icons/icon-512.png',
   'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2'
 ];
 
@@ -16,7 +15,7 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(ASSETS_TO_CACHE).catch((err) => {
-        console.warn('Pre-cache warning (some remote asset might be offline):', err);
+        console.warn('Pre-cache warning:', err);
       });
     }).then(() => self.skipWaiting())
   );
@@ -40,11 +39,11 @@ self.addEventListener('fetch', (event) => {
   // Only handle GET requests
   if (event.request.method !== 'GET') return;
 
-  // Cache-first for cached assets, stale-while-revalidate for local assets
+  // Stale-while-revalidate / Cache-first
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       if (cachedResponse) {
-        // Fetch in background to update cache if online
+        // Refresh cache in background
         fetch(event.request)
           .then((networkResponse) => {
             if (networkResponse && (networkResponse.status === 200 || networkResponse.type === 'opaque')) {
@@ -53,13 +52,11 @@ self.addEventListener('fetch', (event) => {
               });
             }
           })
-          .catch(() => {
-            // Offline - cached response is fine
-          });
+          .catch(() => {});
         return cachedResponse;
       }
 
-      // If not in cache, fetch from network and cache
+      // Fetch from network
       return fetch(event.request)
         .then((networkResponse) => {
           if (!networkResponse || (networkResponse.status !== 200 && networkResponse.type !== 'opaque')) {
@@ -72,9 +69,9 @@ self.addEventListener('fetch', (event) => {
           return networkResponse;
         })
         .catch(() => {
-          // If offline and requesting an HTML page, serve index.html
+          // If offline and navigating to a page, serve root app shell
           if (event.request.mode === 'navigate') {
-            return caches.match('./index.html');
+            return caches.match('/');
           }
         });
     })
