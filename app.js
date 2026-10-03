@@ -86,6 +86,12 @@ const DEFAULT_DATA = {
       progress: 50,
       deadline: getRelativeDateStr(14),
       url: 'https://github.com/TomasVyo',
+      liveUrl: 'https://pubmate.app',
+      techStack: ['React', 'Vite', 'PWA / Offline', 'Leaflet Maps', 'Supabase'],
+      devNotes: [
+        { id: 'dn_pm1', date: '01.10.2026 14:30', text: 'Vytvořen základní prototyp a offline sync pivních záznamů a hodnocení.' },
+        { id: 'dn_pm2', date: '03.10.2026 11:15', text: 'Plánování integrace geolokačního vyhledávání a interaktivní mapy podniků.' }
+      ],
       tasks: [
         { id: 't_pm1', text: 'Návrh UI a mobilního rozhraní pro vyhledávání pivnic', done: true },
         { id: 't_pm2', text: 'Katalog piv, hodnocení a zápis návštěv', done: true },
@@ -102,6 +108,11 @@ const DEFAULT_DATA = {
       progress: 35,
       deadline: getRelativeDateStr(21),
       url: 'https://github.com/TomasVyo',
+      liveUrl: '',
+      techStack: ['Node.js', 'Express', 'Docker API', 'WebSockets', 'Tailwind'],
+      devNotes: [
+        { id: 'dn_dm1', date: '28.09.2026 19:40', text: 'Napojen Docker Engine UNIX socket pro streamování metrik využití paměti a CPU.' }
+      ],
       tasks: [
         { id: 't_dm1', text: 'Napojení na Docker Engine REST API socket', done: true },
         { id: 't_dm2', text: 'Realtime dashboard stavu kontejnerů a paměti', done: false },
@@ -118,6 +129,11 @@ const DEFAULT_DATA = {
       progress: 15,
       deadline: getRelativeDateStr(45),
       url: '',
+      liveUrl: '',
+      techStack: ['Three.js', 'TypeScript', 'PostgreSQL', '3D Sklad', 'SaaS'],
+      devNotes: [
+        { id: 'dn_ls1', date: '25.09.2026 16:20', text: 'Architektonický rozbor regálového systému a 3D zobrazení skladových buněk.' }
+      ],
       tasks: [
         { id: 't_ls1', text: 'Analýza parametrů skladů a regálových systémů', done: true },
         { id: 't_ls2', text: 'Návrh databázové struktury skladových lokací', done: false },
@@ -189,6 +205,16 @@ function getTodayStr() {
   return new Date().toISOString().split('T')[0];
 }
 
+function formatDateTimeStr(date = new Date()) {
+  const d = new Date(date);
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+  const hours = String(d.getHours()).padStart(2, '0');
+  const mins = String(d.getMinutes()).padStart(2, '0');
+  return `${day}.${month}.${year} ${hours}:${mins}`;
+}
+
 // App State
 let state = loadState();
 try {
@@ -196,6 +222,7 @@ try {
 } catch (e) {}
 let deferredPrompt = null;
 let currentProjectFilter = 'all';
+let currentProjectViewMode = 'grid'; // 'grid' | 'kanban'
 let currentSchoolFilter = 'pending';
 
 // Tombstone set for items deleted in current session to prevent race conditions during sync
@@ -222,6 +249,17 @@ function loadState() {
       if (hasOldDemoProjects || !hasPersonalProjects) {
         ['proj_1', 'proj_2', 'proj_3'].forEach(id => markAsDeleted(id));
         projects = JSON.parse(JSON.stringify(DEFAULT_DATA.projects));
+      } else {
+        // Ensure all existing projects have techStack, devNotes, liveUrl initialized
+        projects = projects.map(p => {
+          const defaultMatch = DEFAULT_DATA.projects.find(dp => dp.id === p.id || dp.title === p.title);
+          return {
+            ...p,
+            techStack: Array.isArray(p.techStack) && p.techStack.length > 0 ? p.techStack : (defaultMatch ? defaultMatch.techStack : []),
+            devNotes: Array.isArray(p.devNotes) && p.devNotes.length > 0 ? p.devNotes : (defaultMatch ? defaultMatch.devNotes : []),
+            liveUrl: p.liveUrl !== undefined ? p.liveUrl : (defaultMatch ? defaultMatch.liveUrl : '')
+          };
+        });
       }
 
       // Gym split migration to Upper/Lower
@@ -712,11 +750,21 @@ function renderProjects() {
   const searchInput = document.getElementById('project-search-input');
   const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
 
-  // Update counts
-  document.getElementById('count-proj-all').textContent = state.projects.length;
-  document.getElementById('count-proj-progress').textContent = state.projects.filter(p => p.status === 'in_progress').length;
-  document.getElementById('count-proj-planned').textContent = state.projects.filter(p => p.status === 'planned').length;
-  document.getElementById('count-proj-done').textContent = state.projects.filter(p => p.status === 'completed').length;
+  // Update filter counts
+  const countAll = document.getElementById('count-proj-all');
+  const countProgress = document.getElementById('count-proj-progress');
+  const countPlanned = document.getElementById('count-proj-planned');
+  const countDone = document.getElementById('count-proj-done');
+
+  if (countAll) countAll.textContent = state.projects.length;
+  if (countProgress) countProgress.textContent = state.projects.filter(p => p.status === 'in_progress').length;
+  if (countPlanned) countPlanned.textContent = state.projects.filter(p => p.status === 'planned').length;
+  if (countDone) countDone.textContent = state.projects.filter(p => p.status === 'completed').length;
+
+  // Always update Kanban columns in background or when active
+  renderProjectsKanban(searchTerm);
+
+  if (!grid) return;
 
   let filtered = state.projects;
   if (currentProjectFilter !== 'all') {
@@ -727,11 +775,10 @@ function renderProjects() {
     filtered = filtered.filter(p => 
       p.title.toLowerCase().includes(searchTerm) || 
       (p.description && p.description.toLowerCase().includes(searchTerm)) ||
-      (p.category && p.category.toLowerCase().includes(searchTerm))
+      (p.category && p.category.toLowerCase().includes(searchTerm)) ||
+      (Array.isArray(p.techStack) && p.techStack.some(t => t.toLowerCase().includes(searchTerm)))
     );
   }
-
-  if (!grid) return;
 
   if (filtered.length === 0) {
     grid.innerHTML = '<div class="card" style="grid-column: 1/-1; text-align: center; padding: 40px;"><p class="text-muted">Žádné projekty neodpovídají zadanému filtru.</p></div>';
@@ -746,6 +793,32 @@ function renderProjects() {
     if (proj.status === 'completed') statusBadge = '<span class="badge badge-success">Dokončeno</span>';
     if (proj.status === 'planned') statusBadge = '<span class="badge badge-warning">Plánováno</span>';
 
+    // Tech Stack Chips
+    const techStackHtml = (Array.isArray(proj.techStack) && proj.techStack.length > 0)
+      ? `<div class="project-tech-stack">${proj.techStack.map(tag => `<span class="tech-chip">${escapeHtml(tag)}</span>`).join('')}</div>`
+      : '';
+
+    // Direct Links (GitHub & Live Demo)
+    let linksHtml = '';
+    if (proj.url || proj.liveUrl) {
+      linksHtml = '<div class="project-links-row">';
+      if (proj.url) {
+        linksHtml += `<a href="${escapeHtml(proj.url)}" target="_blank" rel="noopener" class="project-link-badge" title="Otevřít GitHub repozitář">
+          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
+          <span>GitHub</span>
+        </a>`;
+      }
+      if (proj.liveUrl) {
+        linksHtml += `<a href="${escapeHtml(proj.liveUrl)}" target="_blank" rel="noopener" class="project-link-badge demo-live" title="Otevřít Live aplikaci / demo">
+          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+          <span>Live Demo</span>
+        </a>`;
+      }
+      linksHtml += '</div>';
+    }
+
+    const notesCount = (Array.isArray(proj.devNotes) ? proj.devNotes.length : 0);
+
     return `
       <div class="project-card" data-project-id="${proj.id}">
         <div class="project-card-header">
@@ -757,6 +830,7 @@ function renderProjects() {
         </div>
 
         ${proj.description ? `<p class="project-card-desc">${escapeHtml(proj.description)}</p>` : ''}
+        ${techStackHtml}
 
         <div class="project-progress-section">
           <div class="progress-header">
@@ -776,12 +850,15 @@ function renderProjects() {
           <div class="project-subtasks">
             ${tasks.map(t => `
               <div class="subtask-item ${t.done ? 'done' : ''}" data-task-id="${t.id}" data-project-id="${proj.id}">
-                <div class="custom-checkbox">
-                  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
+                <div class="subtask-content">
+                  <div class="custom-checkbox">
+                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                  </div>
+                  <span>${escapeHtml(t.text)}</span>
                 </div>
-                <span>${escapeHtml(t.text)}</span>
+                <button type="button" class="btn-del-subtask" data-task-id="${t.id}" data-project-id="${proj.id}" title="Smazat podúkol">&times;</button>
               </div>
             `).join('')}
           </div>
@@ -793,12 +870,15 @@ function renderProjects() {
 
         <div class="project-footer">
           <div class="project-deadline-meta">
-            ${proj.deadline ? `📅 ${proj.deadline}` : 'Bez termínu'}
-            ${proj.url ? ` • <a href="${escapeHtml(proj.url)}" target="_blank" rel="noopener">Odkaz ↗</a>` : ''}
+            ${proj.deadline ? `<span>📅 ${proj.deadline}</span>` : '<span>Bez termínu</span>'}
+            ${linksHtml}
           </div>
           <div class="project-card-actions">
-            <button class="btn btn-sm btn-secondary btn-edit-project" data-id="${proj.id}">Upravit</button>
-            <button class="btn btn-sm btn-danger btn-delete-project" data-id="${proj.id}">Smazat</button>
+            <button type="button" class="btn btn-sm btn-secondary btn-notes-project" data-id="${proj.id}" title="Otevřít vývojářský deník a poznámky">
+              📝 Deník (${notesCount})
+            </button>
+            <button type="button" class="btn btn-sm btn-secondary btn-edit-project" data-id="${proj.id}">Upravit</button>
+            <button type="button" class="btn btn-sm btn-danger btn-delete-project" data-id="${proj.id}">Smazat</button>
           </div>
         </div>
       </div>
@@ -806,11 +886,22 @@ function renderProjects() {
   }).join('');
 
   // Event handlers for project cards
-  grid.querySelectorAll('.subtask-item').forEach(el => {
+  grid.querySelectorAll('.subtask-content').forEach(el => {
     el.addEventListener('click', () => {
-      const projId = el.getAttribute('data-project-id');
-      const taskId = el.getAttribute('data-task-id');
+      const parent = el.closest('.subtask-item');
+      if (!parent) return;
+      const projId = parent.getAttribute('data-project-id');
+      const taskId = parent.getAttribute('data-task-id');
       toggleProjectSubtask(projId, taskId);
+    });
+  });
+
+  grid.querySelectorAll('.btn-del-subtask').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const projId = btn.getAttribute('data-project-id');
+      const taskId = btn.getAttribute('data-task-id');
+      deleteProjectSubtask(projId, taskId);
     });
   });
 
@@ -823,6 +914,13 @@ function renderProjects() {
         addProjectSubtask(projId, input.value.trim());
         input.value = '';
       }
+    });
+  });
+
+  grid.querySelectorAll('.btn-notes-project').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const projId = btn.getAttribute('data-id');
+      openProjectNotesModal(projId);
     });
   });
 
@@ -839,6 +937,300 @@ function renderProjects() {
       deleteProject(projId);
     });
   });
+}
+
+// ==========================================================================
+// 2B. KANBAN BOARD RENDERING
+// ==========================================================================
+function renderProjectsKanban(searchTerm = '') {
+  const listPlanned = document.getElementById('kanban-list-planned');
+  const listProgress = document.getElementById('kanban-list-progress');
+  const listCompleted = document.getElementById('kanban-list-completed');
+
+  const countPlanned = document.getElementById('kanban-count-planned');
+  const countProgress = document.getElementById('kanban-count-progress');
+  const countCompleted = document.getElementById('kanban-count-completed');
+
+  if (!listPlanned || !listProgress || !listCompleted) return;
+
+  let allProjects = state.projects;
+  if (searchTerm) {
+    allProjects = allProjects.filter(p =>
+      p.title.toLowerCase().includes(searchTerm) ||
+      (p.description && p.description.toLowerCase().includes(searchTerm)) ||
+      (p.category && p.category.toLowerCase().includes(searchTerm)) ||
+      (Array.isArray(p.techStack) && p.techStack.some(t => t.toLowerCase().includes(searchTerm)))
+    );
+  }
+
+  const planned = allProjects.filter(p => p.status === 'planned');
+  const inProgress = allProjects.filter(p => p.status === 'in_progress');
+  const completed = allProjects.filter(p => p.status === 'completed');
+
+  if (countPlanned) countPlanned.textContent = planned.length;
+  if (countProgress) countProgress.textContent = inProgress.length;
+  if (countCompleted) countCompleted.textContent = completed.length;
+
+  const renderKanbanCard = (proj) => {
+    const tasks = proj.tasks || [];
+    const doneTasksCount = tasks.filter(t => t.done).length;
+    const notesCount = (Array.isArray(proj.devNotes) ? proj.devNotes.length : 0);
+
+    const techChips = (Array.isArray(proj.techStack) && proj.techStack.length > 0)
+      ? `<div class="project-tech-stack">${proj.techStack.map(t => `<span class="tech-chip">${escapeHtml(t)}</span>`).join('')}</div>`
+      : '';
+
+    // Action buttons depending on status
+    let moveButtons = '';
+    if (proj.status === 'planned') {
+      moveButtons = `<button type="button" class="btn-kanban-move" data-id="${proj.id}" data-target-status="in_progress">▶ Začít řešit</button>`;
+    } else if (proj.status === 'in_progress') {
+      moveButtons = `
+        <button type="button" class="btn-kanban-move" data-id="${proj.id}" data-target-status="planned">◀ Plán</button>
+        <button type="button" class="btn-kanban-move" data-id="${proj.id}" data-target-status="completed">✓ Hotovo</button>
+      `;
+    } else if (proj.status === 'completed') {
+      moveButtons = `<button type="button" class="btn-kanban-move" data-id="${proj.id}" data-target-status="in_progress">◀ Znovu otevřít</button>`;
+    }
+
+    return `
+      <div class="kanban-card" data-project-id="${proj.id}">
+        <div class="kanban-card-top">
+          <h4 class="kanban-card-title">${escapeHtml(proj.title)}</h4>
+          ${proj.category ? `<span class="project-tag">${escapeHtml(proj.category)}</span>` : ''}
+        </div>
+
+        ${proj.description ? `<p class="kanban-card-desc">${escapeHtml(proj.description)}</p>` : ''}
+        ${techChips}
+
+        <div class="project-progress-section" style="margin-top: 4px;">
+          <div class="progress-bar">
+            <div class="progress-fill fill-indigo" style="width: ${proj.progress || 0}%"></div>
+          </div>
+        </div>
+
+        <div class="kanban-card-meta">
+          <span>📋 ${doneTasksCount}/${tasks.length} úkolů (${proj.progress || 0}%)</span>
+          ${proj.deadline ? `<span>📅 ${proj.deadline}</span>` : ''}
+        </div>
+
+        <div class="kanban-card-actions">
+          <div style="display: flex; gap: 4px;">
+            ${moveButtons}
+          </div>
+          <div style="display: flex; gap: 4px;">
+            <button type="button" class="btn btn-sm btn-secondary btn-notes-project" data-id="${proj.id}" title="Vývojářský deník">
+              📝 ${notesCount}
+            </button>
+            <button type="button" class="btn btn-sm btn-secondary btn-edit-project" data-id="${proj.id}" title="Upravit projekt">
+              ⚙️
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  };
+
+  listPlanned.innerHTML = planned.length > 0 
+    ? planned.map(renderKanbanCard).join('') 
+    : '<div class="kanban-empty-hint">Žádné plánované projekty</div>';
+
+  listProgress.innerHTML = inProgress.length > 0 
+    ? inProgress.map(renderKanbanCard).join('') 
+    : '<div class="kanban-empty-hint">Žádné projekty v řešení</div>';
+
+  listCompleted.innerHTML = completed.length > 0 
+    ? completed.map(renderKanbanCard).join('') 
+    : '<div class="kanban-empty-hint">Žádné dokončené projekty</div>';
+
+  // Event handlers for Kanban move buttons
+  const board = document.getElementById('projects-kanban-board');
+  if (board) {
+    board.querySelectorAll('.btn-kanban-move').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const projId = btn.getAttribute('data-id');
+        const targetStatus = btn.getAttribute('data-target-status');
+        moveProjectStatus(projId, targetStatus);
+      });
+    });
+
+    board.querySelectorAll('.btn-notes-project').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const projId = btn.getAttribute('data-id');
+        openProjectNotesModal(projId);
+      });
+    });
+
+    board.querySelectorAll('.btn-edit-project').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const projId = btn.getAttribute('data-id');
+        openProjectModal(projId);
+      });
+    });
+  }
+}
+
+function switchProjectView(mode) {
+  currentProjectViewMode = mode;
+  const btnGrid = document.getElementById('btn-project-view-grid');
+  const btnKanban = document.getElementById('btn-project-view-kanban');
+  const gridEl = document.getElementById('projects-grid');
+  const kanbanEl = document.getElementById('projects-kanban-board');
+  const filterPills = document.getElementById('project-filters');
+
+  if (mode === 'kanban') {
+    if (btnGrid) btnGrid.classList.remove('active');
+    if (btnKanban) btnKanban.classList.add('active');
+    if (gridEl) gridEl.classList.add('hidden');
+    if (kanbanEl) kanbanEl.classList.remove('hidden');
+    if (filterPills) filterPills.style.opacity = '0.35';
+  } else {
+    if (btnGrid) btnGrid.classList.add('active');
+    if (btnKanban) btnKanban.classList.remove('active');
+    if (gridEl) gridEl.classList.remove('hidden');
+    if (kanbanEl) kanbanEl.classList.add('hidden');
+    if (filterPills) filterPills.style.opacity = '1';
+  }
+
+  renderProjects();
+}
+
+function moveProjectStatus(projId, nextStatus) {
+  const proj = state.projects.find(p => p.id === projId);
+  if (!proj) return;
+
+  proj.status = nextStatus;
+
+  if (nextStatus === 'completed') {
+    proj.progress = 100;
+    if (proj.tasks) {
+      proj.tasks.forEach(t => t.done = true);
+    }
+  } else if (nextStatus === 'in_progress' && proj.progress === 100) {
+    proj.progress = 75;
+  }
+
+  saveState();
+  renderProjects();
+  renderOverview();
+  updateMetrics();
+  updateSidebarBadges();
+  
+  const statusLabel = nextStatus === 'in_progress' ? 'V řešení' : (nextStatus === 'completed' ? 'Hotovo' : 'Plánováno');
+  showToast(`Projekt „${proj.title}“ přesunut: ${statusLabel}`);
+}
+
+function deleteProjectSubtask(projId, taskId) {
+  const proj = state.projects.find(p => p.id === projId);
+  if (!proj || !proj.tasks) return;
+
+  proj.tasks = proj.tasks.filter(t => t.id !== taskId);
+
+  if (proj.tasks.length > 0) {
+    const doneCount = proj.tasks.filter(t => t.done).length;
+    proj.progress = Math.round((doneCount / proj.tasks.length) * 100);
+  }
+
+  saveState();
+  renderProjects();
+  renderOverview();
+  updateMetrics();
+  showToast('Podúkol smazán');
+}
+
+// ==========================================================================
+// 2C. DEV NOTES / CHANGELOG MODAL
+// ==========================================================================
+let currentNotesProjectId = null;
+
+function openProjectNotesModal(projId) {
+  const modal = document.getElementById('modal-project-notes');
+  const proj = state.projects.find(p => p.id === projId);
+  if (!modal || !proj) return;
+
+  currentNotesProjectId = projId;
+  const idInput = document.getElementById('project-note-proj-id');
+  const titleEl = document.getElementById('modal-project-notes-title');
+  const subEl = document.getElementById('modal-project-notes-sub');
+  const noteInput = document.getElementById('project-note-input');
+
+  if (idInput) idInput.value = projId;
+  if (titleEl) titleEl.textContent = `Vývojářský deník: ${proj.title}`;
+  if (subEl) subEl.textContent = proj.category ? `Kategorie: ${proj.category}` : 'Zápis nápadů, architektury a milníků';
+  if (noteInput) {
+    noteInput.value = '';
+    setTimeout(() => noteInput.focus(), 100);
+  }
+
+  renderProjectDevNotesList(projId);
+  modal.showModal();
+}
+
+function renderProjectDevNotesList(projId) {
+  const container = document.getElementById('project-dev-notes-list');
+  const countEl = document.getElementById('project-notes-count');
+  const proj = state.projects.find(p => p.id === projId);
+  if (!container || !proj) return;
+
+  const notes = Array.isArray(proj.devNotes) ? [...proj.devNotes] : [];
+  if (countEl) countEl.textContent = `${notes.length} záznamů`;
+
+  if (notes.length === 0) {
+    container.innerHTML = '<p class="text-muted text-sm" style="text-align: center; padding: 24px;">Zatím žádné záznamy v deníku projektu. Přidej první výše!</p>';
+    return;
+  }
+
+  // Reverse to show newest notes first
+  const reversedNotes = [...notes].reverse();
+
+  container.innerHTML = reversedNotes.map(n => `
+    <div class="dev-note-item" data-note-id="${n.id}">
+      <div class="dev-note-header">
+        <span class="dev-note-date">🗓️ ${escapeHtml(n.date || '')}</span>
+        <button type="button" class="btn-del-dev-note" data-note-id="${n.id}" data-proj-id="${proj.id}" title="Smazat záznam">&times;</button>
+      </div>
+      <div class="dev-note-text">${escapeHtml(n.text || '')}</div>
+    </div>
+  `).join('');
+
+  container.querySelectorAll('.btn-del-dev-note').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const pId = btn.getAttribute('data-proj-id');
+      const nId = btn.getAttribute('data-note-id');
+      deleteProjectDevNote(pId, nId);
+    });
+  });
+}
+
+function addProjectDevNote(projId, text) {
+  const proj = state.projects.find(p => p.id === projId);
+  if (!proj || !text.trim()) return;
+
+  if (!Array.isArray(proj.devNotes)) {
+    proj.devNotes = [];
+  }
+
+  proj.devNotes.push({
+    id: 'dn_' + Date.now(),
+    date: formatDateTimeStr(new Date()),
+    text: text.trim()
+  });
+
+  saveState();
+  renderProjectDevNotesList(projId);
+  renderProjects();
+  showToast('Záznam zapsán do deníku 📝');
+}
+
+function deleteProjectDevNote(projId, noteId) {
+  const proj = state.projects.find(p => p.id === projId);
+  if (!proj || !proj.devNotes) return;
+
+  proj.devNotes = proj.devNotes.filter(n => n.id !== noteId);
+  saveState();
+  renderProjectDevNotesList(projId);
+  renderProjects();
+  showToast('Záznam smazán');
 }
 
 function toggleProjectSubtask(projId, taskId) {
@@ -1259,11 +1651,19 @@ function openProjectModal(projectId = null) {
     progressVal.textContent = `${proj.progress || 0} %`;
     document.getElementById('proj-deadline').value = proj.deadline || '';
     document.getElementById('proj-url').value = proj.url || '';
+    const liveUrlEl = document.getElementById('proj-live-url');
+    if (liveUrlEl) liveUrlEl.value = proj.liveUrl || '';
+    const techEl = document.getElementById('proj-tech-stack');
+    if (techEl) techEl.value = Array.isArray(proj.techStack) ? proj.techStack.join(', ') : '';
     document.getElementById('proj-desc').value = proj.description || '';
   } else {
     titleEl.textContent = 'Nový projekt';
     document.getElementById('proj-id').value = '';
     progressVal.textContent = '0 %';
+    const liveUrlEl = document.getElementById('proj-live-url');
+    if (liveUrlEl) liveUrlEl.value = '';
+    const techEl = document.getElementById('proj-tech-stack');
+    if (techEl) techEl.value = '';
   }
 
   modal.showModal();
@@ -1633,10 +2033,17 @@ function setupEventListeners() {
 
   // --- Modal Close Buttons ---
   setupModalClose('modal-project', 'modal-project-close', 'modal-project-cancel');
+  setupModalClose('modal-project-notes', 'modal-project-notes-close', 'modal-project-notes-cancel');
   setupModalClose('modal-workout', 'modal-workout-close', 'modal-workout-cancel');
   setupModalClose('modal-exercises', 'modal-exercises-close', 'modal-exercises-cancel');
   setupModalClose('modal-school', 'modal-school-close', 'modal-school-cancel');
   setupModalClose('modal-split', 'modal-split-close', 'modal-split-cancel');
+
+  // --- Project View Mode Toggle (Grid vs. Kanban) ---
+  const btnViewGrid = document.getElementById('btn-project-view-grid');
+  const btnViewKanban = document.getElementById('btn-project-view-kanban');
+  if (btnViewGrid) btnViewGrid.addEventListener('click', () => switchProjectView('grid'));
+  if (btnViewKanban) btnViewKanban.addEventListener('click', () => switchProjectView('kanban'));
 
   // --- Range slider listener ---
   const rangeInput = document.getElementById('proj-progress');
@@ -1736,6 +2143,9 @@ function setupEventListeners() {
       const progress = parseInt(document.getElementById('proj-progress').value, 10);
       const deadline = document.getElementById('proj-deadline').value;
       const url = document.getElementById('proj-url').value.trim();
+      const liveUrl = (document.getElementById('proj-live-url')?.value || '').trim();
+      const techStackRaw = (document.getElementById('proj-tech-stack')?.value || '').trim();
+      const techStack = techStackRaw ? techStackRaw.split(',').map(s => s.trim()).filter(Boolean) : [];
       const desc = document.getElementById('proj-desc').value.trim();
 
       if (id) {
@@ -1748,6 +2158,8 @@ function setupEventListeners() {
           proj.progress = progress;
           proj.deadline = deadline;
           proj.url = url;
+          proj.liveUrl = liveUrl;
+          proj.techStack = techStack;
           proj.description = desc;
         }
       } else {
@@ -1760,6 +2172,9 @@ function setupEventListeners() {
           progress,
           deadline,
           url,
+          liveUrl,
+          techStack,
+          devNotes: [],
           description: desc,
           tasks: []
         });
@@ -1772,6 +2187,20 @@ function setupEventListeners() {
       updateMetrics();
       updateSidebarBadges();
       showToast('Projekt byl úspěšně uložen');
+    });
+  }
+
+  // 1B. Project Dev Note Form
+  const formAddProjectNote = document.getElementById('form-add-project-note');
+  if (formAddProjectNote) {
+    formAddProjectNote.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const projId = document.getElementById('project-note-proj-id')?.value;
+      const noteInput = document.getElementById('project-note-input');
+      if (projId && noteInput && noteInput.value.trim()) {
+        addProjectDevNote(projId, noteInput.value.trim());
+        noteInput.value = '';
+      }
     });
   }
 
@@ -2568,19 +2997,28 @@ async function pushToSupabase(isManual = false) {
     // 2. Projects
     if (state.projects) {
       if (state.projects.length > 0) {
-        const projectRows = state.projects.map(p => ({
-          id: p.id,
-          user_id: userId,
-          title: p.title,
-          description: p.description || '',
-          category: p.category || '',
-          status: p.status || 'in_progress',
-          progress: p.progress || 0,
-          deadline: p.deadline || null,
-          url: p.url || '',
-          tasks: p.tasks || [],
-          updated_at: nowIso
-        }));
+        const projectRows = state.projects.map(p => {
+          const cleanTasks = (p.tasks || []).filter(t => t.id !== '__meta__');
+          const meta = {
+            id: '__meta__',
+            techStack: p.techStack || [],
+            devNotes: p.devNotes || [],
+            liveUrl: p.liveUrl || ''
+          };
+          return {
+            id: p.id,
+            user_id: userId,
+            title: p.title,
+            description: p.description || '',
+            category: p.category || '',
+            status: p.status || 'in_progress',
+            progress: p.progress || 0,
+            deadline: p.deadline || null,
+            url: p.url || '',
+            tasks: [...cleanTasks, meta],
+            updated_at: nowIso
+          };
+        });
         await supabaseClient.from('projects').upsert(projectRows);
 
         const localProjIds = state.projects.map(p => p.id);
@@ -2780,17 +3218,27 @@ async function pullFromSupabase(isRealtime = false, isManual = false) {
       if (projectsRes.data) {
         const cloudProjects = projectsRes.data
           .filter(p => !recentlyDeletedIds.has(p.id))
-          .map(p => ({
-            id: p.id,
-            title: p.title,
-            description: p.description || '',
-            category: p.category || '',
-            status: p.status || 'in_progress',
-            progress: p.progress || 0,
-            deadline: p.deadline || '',
-            url: p.url || '',
-            tasks: Array.isArray(p.tasks) ? p.tasks : []
-          }));
+          .map(p => {
+            const rawTasks = Array.isArray(p.tasks) ? p.tasks : [];
+            const metaItem = rawTasks.find(t => t && t.id === '__meta__');
+            const realTasks = rawTasks.filter(t => !t || t.id !== '__meta__');
+            const existingLocal = state.projects.find(local => local.id === p.id);
+
+            return {
+              id: p.id,
+              title: p.title,
+              description: p.description || '',
+              category: p.category || '',
+              status: p.status || 'in_progress',
+              progress: p.progress || 0,
+              deadline: p.deadline || '',
+              url: p.url || '',
+              tasks: realTasks,
+              techStack: (metaItem && Array.isArray(metaItem.techStack)) ? metaItem.techStack : (existingLocal?.techStack || []),
+              devNotes: (metaItem && Array.isArray(metaItem.devNotes)) ? metaItem.devNotes : (existingLocal?.devNotes || []),
+              liveUrl: (metaItem && metaItem.liveUrl !== undefined) ? metaItem.liveUrl : (existingLocal?.liveUrl || '')
+            };
+          });
 
         const hasOldDemo = cloudProjects.some(p => p.id === 'proj_1' || p.id === 'proj_2' || p.id === 'proj_3');
         const hasPersonal = cloudProjects.some(p => p.title === 'PubMate' || p.title === 'Dockmaster' || p.title === 'LogiSpace');

@@ -331,11 +331,57 @@
               <button class="filter-pill" data-filter="planned">Plánováno (<span id="count-proj-planned">0</span>)</button>
               <button class="filter-pill" data-filter="completed">Hotovo (<span id="count-proj-done">0</span>)</button>
             </div>
+            <div class="view-mode-toggle" id="project-view-mode-toggle">
+              <button type="button" class="btn-view-toggle active" id="btn-project-view-grid" title="Zobrazit jako karty">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                <span>Karty</span>
+              </button>
+              <button type="button" class="btn-view-toggle" id="btn-project-view-kanban" title="Zobrazit jako Kanban nástěnku">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="5" height="18" rx="1"></rect><rect x="10" y="3" width="5" height="12" rx="1"></rect><rect x="17" y="3" width="5" height="15" rx="1"></rect></svg>
+                <span>Kanban</span>
+              </button>
+            </div>
           </div>
 
           <!-- Projects Grid -->
           <div class="projects-grid" id="projects-grid">
             <!-- Dynamic Project Cards -->
+          </div>
+
+          <!-- Projects Kanban Board -->
+          <div class="projects-kanban-board hidden" id="projects-kanban-board">
+            <div class="kanban-column" data-status="planned">
+              <div class="kanban-column-header header-planned">
+                <div class="kanban-col-title-wrap">
+                  <span class="kanban-col-dot dot-planned"></span>
+                  <h4>Plánováno</h4>
+                </div>
+                <span class="kanban-badge" id="kanban-count-planned">0</span>
+              </div>
+              <div class="kanban-cards-list" id="kanban-list-planned"></div>
+            </div>
+
+            <div class="kanban-column" data-status="in_progress">
+              <div class="kanban-column-header header-progress">
+                <div class="kanban-col-title-wrap">
+                  <span class="kanban-col-dot dot-progress"></span>
+                  <h4>V řešení</h4>
+                </div>
+                <span class="kanban-badge" id="kanban-count-progress">0</span>
+              </div>
+              <div class="kanban-cards-list" id="kanban-list-progress"></div>
+            </div>
+
+            <div class="kanban-column" data-status="completed">
+              <div class="kanban-column-header header-completed">
+                <div class="kanban-col-title-wrap">
+                  <span class="kanban-col-dot dot-completed"></span>
+                  <h4>Hotovo</h4>
+                </div>
+                <span class="kanban-badge" id="kanban-count-completed">0</span>
+              </div>
+              <div class="kanban-cards-list" id="kanban-list-completed"></div>
+            </div>
           </div>
         </section>
 
@@ -631,8 +677,18 @@
           </div>
         </div>
         <div class="form-group">
-          <label for="proj-url">Odkaz (GitHub repo, web, design...)</label>
-          <input type="url" id="proj-url" class="form-input" placeholder="https://github.com/...">
+          <label for="proj-tech-stack">Tech Stack (oddělené čárkou)</label>
+          <input type="text" id="proj-tech-stack" class="form-input" placeholder="např. React, Node.js, Docker, Supabase, Tailwind">
+        </div>
+        <div class="form-row">
+          <div class="form-group col-half">
+            <label for="proj-url">GitHub / Repozitář</label>
+            <input type="url" id="proj-url" class="form-input" placeholder="https://github.com/...">
+          </div>
+          <div class="form-group col-half">
+            <label for="proj-live-url">Live Demo / Web</label>
+            <input type="url" id="proj-live-url" class="form-input" placeholder="https://...">
+          </div>
         </div>
         <div class="form-group">
           <label for="proj-desc">Popis a poznámky</label>
@@ -643,6 +699,45 @@
           <button type="submit" class="btn btn-primary" id="btn-save-project">Uložit projekt</button>
         </div>
       </form>
+    </div>
+  </dialog>
+
+  <!-- ================= DIALOG: PROJECT DEV NOTES / CHANGELOG ================= -->
+  <dialog id="modal-project-notes" class="custom-dialog custom-dialog-wide">
+    <div class="dialog-content">
+      <div class="dialog-header">
+        <div>
+          <h3 id="modal-project-notes-title">Vývojářský deník projektu</h3>
+          <p class="text-xs text-muted" id="modal-project-notes-sub" style="margin-top: 2px;">Zápis nápadů, architektury a milníků</p>
+        </div>
+        <button class="btn-close" id="modal-project-notes-close" aria-label="Zavřít">&times;</button>
+      </div>
+
+      <form id="form-add-project-note" style="margin-bottom: 20px;">
+        <input type="hidden" id="project-note-proj-id">
+        <div class="form-group">
+          <label for="project-note-input">Nový záznam do deníku / myšlenka</label>
+          <textarea id="project-note-input" class="form-textarea" rows="3" placeholder="Co jsi vyřešil, jakou architekturu jsi zvolil, nebo co plánuješ dál..." required></textarea>
+        </div>
+        <div style="display: flex; justify-content: flex-end;">
+          <button type="submit" class="btn btn-primary btn-sm">
+            <span>+ Zapsat do deníku</span>
+          </button>
+        </div>
+      </form>
+
+      <div class="sub-header" style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+        <h4 style="font-size: 14px; font-weight: 600;">Historie záznamů a milníků</h4>
+        <span class="text-xs text-muted" id="project-notes-count">0 záznamů</span>
+      </div>
+
+      <div class="project-dev-notes-list" id="project-dev-notes-list">
+        <!-- Rendered by JS -->
+      </div>
+
+      <div class="dialog-actions" style="margin-top: 20px;">
+        <button type="button" class="btn btn-secondary" id="modal-project-notes-cancel">Zavřít</button>
+      </div>
     </div>
   </dialog>
 
