@@ -15,57 +15,34 @@ const DEFAULT_DATA = {
   },
   gym: {
     split: [
-      { day: 1, dayName: 'Pondělí', focus: 'Push (Hrudník, Ramena, Triceps)', rest: false },
-      { day: 2, dayName: 'Úterý', focus: 'Pull (Záda, Biceps, Zadní ramena)', rest: false },
+      { day: 1, dayName: 'Pondělí', focus: 'Upper (Vrchní tělo - Hrudník, Záda, Ramena, Ruce)', rest: false },
+      { day: 2, dayName: 'Úterý', focus: 'Lower (Spodní tělo - Nohy, Lýtka, Břicho)', rest: false },
       { day: 3, dayName: 'Středa', focus: 'Odpočinek / Regenerace', rest: true },
-      { day: 4, dayName: 'Čtvrtek', focus: 'Legs (Dřepy, Hamstringy, Lýtka)', rest: false },
-      { day: 5, dayName: 'Pátek', focus: 'Vrchní tělo / Slabiny', rest: false },
-      { day: 6, dayName: 'Sobota', focus: 'Kardio / Běh / Procházka', rest: false },
-      { day: 0, dayName: 'Neděle', focus: 'Rest day & Příprava na týden', rest: true }
+      { day: 4, dayName: 'Čtvrtek', focus: 'Upper (Vrchní tělo - Hrudník, Záda, Ramena, Ruce)', rest: false },
+      { day: 5, dayName: 'Pátek', focus: 'Lower (Spodní tělo - Nohy, Lýtka, Břicho)', rest: false },
+      { day: 6, dayName: 'Sobota', focus: 'Odpočinek / Regenerace nebo Kardio', rest: true },
+      { day: 0, dayName: 'Neděle', focus: 'Rest day & Příprava na nový týden', rest: true }
     ],
     exercisesBySplit: {
-      'Push': [
+      'Upper': [
         'Bench press',
         'Tlaky s jednoručkami na šikmé lavici',
-        'Tlaky na ramena (OHP)',
-        'Upažování s jednoručkami',
-        'Triceps stahování kladky',
-        'Dips (Bradla)',
-        'Kliky'
-      ],
-      'Pull': [
-        'Shyby na hrazdě',
-        'Mrtvý tah',
         'Přítahy činky v předklonu',
-        'Stahování horní kladky na hrudník',
-        'Bicepsový zdvih s velkou činkou',
-        'Kladivové zdvihy',
-        'Face pulls na kladce'
+        'Shyby na hrazdě / Stahování kladky',
+        'Tlaky na ramena (OHP / Jednoručky)',
+        'Upažování s jednoručkami',
+        'Bicepsový zdvih (činka / jednoručky)',
+        'Triceps stahování kladky / Dips',
+        'Face pulls na zadní ramena'
       ],
-      'Legs': [
+      'Lower': [
         'Dřepy s činkou',
         'Leg press',
         'Rumunský mrtvý tah (RDL)',
-        'Předkopávání na stroji',
-        'Zakopávání na stroji',
+        'Zakopávání na stroji (Hamstringy)',
+        'Předkopávání na stroji (Kvadricepsy)',
         'Výpony na lýtka',
-        'Zdvihy nohou / Břicho'
-      ],
-      'Fullbody': [
-        'Dřep s činkou',
-        'Bench press',
-        'Mrtvý tah',
-        'Tlaky na ramena',
-        'Shyby na hrazdě',
-        'Plank / Břicho'
-      ],
-      'Vrchní tělo': [
-        'Bench press',
-        'Přítahy činky v předklonu',
-        'Tlaky na ramena',
-        'Stahování kladky',
-        'Bicepsový zdvih',
-        'Triceps stahování'
+        'Zdvihy nohou na hrazdě / Plank / Břicho'
       ],
       'Kardio': [
         'Běh na pásu',
@@ -84,18 +61,18 @@ const DEFAULT_DATA = {
       {
         id: 'log_1',
         date: getRelativeDateStr(-2),
-        type: 'Push',
+        type: 'Upper',
         duration: 65,
         rating: 5,
-        exercises: '• Bench press: 4 série (80 kg × 8, 80 kg × 8, 80 kg × 7, 75 kg × 8)\n• Tlaky na šikmé lavici: 3 série (28 kg × 10, 28 kg × 10, 26 kg × 9)\n• Upažování: 4 série (12 kg × 12, 12 kg × 12, 12 kg × 10, 10 kg × 12)\n• Triceps lano na kladce: 3 série (35 kg × 15, 35 kg × 14, 30 kg × 15)'
+        exercises: '• Bench press: 4 série (80 kg × 8, 80 kg × 8, 80 kg × 7, 75 kg × 8)\n• Přítahy činky v předklonu: 4 série (65 kg × 10, 65 kg × 10, 60 kg × 10, 60 kg × 10)\n• Tlaky na ramena (OHP): 3 série (45 kg × 8, 45 kg × 8, 40 kg × 8)\n• Triceps stahování kladky: 3 série (35 kg × 12, 35 kg × 12, 30 kg × 15)\n• Bicepsový zdvih: 3 série (16 kg × 10, 16 kg × 10, 14 kg × 12)'
       },
       {
         id: 'log_2',
         date: getRelativeDateStr(-1),
-        type: 'Pull',
+        type: 'Lower',
         duration: 70,
         rating: 4,
-        exercises: '• Shyby na hrazdě: 4 série (8 reps, 8 reps, 7 reps, 6 reps)\n• Mrtvý tah: 3 série (120 kg × 6, 120 kg × 6, 120 kg × 5)\n• Přítahy činky v předklonu: 4 série (60 kg × 10, 60 kg × 10, 60 kg × 9, 55 kg × 10)\n• Biceps velká činka: 3 série (30 kg × 12, 30 kg × 11, 28 kg × 12)'
+        exercises: '• Dřepy s činkou: 4 série (100 kg × 6, 100 kg × 6, 95 kg × 6, 90 kg × 8)\n• Rumunský mrtvý tah (RDL): 3 série (90 kg × 8, 90 kg × 8, 90 kg × 8)\n• Leg press: 3 série (160 kg × 10, 160 kg × 10, 150 kg × 12)\n• Zakopávání na stroji: 3 série (45 kg × 12, 45 kg × 12, 40 kg × 12)\n• Výpony na lýtka: 4 série (70 kg × 15, 70 kg × 15, 70 kg × 12, 60 kg × 15)'
       }
     ]
   },
@@ -214,6 +191,9 @@ function getTodayStr() {
 
 // App State
 let state = loadState();
+try {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+} catch (e) {}
 let deferredPrompt = null;
 let currentProjectFilter = 'all';
 let currentSchoolFilter = 'pending';
@@ -244,14 +224,37 @@ function loadState() {
         projects = JSON.parse(JSON.stringify(DEFAULT_DATA.projects));
       }
 
-      // Gym exercises library by split
+      // Gym split migration to Upper/Lower
+      let split = (parsed.gym && parsed.gym.split) || DEFAULT_DATA.gym.split;
+      const hasOldSplit = split.some(s => s.focus && (s.focus.includes('Push') || s.focus.includes('Pull') || (s.focus.includes('Legs') && !s.focus.includes('Lower'))));
+      if (hasOldSplit || !split.some(s => s.focus && s.focus.includes('Upper'))) {
+        split = JSON.parse(JSON.stringify(DEFAULT_DATA.gym.split));
+      }
+
+      // Gym exercises library migration to Upper/Lower
+      let exercisesBySplit = parsed.gym && parsed.gym.exercisesBySplit;
+      const hasOldExercises = !exercisesBySplit || exercisesBySplit['Push'] || exercisesBySplit['Pull'] || !exercisesBySplit['Upper'] || !exercisesBySplit['Lower'];
+      if (hasOldExercises) {
+        exercisesBySplit = JSON.parse(JSON.stringify(DEFAULT_DATA.gym.exercisesBySplit));
+      }
+
+      // Gym logs type migration (Push -> Upper, Pull -> Upper, Legs -> Lower)
+      let logs = (parsed.gym && parsed.gym.logs) || DEFAULT_DATA.gym.logs;
+      if (Array.isArray(logs) && logs.some(l => l.type === 'Push' || l.type === 'Pull' || l.type === 'Legs')) {
+        logs = logs.map(l => {
+          if (l.type === 'Push') return { ...l, type: 'Upper' };
+          if (l.type === 'Pull') return { ...l, type: 'Upper' };
+          if (l.type === 'Legs') return { ...l, type: 'Lower' };
+          return l;
+        });
+      }
+
       const gymData = {
         ...DEFAULT_DATA.gym,
         ...(parsed.gym || {}),
-        exercisesBySplit: {
-          ...DEFAULT_DATA.gym.exercisesBySplit,
-          ...((parsed.gym && parsed.gym.exercisesBySplit) || {})
-        }
+        split,
+        exercisesBySplit,
+        logs
       };
 
       return {
@@ -1297,7 +1300,7 @@ function openWorkoutModal() {
   }
 
   currentWorkoutExercises = [];
-  const selectedType = typeSelect ? typeSelect.value : 'Push';
+  const selectedType = (typeSelect && typeSelect.value) ? typeSelect.value : 'Upper';
   renderWorkoutQuickChips(selectedType);
   renderWorkoutExercisesBuilder();
 
@@ -1477,7 +1480,7 @@ function openExercisesModal() {
   if (!modal) return;
   const select = document.getElementById('manage-exercises-split-select');
   if (select) {
-    select.value = 'Push';
+    select.value = 'Upper';
   }
   renderTemplateExercisesList();
   modal.showModal();
@@ -2803,12 +2806,20 @@ async function pullFromSupabase(isRealtime = false, isManual = false) {
 
       // 3. Gym Split
       if (splitRes.data && splitRes.data.length > 0) {
-        state.gym.split = splitRes.data.map(s => ({
+        const cloudSplit = splitRes.data.map(s => ({
           day: s.day,
           dayName: s.day_name,
           focus: s.focus,
           rest: !!s.rest
         }));
+
+        const hasOldSplit = cloudSplit.some(s => s.focus && (s.focus.includes('Push') || s.focus.includes('Pull') || (s.focus.includes('Legs') && !s.focus.includes('Lower'))));
+        if (hasOldSplit || !cloudSplit.some(s => s.focus && s.focus.includes('Upper'))) {
+          state.gym.split = JSON.parse(JSON.stringify(DEFAULT_DATA.gym.split));
+          saveState();
+        } else {
+          state.gym.split = cloudSplit;
+        }
       }
 
       // 4. Gym Logs
@@ -2819,7 +2830,7 @@ async function pullFromSupabase(isRealtime = false, isManual = false) {
             id: l.id,
             date: l.date,
             duration: l.duration || 60,
-            type: l.type,
+            type: l.type === 'Push' || l.type === 'Pull' ? 'Upper' : (l.type === 'Legs' ? 'Lower' : l.type),
             rating: l.rating || 4,
             exercises: l.exercises || ''
           }));
