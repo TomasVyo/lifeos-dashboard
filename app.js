@@ -15,64 +15,75 @@ const DEFAULT_DATA = {
   },
   gym: {
     split: [
-      { day: 1, dayName: 'Pondělí', focus: 'Upper (Vrchní tělo - Hrudník, Záda, Ramena, Ruce)', rest: false },
-      { day: 2, dayName: 'Úterý', focus: 'Lower (Spodní tělo - Nohy, Lýtka, Břicho)', rest: false },
+      { day: 1, dayName: 'Pondělí', focus: 'Upper A', rest: false },
+      { day: 2, dayName: 'Úterý', focus: 'Lower A', rest: false },
       { day: 3, dayName: 'Středa', focus: 'Odpočinek / Regenerace', rest: true },
-      { day: 4, dayName: 'Čtvrtek', focus: 'Upper (Vrchní tělo - Hrudník, Záda, Ramena, Ruce)', rest: false },
-      { day: 5, dayName: 'Pátek', focus: 'Lower (Spodní tělo - Nohy, Lýtka, Břicho)', rest: false },
-      { day: 6, dayName: 'Sobota', focus: 'Odpočinek / Regenerace nebo Kardio', rest: true },
-      { day: 0, dayName: 'Neděle', focus: 'Rest day & Příprava na nový týden', rest: true }
+      { day: 4, dayName: 'Čtvrtek', focus: 'Upper B', rest: false },
+      { day: 5, dayName: 'Pátek', focus: 'Lower B', rest: false },
+      { day: 6, dayName: 'Sobota', focus: 'Kardio & Mobilita', rest: true },
+      { day: 0, dayName: 'Neděle', focus: 'Odpočinek & Příprava', rest: true }
     ],
     exercisesBySplit: {
-      'Upper': [
+      'Upper A': [
         'Bench press',
-        'Tlaky s jednoručkami na šikmé lavici',
         'Přítahy činky v předklonu',
-        'Shyby na hrazdě / Stahování kladky',
         'Tlaky na ramena (OHP / Jednoručky)',
-        'Upažování s jednoručkami',
-        'Bicepsový zdvih (činka / jednoručky)',
-        'Triceps stahování kladky / Dips',
+        'Stahování horní kladky na hrudník',
+        'Bicepsový zdvih s velkou činkou',
+        'Tricepsové stlačování kladky'
+      ],
+      'Lower A': [
+        'Dřepy s velkou činkou',
+        'Rumunský mrtvý tah (RDL)',
+        'Leg press',
+        'Zakopávání na stroji',
+        'Výpony na lýtka vestoje',
+        'Plank / Zdvihy nohou na hrazdě'
+      ],
+      'Upper B': [
+        'Šikmé tlaky s jednoručkami (Incline DB)',
+        'Přítahy jednoručky v předklonu (Kroc row)',
+        'Upažování s jednoručkami (Laterals)',
+        'Shyby na hrazdě',
+        'Kladivové bicepsové zdvihy',
+        'Dipy na bradlech / Francouzský tlak',
         'Face pulls na zadní ramena'
       ],
-      'Lower': [
-        'Dřepy s činkou',
-        'Leg press',
-        'Rumunský mrtvý tah (RDL)',
-        'Zakopávání na stroji (Hamstringy)',
-        'Předkopávání na stroji (Kvadricepsy)',
-        'Výpony na lýtka',
-        'Zdvihy nohou na hrazdě / Plank / Břicho'
+      'Lower B': [
+        'Přední dřep / Hacken dřep',
+        'Bulharské dřepy s jednoručkami',
+        'Předkopávání na stroji',
+        'Hyperextenze na hamstringy/hýždě',
+        'Výpony vsedě',
+        'Břicho na kladce / Ab wheel'
       ],
       'Kardio': [
         'Běh na pásu',
         'Veslovací trenažér',
-        'Švihadlo',
         'Rotoped / Kolo',
         'Chůze do kopce (incline walk)'
       ],
       'Jiné': [
         'Strečink & Mobilita',
-        'Core & Břicho',
         'Funkční kruhový trénink'
       ]
     },
     logs: [
       {
         id: 'log_1',
-        date: getRelativeDateStr(-2),
-        type: 'Upper',
+        date: getRelativeDateStr(-3),
+        type: 'Upper A',
         duration: 65,
         rating: 5,
-        exercises: '• Bench press: 4 série (80 kg × 8, 80 kg × 8, 80 kg × 7, 75 kg × 8)\n• Přítahy činky v předklonu: 4 série (65 kg × 10, 65 kg × 10, 60 kg × 10, 60 kg × 10)\n• Tlaky na ramena (OHP): 3 série (45 kg × 8, 45 kg × 8, 40 kg × 8)\n• Triceps stahování kladky: 3 série (35 kg × 12, 35 kg × 12, 30 kg × 15)\n• Bicepsový zdvih: 3 série (16 kg × 10, 16 kg × 10, 14 kg × 12)'
+        exercises: '• Bench press: 4 série (80 kg × 8, 80 kg × 8, 82.5 kg × 7, 85 kg × 6)\n• Přítahy činky v předklonu: 4 série (65 kg × 10, 65 kg × 10, 70 kg × 8, 70 kg × 8)\n• Tlaky na ramena (OHP / Jednoručky): 3 série (24 kg × 10, 24 kg × 8, 22 kg × 10)\n• Stahování horní kladky na hrudník: 3 série (60 kg × 10, 60 kg × 10, 55 kg × 12)\n• Bicepsový zdvih s velkou činkou: 3 série (30 kg × 10, 30 kg × 10, 27.5 kg × 12)\n• Tricepsové stlačování kladky: 3 série (35 kg × 12, 35 kg × 12, 30 kg × 15)'
       },
       {
         id: 'log_2',
-        date: getRelativeDateStr(-1),
-        type: 'Lower',
+        date: getRelativeDateStr(-2),
+        type: 'Lower A',
         duration: 70,
         rating: 4,
-        exercises: '• Dřepy s činkou: 4 série (100 kg × 6, 100 kg × 6, 95 kg × 6, 90 kg × 8)\n• Rumunský mrtvý tah (RDL): 3 série (90 kg × 8, 90 kg × 8, 90 kg × 8)\n• Leg press: 3 série (160 kg × 10, 160 kg × 10, 150 kg × 12)\n• Zakopávání na stroji: 3 série (45 kg × 12, 45 kg × 12, 40 kg × 12)\n• Výpony na lýtka: 4 série (70 kg × 15, 70 kg × 15, 70 kg × 12, 60 kg × 15)'
+        exercises: '• Dřepy s velkou činkou: 4 série (100 kg × 6, 100 kg × 6, 105 kg × 5, 95 kg × 8)\n• Rumunský mrtvý tah (RDL): 3 série (90 kg × 8, 95 kg × 8, 95 kg × 8)\n• Leg press: 3 série (180 kg × 10, 180 kg × 10, 160 kg × 12)\n• Zakopávání na stroji: 3 série (45 kg × 12, 45 kg × 12, 40 kg × 12)\n• Výpony na lýtka vestoje: 4 série (70 kg × 15, 70 kg × 15, 70 kg × 12, 60 kg × 15)\n• Plank / Zdvihy nohou na hrazdě: 3 série (3 série × 15)'
       }
     ]
   },
@@ -224,6 +235,8 @@ let deferredPrompt = null;
 let currentProjectFilter = 'all';
 let currentProjectViewMode = 'grid'; // 'grid' | 'kanban'
 let currentSchoolFilter = 'pending';
+let activeWorkout = null;
+let activeWorkoutTimerInterval = null;
 
 // Tombstone set for items deleted in current session to prevent race conditions during sync
 const recentlyDeletedIds = new Set();
@@ -262,27 +275,27 @@ function loadState() {
         });
       }
 
-      // Gym split migration to Upper/Lower
+      // Gym split migration to Upper A / Lower A / Upper B / Lower B
       let split = (parsed.gym && parsed.gym.split) || DEFAULT_DATA.gym.split;
-      const hasOldSplit = split.some(s => s.focus && (s.focus.includes('Push') || s.focus.includes('Pull') || (s.focus.includes('Legs') && !s.focus.includes('Lower'))));
-      if (hasOldSplit || !split.some(s => s.focus && s.focus.includes('Upper'))) {
+      const hasOldSplit = split.some(s => s.focus && (s.focus.includes('Push') || s.focus.includes('Pull') || (s.focus.includes('Legs') && !s.focus.includes('Lower')) || s.focus === 'Upper' || s.focus === 'Lower'));
+      if (hasOldSplit || !split.some(s => s.focus && (s.focus.includes('Upper A') || s.focus.includes('Upper')))) {
         split = JSON.parse(JSON.stringify(DEFAULT_DATA.gym.split));
       }
 
-      // Gym exercises library migration to Upper/Lower
+      // Gym exercises library migration to Upper A / Lower A / Upper B / Lower B
       let exercisesBySplit = parsed.gym && parsed.gym.exercisesBySplit;
-      const hasOldExercises = !exercisesBySplit || exercisesBySplit['Push'] || exercisesBySplit['Pull'] || !exercisesBySplit['Upper'] || !exercisesBySplit['Lower'];
+      const hasOldExercises = !exercisesBySplit || !exercisesBySplit['Upper A'] || !exercisesBySplit['Lower A'];
       if (hasOldExercises) {
         exercisesBySplit = JSON.parse(JSON.stringify(DEFAULT_DATA.gym.exercisesBySplit));
       }
 
-      // Gym logs type migration (Push -> Upper, Pull -> Upper, Legs -> Lower)
+      // Gym logs type migration (Push/Upper -> Upper A, Pull -> Upper B, Legs/Lower -> Lower A)
       let logs = (parsed.gym && parsed.gym.logs) || DEFAULT_DATA.gym.logs;
-      if (Array.isArray(logs) && logs.some(l => l.type === 'Push' || l.type === 'Pull' || l.type === 'Legs')) {
+      if (Array.isArray(logs) && logs.some(l => l.type === 'Push' || l.type === 'Pull' || l.type === 'Legs' || l.type === 'Upper' || l.type === 'Lower')) {
         logs = logs.map(l => {
-          if (l.type === 'Push') return { ...l, type: 'Upper' };
-          if (l.type === 'Pull') return { ...l, type: 'Upper' };
-          if (l.type === 'Legs') return { ...l, type: 'Lower' };
+          if (l.type === 'Push' || l.type === 'Upper') return { ...l, type: 'Upper A' };
+          if (l.type === 'Pull') return { ...l, type: 'Upper B' };
+          if (l.type === 'Legs' || l.type === 'Lower') return { ...l, type: 'Lower A' };
           return l;
         });
       }
@@ -330,6 +343,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initNavigation();
   initPWA();
   initHabitsToday();
+  initActiveWorkout();
   renderAllViews();
   setupEventListeners();
   initSupabase();
@@ -1293,8 +1307,374 @@ function deleteProject(projId) {
 // 3. GYM & FITNESS RENDERING
 // ==========================================================================
 function renderGym() {
+  renderActiveWorkoutBanner();
   renderWeeklySplitGrid();
+  renderGymAnalytics();
   renderWorkoutLogs();
+}
+
+function initActiveWorkout() {
+  try {
+    const raw = localStorage.getItem('lifeos_active_workout');
+    if (raw) {
+      activeWorkout = JSON.parse(raw);
+      startActiveWorkoutTimer();
+      renderActiveWorkoutBanner();
+    }
+  } catch (e) {
+    activeWorkout = null;
+  }
+}
+
+function startActiveWorkout(split = null) {
+  const chosenSplit = split || getTodaySplitFocus() || 'Upper A';
+  activeWorkout = {
+    startTime: Date.now(),
+    split: chosenSplit
+  };
+  try {
+    localStorage.setItem('lifeos_active_workout', JSON.stringify(activeWorkout));
+  } catch (e) {}
+  startActiveWorkoutTimer();
+  renderActiveWorkoutBanner();
+  showToast(`🔥 Trénink (${chosenSplit}) zahájen! Stopky běží.`);
+}
+
+function startActiveWorkoutTimer() {
+  if (activeWorkoutTimerInterval) clearInterval(activeWorkoutTimerInterval);
+  updateActiveWorkoutTimerUI();
+  activeWorkoutTimerInterval = setInterval(updateActiveWorkoutTimerUI, 1000);
+}
+
+function updateActiveWorkoutTimerUI() {
+  if (!activeWorkout) {
+    if (activeWorkoutTimerInterval) clearInterval(activeWorkoutTimerInterval);
+    return;
+  }
+  const timerEl = document.getElementById('active-workout-timer');
+  const splitEl = document.getElementById('active-workout-split-name');
+  if (splitEl) splitEl.textContent = activeWorkout.split || 'Trénink';
+
+  const elapsedSeconds = Math.floor((Date.now() - activeWorkout.startTime) / 1000);
+  const hours = Math.floor(elapsedSeconds / 3600);
+  const mins = Math.floor((elapsedSeconds % 3600) / 60);
+  const secs = elapsedSeconds % 60;
+
+  const formatted = hours > 0
+    ? `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
+    : `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+
+  if (timerEl) timerEl.textContent = formatted;
+}
+
+function renderActiveWorkoutBanner() {
+  const banner = document.getElementById('active-workout-banner');
+  if (!banner) return;
+  if (activeWorkout) {
+    banner.classList.remove('hidden');
+    updateActiveWorkoutTimerUI();
+  } else {
+    banner.classList.add('hidden');
+  }
+}
+
+function cancelActiveWorkout() {
+  if (!confirm('Opravdu chceš běžící trénink zrušit? Zaznamenaný čas bude zahozen.')) return;
+  if (activeWorkoutTimerInterval) clearInterval(activeWorkoutTimerInterval);
+  activeWorkout = null;
+  try {
+    localStorage.removeItem('lifeos_active_workout');
+  } catch (e) {}
+  renderActiveWorkoutBanner();
+  showToast('Trénink zrušen');
+}
+
+function finishActiveWorkout() {
+  if (!activeWorkout) return;
+  const elapsedMinutes = Math.max(1, Math.round((Date.now() - activeWorkout.startTime) / 60000));
+  openWorkoutModal(activeWorkout.split, elapsedMinutes);
+}
+
+function getTodaySplitFocus() {
+  if (!state.gym || !state.gym.split) return 'Upper A';
+  const dayIndex = new Date().getDay();
+  const dayItem = state.gym.split.find(s => s.day === dayIndex);
+  if (dayItem && !dayItem.rest && dayItem.focus) {
+    return dayItem.focus;
+  }
+  return 'Upper A';
+}
+
+function calculateGymStats() {
+  const logs = (state.gym && state.gym.logs) || [];
+  let totalVolumeKg = 0;
+  let totalDurationMinutes = 0;
+  const currentMonth = new Date().toISOString().substring(0, 7); // YYYY-MM
+  let monthVolumeKg = 0;
+  const exerciseStats = {}; // name -> { name, maxWeight, maxRepsAtMaxWeight, max1RM, bestDate, history: [] }
+
+  logs.forEach(log => {
+    totalDurationMinutes += (log.duration || 60);
+    const isThisMonth = log.date && log.date.startsWith(currentMonth);
+
+    if (!log.exercises) return;
+    const lines = log.exercises.split('\n');
+    lines.forEach(rawLine => {
+      const line = rawLine.trim();
+      if (!line.includes(':') || line.startsWith('Poznámka:')) return;
+      const exName = line.replace(/^[•\-\*]\s*/, '').split(':')[0].trim();
+      const parenMatch = line.match(/\((.*?)\)/);
+      if (!parenMatch) return;
+
+      if (!exerciseStats[exName]) {
+        exerciseStats[exName] = {
+          name: exName,
+          maxWeight: 0,
+          maxRepsAtMaxWeight: 0,
+          max1RM: 0,
+          bestDate: log.date,
+          history: []
+        };
+      }
+
+      let workoutExVolume = 0;
+      const rawSets = parenMatch[1].split(',');
+      const parsedSets = [];
+
+      rawSets.forEach(s => {
+        const multMatch = s.trim().match(/([\d\.]+)\s*kg\s*[×x\*]\s*(\d+)/i);
+        if (multMatch) {
+          const w = parseFloat(multMatch[1]);
+          const r = parseInt(multMatch[2], 10);
+          const volume = w * r;
+          totalVolumeKg += volume;
+          if (isThisMonth) monthVolumeKg += volume;
+          workoutExVolume += volume;
+          parsedSets.push({ weight: w, reps: r });
+
+          // 1RM estimation (Epley formula: w * (1 + r / 30))
+          const est1RM = Math.round(w * (1 + r / 30));
+          if (w > exerciseStats[exName].maxWeight || (w === exerciseStats[exName].maxWeight && r > exerciseStats[exName].maxRepsAtMaxWeight)) {
+            exerciseStats[exName].maxWeight = w;
+            exerciseStats[exName].maxRepsAtMaxWeight = r;
+            exerciseStats[exName].bestDate = log.date;
+          }
+          if (est1RM > exerciseStats[exName].max1RM) {
+            exerciseStats[exName].max1RM = est1RM;
+          }
+        }
+      });
+
+      if (parsedSets.length > 0) {
+        exerciseStats[exName].history.push({
+          date: log.date,
+          type: log.type,
+          summary: parenMatch[1].trim(),
+          volume: workoutExVolume,
+          sets: parsedSets
+        });
+      }
+    });
+  });
+
+  return {
+    totalVolumeKg: Math.round(totalVolumeKg),
+    monthVolumeKg: Math.round(monthVolumeKg),
+    totalDurationMinutes,
+    totalWorkouts: logs.length,
+    exerciseStats
+  };
+}
+
+function renderGymAnalytics() {
+  const stats = calculateGymStats();
+
+  const totalVolEl = document.getElementById('stat-total-volume');
+  const monthVolEl = document.getElementById('stat-month-volume');
+  const totalTimeEl = document.getElementById('stat-total-time');
+  const avgDurEl = document.getElementById('stat-avg-duration');
+  const totalWorkoutsEl = document.getElementById('stat-total-workouts');
+  const totalBadgeEl = document.getElementById('gym-analytics-total-badge');
+  const prGrid = document.getElementById('pr-cards-grid');
+  const exSelect = document.getElementById('pr-exercise-select');
+
+  if (totalVolEl) totalVolEl.textContent = `${stats.totalVolumeKg.toLocaleString('cs-CZ')} kg`;
+  if (monthVolEl) monthVolEl.textContent = `Tento měsíc: ${stats.monthVolumeKg.toLocaleString('cs-CZ')} kg`;
+
+  const hours = Math.round(stats.totalDurationMinutes / 60 * 10) / 10;
+  if (totalTimeEl) totalTimeEl.textContent = `${hours} hod`;
+  const avgDur = stats.totalWorkouts > 0 ? Math.round(stats.totalDurationMinutes / stats.totalWorkouts) : 0;
+  if (avgDurEl) avgDurEl.textContent = `Průměr: ${avgDur} min / trénink`;
+
+  if (totalWorkoutsEl) totalWorkoutsEl.textContent = stats.totalWorkouts;
+  if (totalBadgeEl) totalBadgeEl.textContent = `${stats.totalWorkouts} tréninků`;
+
+  // Render Highlighted PR Cards
+  if (prGrid) {
+    const keyExercises = [
+      { key: 'Bench press', aliases: ['bench press', 'bench'] },
+      { key: 'Dřepy s velkou činkou', aliases: ['dřepy', 'dřep', 'squat'] },
+      { key: 'Rumunský mrtvý tah (RDL)', aliases: ['rumunský', 'rdl', 'mrtvý tah', 'deadlift'] },
+      { key: 'Tlaky na ramena', aliases: ['ramena', 'ohp', 'tlaky s jednoručkami na ramena'] }
+    ];
+
+    const cardsHtml = keyExercises.map(target => {
+      let foundStat = null;
+      for (const [name, st] of Object.entries(stats.exerciseStats)) {
+        if (target.aliases.some(a => name.toLowerCase().includes(a))) {
+          foundStat = st;
+          break;
+        }
+      }
+
+      if (foundStat && foundStat.maxWeight > 0) {
+        return `
+          <div class="pr-card">
+            <span class="pr-card-name">🏆 ${escapeHtml(foundStat.name)}</span>
+            <div class="pr-card-main-stat">
+              <span class="pr-card-weight">${foundStat.maxWeight} kg</span>
+              <span class="pr-card-reps">× ${foundStat.maxRepsAtMaxWeight} reps</span>
+            </div>
+            <div class="pr-card-meta">
+              <span>Odhad 1RM: <strong class="pr-1rm-badge">${foundStat.max1RM} kg</strong></span>
+              <span>📅 ${foundStat.bestDate}</span>
+            </div>
+          </div>
+        `;
+      } else {
+        return `
+          <div class="pr-card" style="opacity: 0.65;">
+            <span class="pr-card-name">🏋️ ${escapeHtml(target.key)}</span>
+            <div class="pr-card-main-stat">
+              <span class="pr-card-weight" style="font-size: 16px; color: var(--text-muted);">Zatím nezaznamenáno</span>
+            </div>
+            <div class="pr-card-meta">
+              <span>1RM: -</span>
+              <span>Zapiš trénink</span>
+            </div>
+          </div>
+        `;
+      }
+    }).join('');
+
+    prGrid.innerHTML = cardsHtml;
+  }
+
+  // Populate Exercise Select Dropdown
+  if (exSelect) {
+    const allKnownExercises = new Set();
+    if (state.gym.exercisesBySplit) {
+      Object.values(state.gym.exercisesBySplit).forEach(arr => {
+        if (Array.isArray(arr)) arr.forEach(ex => allKnownExercises.add(ex));
+      });
+    }
+    Object.keys(stats.exerciseStats).forEach(ex => allKnownExercises.add(ex));
+
+    const sortedExercises = Array.from(allKnownExercises).sort((a, b) => a.localeCompare(b, 'cs'));
+    const prevSelected = exSelect.value;
+
+    exSelect.innerHTML = sortedExercises.map(name => `
+      <option value="${escapeHtml(name)}">${escapeHtml(name)}</option>
+    `).join('');
+
+    if (prevSelected && sortedExercises.includes(prevSelected)) {
+      exSelect.value = prevSelected;
+    } else if (sortedExercises.length > 0) {
+      exSelect.value = sortedExercises[0];
+    }
+
+    renderExerciseExplorerDetails(exSelect.value, stats.exerciseStats);
+  }
+}
+
+function renderExerciseExplorerDetails(exerciseName, statsMap = null) {
+  const container = document.getElementById('pr-explorer-details');
+  if (!container || !exerciseName) return;
+
+  if (!statsMap) {
+    const s = calculateGymStats();
+    statsMap = s.exerciseStats;
+  }
+
+  const stat = statsMap[exerciseName];
+  if (!stat || stat.history.length === 0) {
+    container.innerHTML = `
+      <p class="text-sm text-muted" style="text-align: center; padding: 16px;">
+        Pro cvik <strong>${escapeHtml(exerciseName)}</strong> zatím nemáš žádné zaznamenané výkony.
+      </p>
+    `;
+    return;
+  }
+
+  const historyItems = [...stat.history].reverse().slice(0, 5).map(h => `
+    <div class="explorer-timeline-item">
+      <div>
+        <span class="explorer-timeline-date">📅 ${h.date} (${escapeHtml(h.type)})</span>
+        <div class="explorer-timeline-sets" style="margin-top: 2px;">${escapeHtml(h.summary)}</div>
+      </div>
+      <span class="badge" style="font-size: 11px;">Tonáž: ${h.volume} kg</span>
+    </div>
+  `).join('');
+
+  container.innerHTML = `
+    <div style="display: flex; gap: 16px; margin-bottom: 12px; flex-wrap: wrap; background: rgba(99, 102, 241, 0.08); padding: 10px 14px; border-radius: var(--radius-sm); border-left: 3px solid var(--accent-rose);">
+      <div>All-time Max: <strong class="text-rose">${stat.maxWeight} kg × ${stat.maxRepsAtMaxWeight} reps</strong></div>
+      <div>Odhadované 1RM: <strong class="pr-1rm-badge">${stat.max1RM} kg</strong></div>
+      <div class="text-dim text-xs" style="align-self: center;">Rekord: ${stat.bestDate}</div>
+    </div>
+    <div class="explorer-history-timeline">
+      ${historyItems}
+    </div>
+  `;
+}
+
+function getLastExercisePerformance(exerciseName) {
+  if (!state.gym || !state.gym.logs || !exerciseName) return null;
+  const cleanTarget = exerciseName.toLowerCase().trim();
+  const sorted = [...state.gym.logs].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  for (const log of sorted) {
+    if (!log.exercises) continue;
+    const lines = log.exercises.split('\n');
+    for (const rawLine of lines) {
+      const line = rawLine.trim();
+      if (!line.includes(':')) continue;
+      const exName = line.replace(/^[•\-\*]\s*/, '').split(':')[0].trim();
+      if (exName.toLowerCase() === cleanTarget) {
+        const parenMatch = line.match(/\((.*?)\)/);
+        const sets = [];
+        if (parenMatch) {
+          const rawSets = parenMatch[1].split(',');
+          rawSets.forEach((s, idx) => {
+            const str = s.trim();
+            const multMatch = str.match(/([\d\.]+)\s*kg\s*[×x\*]\s*(\d+)/i);
+            if (multMatch) {
+              sets.push({
+                setNum: idx + 1,
+                weight: parseFloat(multMatch[1]),
+                reps: parseInt(multMatch[2], 10)
+              });
+            } else {
+              const kgMatch = str.match(/([\d\.]+)\s*kg/i);
+              const repsMatch = str.match(/(\d+)\s*(?:reps|opakov[aá]n[ií])/i);
+              sets.push({
+                setNum: idx + 1,
+                weight: kgMatch ? parseFloat(kgMatch[1]) : '',
+                reps: repsMatch ? parseInt(repsMatch[1], 10) : ''
+              });
+            }
+          });
+        }
+        return {
+          date: log.date,
+          type: log.type,
+          rawSetsSummary: parenMatch ? parenMatch[1].trim() : '',
+          sets: sets.length > 0 ? sets : null
+        };
+      }
+    }
+  }
+  return null;
 }
 
 function renderWeeklySplitGrid() {
@@ -1406,12 +1786,20 @@ function renderWorkoutLogs() {
           <span>⏱️ ${log.duration || 60} minut</span>
         </div>
         ${formatWorkoutLogExercisesHtml(log.exercises)}
-        <div style="display: flex; justify-content: flex-end; margin-top: auto;">
+        <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: auto;">
+          <button class="btn btn-sm btn-secondary btn-edit-workout" data-id="${log.id}">Upravit</button>
           <button class="btn btn-sm btn-danger btn-delete-workout" data-id="${log.id}">Smazat</button>
         </div>
       </div>
     `;
   }).join('');
+
+  container.querySelectorAll('.btn-edit-workout').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.getAttribute('data-id');
+      openEditWorkoutModal(id);
+    });
+  });
 
   container.querySelectorAll('.btn-delete-workout').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -1694,38 +2082,219 @@ function openProjectModal(projectId = null) {
 // ==========================================================================
 let currentWorkoutExercises = [];
 
-function openWorkoutModal() {
+function syncAllSplitDropdowns() {
+  if (!state.gym.exercisesBySplit) {
+    state.gym.exercisesBySplit = JSON.parse(JSON.stringify(DEFAULT_DATA.gym.exercisesBySplit));
+  }
+  const splitNames = Object.keys(state.gym.exercisesBySplit);
+
+  const workoutTypeSelect = document.getElementById('workout-type');
+  if (workoutTypeSelect) {
+    const currentVal = workoutTypeSelect.value;
+    workoutTypeSelect.innerHTML = splitNames.map(name => `
+      <option value="${escapeHtml(name)}">${escapeHtml(name)}</option>
+    `).join('');
+    if (splitNames.includes(currentVal)) {
+      workoutTypeSelect.value = currentVal;
+    } else if (splitNames.length > 0) {
+      workoutTypeSelect.value = splitNames[0];
+    }
+  }
+
+  const manageSplitSelect = document.getElementById('manage-exercises-split-select');
+  if (manageSplitSelect) {
+    const currentVal = manageSplitSelect.value;
+    manageSplitSelect.innerHTML = splitNames.map(name => `
+      <option value="${escapeHtml(name)}">${escapeHtml(name)}</option>
+    `).join('');
+    if (splitNames.includes(currentVal)) {
+      manageSplitSelect.value = currentVal;
+    } else if (splitNames.length > 0) {
+      manageSplitSelect.value = splitNames[0];
+    }
+  }
+}
+
+function openWorkoutModal(forcedSplit = null, forcedDuration = null) {
   const modal = document.getElementById('modal-workout');
   const form = document.getElementById('form-workout');
+  const titleEl = document.getElementById('modal-workout-title');
+  const editIdInput = document.getElementById('workout-edit-id');
+  const submitBtn = document.getElementById('btn-submit-workout');
   if (!modal || !form) return;
 
   form.reset();
-  document.getElementById('workout-date').value = getTodayStr();
-  document.getElementById('workout-duration').value = '60';
-  document.getElementById('workout-rating').value = '4';
+  syncAllSplitDropdowns();
+
+  if (editIdInput) editIdInput.value = '';
+  if (titleEl) titleEl.textContent = 'Zapsat trénink do fitka';
+  if (submitBtn) submitBtn.textContent = 'Uložit trénink';
+
+  const dateInput = document.getElementById('workout-date');
+  if (dateInput) dateInput.value = getTodayStr();
+
+  const durationInput = document.getElementById('workout-duration');
+  if (durationInput) durationInput.value = forcedDuration || '60';
+
+  const ratingSelect = document.getElementById('workout-rating');
+  if (ratingSelect) ratingSelect.value = '4';
+
   const notesField = document.getElementById('workout-notes');
   if (notesField) notesField.value = '';
 
-  // Try to default workout type to today's split focus
-  const dayIndex = new Date().getDay();
-  const splitDay = state.gym.split.find(s => s.day === dayIndex);
   const typeSelect = document.getElementById('workout-type');
-  if (splitDay && !splitDay.rest && typeSelect) {
-    for (let opt of typeSelect.options) {
-      if (splitDay.focus.toLowerCase().includes(opt.value.toLowerCase())) {
-        typeSelect.value = opt.value;
-        break;
-      }
+  if (typeSelect) {
+    const targetFocus = forcedSplit || getTodaySplitFocus() || 'Upper A';
+    const foundOption = Array.from(typeSelect.options).find(o =>
+      o.value.toLowerCase() === targetFocus.toLowerCase() ||
+      targetFocus.toLowerCase().includes(o.value.toLowerCase()) ||
+      o.value.toLowerCase().includes(targetFocus.toLowerCase())
+    );
+    if (foundOption) {
+      typeSelect.value = foundOption.value;
     }
   }
 
   currentWorkoutExercises = [];
-  const selectedType = (typeSelect && typeSelect.value) ? typeSelect.value : 'Upper';
+  const selectedType = (typeSelect && typeSelect.value) ? typeSelect.value : 'Upper A';
   renderWorkoutQuickChips(selectedType);
   renderWorkoutExercisesBuilder();
 
   modal.showModal();
   markModalInitialState(modal);
+}
+
+function openEditWorkoutModal(logId) {
+  const modal = document.getElementById('modal-workout');
+  const form = document.getElementById('form-workout');
+  const titleEl = document.getElementById('modal-workout-title');
+  const editIdInput = document.getElementById('workout-edit-id');
+  const submitBtn = document.getElementById('btn-submit-workout');
+  const log = state.gym.logs.find(l => l.id === logId);
+  if (!modal || !form || !log) return;
+
+  form.reset();
+  syncAllSplitDropdowns();
+
+  if (editIdInput) editIdInput.value = log.id;
+  if (titleEl) titleEl.textContent = `Upravit trénink (${log.date})`;
+  if (submitBtn) submitBtn.textContent = 'Uložit změny';
+
+  const dateInput = document.getElementById('workout-date');
+  if (dateInput) dateInput.value = log.date;
+
+  const durationInput = document.getElementById('workout-duration');
+  if (durationInput) durationInput.value = log.duration || 60;
+
+  const typeSelect = document.getElementById('workout-type');
+  if (typeSelect) {
+    const foundOption = Array.from(typeSelect.options).find(o => o.value.toLowerCase() === log.type.toLowerCase());
+    if (foundOption) {
+      typeSelect.value = foundOption.value;
+    } else {
+      typeSelect.value = log.type;
+    }
+  }
+
+  const ratingSelect = document.getElementById('workout-rating');
+  if (ratingSelect) ratingSelect.value = String(log.rating || 4);
+
+  // Parse exercises from stored log text
+  currentWorkoutExercises = [];
+  let freeformNotes = '';
+
+  if (log.exercises) {
+    const lines = log.exercises.split('\n');
+    lines.forEach(rawLine => {
+      const line = rawLine.trim();
+      if (!line) return;
+      if (line.startsWith('Poznámka:')) {
+        freeformNotes += line.replace(/^Poznámka:\s*/, '') + '\n';
+        return;
+      }
+      if (line.startsWith('•') || line.includes(':')) {
+        const clean = line.replace(/^[•\-\*]\s*/, '').trim();
+        const colonIdx = clean.indexOf(':');
+        if (colonIdx !== -1) {
+          const exName = clean.substring(0, colonIdx).trim();
+          const details = clean.substring(colonIdx + 1).trim();
+          const parenMatch = details.match(/\((.*?)\)/);
+          const sets = [];
+          if (parenMatch) {
+            const rawSets = parenMatch[1].split(',');
+            rawSets.forEach((s, idx) => {
+              const str = s.trim();
+              const multMatch = str.match(/([\d\.]+)\s*kg\s*[×x\*]\s*(\d+)/i);
+              if (multMatch) {
+                sets.push({
+                  setNum: idx + 1,
+                  weight: parseFloat(multMatch[1]),
+                  reps: parseInt(multMatch[2], 10)
+                });
+              } else {
+                const kgMatch = str.match(/([\d\.]+)\s*kg/i);
+                const repsMatch = str.match(/(\d+)\s*(?:reps|opakov[aá]n[ií])/i);
+                sets.push({
+                  setNum: idx + 1,
+                  weight: kgMatch ? parseFloat(kgMatch[1]) : '',
+                  reps: repsMatch ? parseInt(repsMatch[1], 10) : ''
+                });
+              }
+            });
+          }
+          currentWorkoutExercises.push({
+            id: 'ex_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+            name: exName,
+            sets: sets.length > 0 ? sets : [{ setNum: 1, weight: '', reps: '' }]
+          });
+          return;
+        }
+      }
+      freeformNotes += line + '\n';
+    });
+  }
+
+  const notesInput = document.getElementById('workout-notes');
+  if (notesInput) notesInput.value = freeformNotes.trim();
+
+  renderWorkoutQuickChips(typeSelect ? typeSelect.value : log.type);
+  renderWorkoutExercisesBuilder();
+
+  modal.showModal();
+  markModalInitialState(modal);
+}
+
+function loadEntireSplitIntoWorkout() {
+  const typeSelect = document.getElementById('workout-type');
+  const split = typeSelect ? typeSelect.value : 'Upper A';
+  const exercises = (state.gym.exercisesBySplit && state.gym.exercisesBySplit[split]) || [];
+
+  if (exercises.length === 0) {
+    showToast(`V šabloně pro ${split} nejsou žádné cviky`);
+    return;
+  }
+
+  currentWorkoutExercises = [];
+  exercises.forEach(name => {
+    const perf = getLastExercisePerformance(name);
+    let initialSets = [{ setNum: 1, weight: '', reps: '' }];
+    if (perf && perf.sets && perf.sets.length > 0) {
+      initialSets = perf.sets.map((s, idx) => ({
+        setNum: idx + 1,
+        weight: s.weight,
+        reps: s.reps
+      }));
+    }
+    currentWorkoutExercises.push({
+      id: 'ex_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+      name,
+      sets: initialSets
+    });
+  });
+
+  renderWorkoutExercisesBuilder();
+  renderWorkoutQuickChips(split);
+  showToast(`⚡ Načteno všech ${exercises.length} cviků pro ${split}!`);
 }
 
 function renderWorkoutQuickChips(splitType) {
@@ -1773,16 +2342,26 @@ function addExerciseToWorkoutSession(exerciseName, initialWeight = null, initial
       reps: lastSet ? lastSet.reps : ''
     });
   } else {
+    // Check previous performance for prefilling
+    const perf = getLastExercisePerformance(trimmed);
+    let setsToUse = null;
+
+    if (initialWeight !== null || initialReps !== null) {
+      setsToUse = [{ setNum: 1, weight: initialWeight !== null ? initialWeight : '', reps: initialReps !== null ? initialReps : '' }];
+    } else if (perf && perf.sets && perf.sets.length > 0) {
+      setsToUse = perf.sets.map((s, idx) => ({
+        setNum: idx + 1,
+        weight: s.weight,
+        reps: s.reps
+      }));
+    } else {
+      setsToUse = [{ setNum: 1, weight: '', reps: '' }];
+    }
+
     currentWorkoutExercises.push({
       id: 'ex_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
       name: trimmed,
-      sets: [
-        {
-          setNum: 1,
-          weight: initialWeight !== null ? initialWeight : '',
-          reps: initialReps !== null ? initialReps : ''
-        }
-      ]
+      sets: setsToUse
     });
   }
 
@@ -1801,10 +2380,18 @@ function renderWorkoutExercisesBuilder() {
   }
 
   container.innerHTML = currentWorkoutExercises.map(ex => {
+    const perf = getLastExercisePerformance(ex.name);
+    const historyBadgeHtml = (perf && perf.rawSetsSummary)
+      ? `<div class="exercise-prev-history-badge">💡 Minule (${perf.date}): ${escapeHtml(perf.rawSetsSummary)}</div>`
+      : '';
+
     return `
       <div class="workout-exercise-card" data-ex-id="${ex.id}">
         <div class="exercise-card-header">
-          <span class="exercise-card-name">🏋️ ${escapeHtml(ex.name)}</span>
+          <div>
+            <span class="exercise-card-name">🏋️ ${escapeHtml(ex.name)}</span>
+            ${historyBadgeHtml}
+          </div>
           <button type="button" class="btn-remove-exercise" data-ex-id="${ex.id}" title="Odstranit cvik">&times;</button>
         </div>
         <div class="exercise-sets-table">
@@ -1814,12 +2401,12 @@ function renderWorkoutExercisesBuilder() {
               <div class="set-field-group">
                 <span class="set-field-label">Váha:</span>
                 <input type="number" step="0.5" class="set-input-num input-weight" value="${s.weight ?? ''}" placeholder="kg" data-ex-id="${ex.id}" data-set-index="${idx}">
-                <span class="set-field-label">kg</span>
+                <button type="button" class="btn-quick-inc btn-inc-weight" data-ex-id="${ex.id}" data-set-index="${idx}" data-inc="2.5" title="Přidat +2.5 kg">+2.5</button>
               </div>
               <div class="set-field-group">
                 <span class="set-field-label">Opakování:</span>
                 <input type="number" min="1" max="999" class="set-input-num input-reps" value="${s.reps ?? ''}" placeholder="x" data-ex-id="${ex.id}" data-set-index="${idx}">
-                <span class="set-field-label">reps</span>
+                <button type="button" class="btn-quick-inc btn-inc-reps" data-ex-id="${ex.id}" data-set-index="${idx}" data-inc="1" title="Přidat +1 opakování">+1</button>
               </div>
               ${ex.sets.length > 1 ? `<button type="button" class="btn-del-set" data-ex-id="${ex.id}" data-set-index="${idx}" title="Smazat sérii">&times;</button>` : ''}
             </div>
@@ -1829,6 +2416,36 @@ function renderWorkoutExercisesBuilder() {
       </div>
     `;
   }).join('');
+
+  // Quick weight increment button
+  container.querySelectorAll('.btn-inc-weight').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const exId = btn.getAttribute('data-ex-id');
+      const setIdx = parseInt(btn.getAttribute('data-set-index'), 10);
+      const inc = parseFloat(btn.getAttribute('data-inc') || '2.5');
+      const ex = currentWorkoutExercises.find(x => x.id === exId);
+      if (ex && ex.sets[setIdx]) {
+        const cur = parseFloat(ex.sets[setIdx].weight) || 0;
+        ex.sets[setIdx].weight = Math.round((cur + inc) * 10) / 10;
+        renderWorkoutExercisesBuilder();
+      }
+    });
+  });
+
+  // Quick reps increment button
+  container.querySelectorAll('.btn-inc-reps').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const exId = btn.getAttribute('data-ex-id');
+      const setIdx = parseInt(btn.getAttribute('data-set-index'), 10);
+      const inc = parseInt(btn.getAttribute('data-inc') || '1', 10);
+      const ex = currentWorkoutExercises.find(x => x.id === exId);
+      if (ex && ex.sets[setIdx]) {
+        const cur = parseInt(ex.sets[setIdx].reps, 10) || 0;
+        ex.sets[setIdx].reps = cur + inc;
+        renderWorkoutExercisesBuilder();
+      }
+    });
+  });
 
   // Weight input sync
   container.querySelectorAll('.input-weight').forEach(input => {
@@ -1899,10 +2516,7 @@ function renderWorkoutExercisesBuilder() {
 function openExercisesModal() {
   const modal = document.getElementById('modal-exercises');
   if (!modal) return;
-  const select = document.getElementById('manage-exercises-split-select');
-  if (select) {
-    select.value = 'Upper';
-  }
+  syncAllSplitDropdowns();
   renderTemplateExercisesList();
   modal.showModal();
   markModalInitialState(modal);
@@ -1993,15 +2607,50 @@ function openSplitModal() {
     return aOrder - bOrder;
   });
 
-  listContainer.innerHTML = sortedSplit.map(s => `
-    <div class="split-edit-row" data-day="${s.day}">
-      <span class="split-day-label">${s.dayName}:</span>
-      <input type="text" class="form-input split-focus-input" value="${escapeHtml(s.focus)}" placeholder="Zaměření dne">
-      <label style="display: flex; align-items: center; gap: 4px; font-size: 12px; white-space: nowrap;">
-        <input type="checkbox" class="split-rest-check" ${s.rest ? 'checked' : ''}> Rest
-      </label>
-    </div>
-  `).join('');
+  const availableSplits = Object.keys(state.gym.exercisesBySplit || {});
+
+  listContainer.innerHTML = sortedSplit.map(s => {
+    return `
+      <div class="split-edit-row" data-day="${s.day}">
+        <span class="split-day-label">${s.dayName}:</span>
+        <select class="form-select split-focus-select" style="flex: 1;">
+          ${availableSplits.map(sp => `
+            <option value="${escapeHtml(sp)}" ${s.focus === sp ? 'selected' : ''}>${escapeHtml(sp)}</option>
+          `).join('')}
+          <option value="Odpočinek / Regenerace" ${s.focus.includes('Odpočinek') || s.focus.includes('Rest') ? 'selected' : ''}>Odpočinek / Regenerace</option>
+          <option value="custom" ${!availableSplits.includes(s.focus) && !s.focus.includes('Odpočinek') ? 'selected' : ''}>Vlastní text...</option>
+        </select>
+        <input type="text" class="form-input split-focus-input ${availableSplits.includes(s.focus) || s.focus.includes('Odpočinek') ? 'hidden' : ''}" value="${escapeHtml(s.focus)}" placeholder="Vlastní zaměření" style="flex: 1;">
+        <label style="display: flex; align-items: center; gap: 4px; font-size: 12px; white-space: nowrap;">
+          <input type="checkbox" class="split-rest-check" ${s.rest ? 'checked' : ''}> Rest
+        </label>
+      </div>
+    `;
+  }).join('');
+
+  // Handle select changes to show/hide custom text input or auto-check rest
+  listContainer.querySelectorAll('.split-edit-row').forEach(row => {
+    const sel = row.querySelector('.split-focus-select');
+    const input = row.querySelector('.split-focus-input');
+    const restCheck = row.querySelector('.split-rest-check');
+    if (sel) {
+      sel.addEventListener('change', () => {
+        if (sel.value === 'custom') {
+          if (input) input.classList.remove('hidden');
+        } else {
+          if (input) {
+            input.classList.add('hidden');
+            input.value = sel.value;
+          }
+          if (sel.value.includes('Odpočinek') && restCheck) {
+            restCheck.checked = true;
+          } else if (restCheck) {
+            restCheck.checked = false;
+          }
+        }
+      });
+    }
+  });
 
   modal.showModal();
   markModalInitialState(modal);
@@ -2045,6 +2694,36 @@ function setupEventListeners() {
 
   const btnEditSplit = document.getElementById('btn-edit-split');
   if (btnEditSplit) btnEditSplit.addEventListener('click', openSplitModal);
+
+  // Live Workout Controls
+  const btnStartWorkout = document.getElementById('btn-start-workout');
+  if (btnStartWorkout) btnStartWorkout.addEventListener('click', () => startActiveWorkout());
+
+  const btnActiveLog = document.getElementById('btn-active-workout-log');
+  if (btnActiveLog) btnActiveLog.addEventListener('click', () => {
+    if (activeWorkout) {
+      const elapsedMinutes = Math.max(1, Math.round((Date.now() - activeWorkout.startTime) / 60000));
+      openWorkoutModal(activeWorkout.split, elapsedMinutes);
+    } else {
+      openWorkoutModal();
+    }
+  });
+
+  const btnActiveFinish = document.getElementById('btn-active-workout-finish');
+  if (btnActiveFinish) btnActiveFinish.addEventListener('click', finishActiveWorkout);
+
+  const btnActiveCancel = document.getElementById('btn-active-workout-cancel');
+  if (btnActiveCancel) btnActiveCancel.addEventListener('click', cancelActiveWorkout);
+
+  const btnLoadEntireSplit = document.getElementById('btn-load-entire-split');
+  if (btnLoadEntireSplit) btnLoadEntireSplit.addEventListener('click', loadEntireSplitIntoWorkout);
+
+  const prSelect = document.getElementById('pr-exercise-select');
+  if (prSelect) {
+    prSelect.addEventListener('change', (e) => {
+      renderExerciseExplorerDetails(e.target.value);
+    });
+  }
 
   const btnAddHabitShortcut = document.getElementById('btn-add-habit-shortcut');
   if (btnAddHabitShortcut) {
@@ -2108,6 +2787,118 @@ function setupEventListeners() {
   const manageSplitSelect = document.getElementById('manage-exercises-split-select');
   if (manageSplitSelect) {
     manageSplitSelect.addEventListener('change', renderTemplateExercisesList);
+  }
+
+  // --- Split Management Controls ---
+  const btnShowNewSplit = document.getElementById('btn-show-new-split');
+  const boxNewSplit = document.getElementById('box-new-split-inline');
+  const inputNewSplit = document.getElementById('input-new-split-name');
+  const btnConfirmNewSplit = document.getElementById('btn-confirm-new-split');
+  const btnCancelNewSplit = document.getElementById('btn-cancel-new-split');
+  const btnRenameSplit = document.getElementById('btn-rename-split');
+  const btnDeleteSplit = document.getElementById('btn-delete-split');
+
+  if (btnShowNewSplit && boxNewSplit) {
+    btnShowNewSplit.addEventListener('click', () => {
+      boxNewSplit.classList.remove('hidden');
+      if (inputNewSplit) {
+        inputNewSplit.value = '';
+        inputNewSplit.focus();
+      }
+    });
+  }
+
+  if (btnCancelNewSplit && boxNewSplit) {
+    btnCancelNewSplit.addEventListener('click', () => {
+      boxNewSplit.classList.add('hidden');
+    });
+  }
+
+  if (btnConfirmNewSplit && inputNewSplit) {
+    const doCreateSplit = () => {
+      const name = inputNewSplit.value.trim();
+      if (!name) return;
+      if (!state.gym.exercisesBySplit) {
+        state.gym.exercisesBySplit = JSON.parse(JSON.stringify(DEFAULT_DATA.gym.exercisesBySplit));
+      }
+      if (state.gym.exercisesBySplit[name]) {
+        showToast('Split s tímto názvem již existuje!');
+        return;
+      }
+      state.gym.exercisesBySplit[name] = [];
+      saveState();
+      syncAllSplitDropdowns();
+      const select = document.getElementById('manage-exercises-split-select');
+      if (select) select.value = name;
+      renderTemplateExercisesList();
+      boxNewSplit.classList.add('hidden');
+      inputNewSplit.value = '';
+      showToast(`Nový split „${name}“ vytvořen! 🏋️`);
+    };
+
+    btnConfirmNewSplit.addEventListener('click', doCreateSplit);
+    inputNewSplit.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        doCreateSplit();
+      }
+    });
+  }
+
+  if (btnRenameSplit) {
+    btnRenameSplit.addEventListener('click', () => {
+      const select = document.getElementById('manage-exercises-split-select');
+      if (!select) return;
+      const oldName = select.value;
+      const newName = prompt(`Přejmenovat split „${oldName}“ na:`, oldName);
+      if (!newName || !newName.trim() || newName.trim() === oldName) return;
+      const cleanNew = newName.trim();
+
+      if (!state.gym.exercisesBySplit) {
+        state.gym.exercisesBySplit = JSON.parse(JSON.stringify(DEFAULT_DATA.gym.exercisesBySplit));
+      }
+      if (state.gym.exercisesBySplit[cleanNew]) {
+        showToast('Split s tímto názvem již existuje!');
+        return;
+      }
+
+      state.gym.exercisesBySplit[cleanNew] = state.gym.exercisesBySplit[oldName] || [];
+      delete state.gym.exercisesBySplit[oldName];
+
+      if (state.gym.split) {
+        state.gym.split.forEach(s => {
+          if (s.focus === oldName) s.focus = cleanNew;
+        });
+      }
+
+      saveState();
+      syncAllSplitDropdowns();
+      select.value = cleanNew;
+      renderTemplateExercisesList();
+      renderGym();
+      showToast(`Split přejmenován na „${cleanNew}“`);
+    });
+  }
+
+  if (btnDeleteSplit) {
+    btnDeleteSplit.addEventListener('click', () => {
+      const select = document.getElementById('manage-exercises-split-select');
+      if (!select) return;
+      const splitName = select.value;
+      const allSplits = Object.keys(state.gym.exercisesBySplit || {});
+      if (allSplits.length <= 1) {
+        alert('Nemůžeš smazat jediný existující split!');
+        return;
+      }
+      if (!confirm(`Opravdu chceš smazat split „${splitName}“ a všechny jeho cviky?`)) return;
+
+      delete state.gym.exercisesBySplit[splitName];
+      saveState();
+      syncAllSplitDropdowns();
+      renderTemplateExercisesList();
+      renderGym();
+      showToast(`Split „${splitName}“ smazán`);
+    });
   }
 
   const formAddTemplateEx = document.getElementById('form-add-template-exercise');
@@ -2287,14 +3078,38 @@ function setupEventListeners() {
         compiledExercises = notes;
       }
 
-      state.gym.logs.unshift({
-        id: 'log_' + Date.now(),
-        date,
-        duration,
-        type,
-        rating,
-        exercises: compiledExercises
-      });
+      const editId = document.getElementById('workout-edit-id')?.value;
+      if (editId) {
+        const existing = state.gym.logs.find(l => l.id === editId);
+        if (existing) {
+          existing.date = date;
+          existing.duration = duration;
+          existing.type = type;
+          existing.rating = rating;
+          existing.exercises = compiledExercises;
+          showToast('Trénink byl úspěšně upraven! 🏋️');
+        }
+      } else {
+        state.gym.logs.unshift({
+          id: 'log_' + Date.now(),
+          date,
+          duration,
+          type,
+          rating,
+          exercises: compiledExercises
+        });
+        showToast('Trénink byl úspěšně zaznamenán! 🏋️');
+      }
+
+      // If active workout was running and date is today, complete and reset active workout
+      if (activeWorkout && date === getTodayStr()) {
+        if (activeWorkoutTimerInterval) clearInterval(activeWorkoutTimerInterval);
+        activeWorkout = null;
+        try {
+          localStorage.removeItem('lifeos_active_workout');
+        } catch (e) {}
+        renderActiveWorkoutBanner();
+      }
 
       // Also mark gym habit done for that day
       if (date === getTodayStr()) {
@@ -2317,7 +3132,6 @@ function setupEventListeners() {
       renderOverview();
       updateMetrics();
       updateSidebarBadges();
-      showToast('Trénink byl úspěšně zaznamenán! 🏋️');
     });
   }
 
@@ -2381,12 +3195,16 @@ function setupEventListeners() {
       const rows = document.querySelectorAll('.split-edit-row');
       rows.forEach(row => {
         const day = parseInt(row.getAttribute('data-day'), 10);
+        const focusSelect = row.querySelector('.split-focus-select');
         const focusInput = row.querySelector('.split-focus-input');
         const restCheck = row.querySelector('.split-rest-check');
         const splitItem = state.gym.split.find(s => s.day === day);
         if (splitItem) {
-          splitItem.focus = focusInput.value.trim() || 'Volný den';
-          splitItem.rest = restCheck.checked;
+          const chosen = (focusSelect && focusSelect.value !== 'custom')
+            ? focusSelect.value
+            : (focusInput ? focusInput.value.trim() : '');
+          splitItem.focus = chosen || 'Volný den';
+          splitItem.rest = restCheck ? restCheck.checked : false;
         }
       });
 
@@ -3177,7 +3995,7 @@ async function pushToSupabase(isManual = false) {
       }
     }
 
-    // 3. Gym Split
+    // 3. Gym Split & Split Templates
     if (state.gym && state.gym.split) {
       const splitRows = state.gym.split.map(s => ({
         id: `split_${userId}_${s.day}`,
@@ -3188,6 +4006,20 @@ async function pushToSupabase(isManual = false) {
         rest: !!s.rest,
         updated_at: nowIso
       }));
+
+      // Virtual row for exercise templates across splits
+      if (state.gym.exercisesBySplit) {
+        splitRows.push({
+          id: `split_${userId}_templates`,
+          user_id: userId,
+          day: 999,
+          day_name: '__TEMPLATES__',
+          focus: JSON.stringify(state.gym.exercisesBySplit),
+          rest: false,
+          updated_at: nowIso
+        });
+      }
+
       await supabaseClient.from('gym_split').upsert(splitRows);
     }
 
@@ -3397,21 +4229,36 @@ async function pullFromSupabase(isRealtime = false, isManual = false) {
         }
       }
 
-      // 3. Gym Split
+      // 3. Gym Split & Templates
       if (splitRes.data && splitRes.data.length > 0) {
-        const cloudSplit = splitRes.data.map(s => ({
-          day: s.day,
-          dayName: s.day_name,
-          focus: s.focus,
-          rest: !!s.rest
-        }));
+        const templateRow = splitRes.data.find(s => s.day === 999 || s.day_name === '__TEMPLATES__');
+        if (templateRow && templateRow.focus) {
+          try {
+            const parsedTemplates = JSON.parse(templateRow.focus);
+            if (parsedTemplates && typeof parsedTemplates === 'object') {
+              state.gym.exercisesBySplit = parsedTemplates;
+            }
+          } catch (e) {
+            console.warn('Error parsing split templates from cloud:', e);
+          }
+        }
 
-        const hasOldSplit = cloudSplit.some(s => s.focus && (s.focus.includes('Push') || s.focus.includes('Pull') || (s.focus.includes('Legs') && !s.focus.includes('Lower'))));
-        if (hasOldSplit || !cloudSplit.some(s => s.focus && s.focus.includes('Upper'))) {
-          state.gym.split = JSON.parse(JSON.stringify(DEFAULT_DATA.gym.split));
-          saveState();
-        } else {
-          state.gym.split = cloudSplit;
+        const weeklyRows = splitRes.data.filter(s => s.day >= 0 && s.day <= 6);
+        if (weeklyRows.length > 0) {
+          const cloudSplit = weeklyRows.map(s => ({
+            day: s.day,
+            dayName: s.day_name,
+            focus: s.focus,
+            rest: !!s.rest
+          }));
+
+          const hasOldSplit = cloudSplit.some(s => s.focus && (s.focus.includes('Push') || s.focus.includes('Pull') || (s.focus.includes('Legs') && !s.focus.includes('Lower'))));
+          if (hasOldSplit || !cloudSplit.some(s => s.focus && (s.focus.includes('Upper A') || s.focus.includes('Upper')))) {
+            state.gym.split = JSON.parse(JSON.stringify(DEFAULT_DATA.gym.split));
+            saveState();
+          } else {
+            state.gym.split = cloudSplit;
+          }
         }
       }
 
@@ -3419,14 +4266,20 @@ async function pullFromSupabase(isRealtime = false, isManual = false) {
       if (logsRes.data) {
         state.gym.logs = logsRes.data
           .filter(l => !recentlyDeletedIds.has(l.id))
-          .map(l => ({
-            id: l.id,
-            date: l.date,
-            duration: l.duration || 60,
-            type: l.type === 'Push' || l.type === 'Pull' ? 'Upper' : (l.type === 'Legs' ? 'Lower' : l.type),
-            rating: l.rating || 4,
-            exercises: l.exercises || ''
-          }));
+          .map(l => {
+            let t = l.type;
+            if (t === 'Push' || t === 'Upper') t = 'Upper A';
+            else if (t === 'Pull') t = 'Upper B';
+            else if (t === 'Legs' || t === 'Lower') t = 'Lower A';
+            return {
+              id: l.id,
+              date: l.date,
+              duration: l.duration || 60,
+              type: t,
+              rating: l.rating || 4,
+              exercises: l.exercises || ''
+            };
+          });
       }
 
       // 5. School Items

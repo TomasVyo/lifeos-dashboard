@@ -2470,3 +2470,300 @@ a {
     width: 100%;
   }
 }
+
+/* ==========================================================================
+   ACTIVE LIVE WORKOUT BANNER
+   ========================================================================== */
+.active-workout-banner {
+  background: linear-gradient(135deg, rgba(244, 63, 94, 0.15), rgba(99, 102, 241, 0.15));
+  border: 1px solid rgba(244, 63, 94, 0.4);
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  box-shadow: 0 4px 20px rgba(244, 63, 94, 0.15);
+  animation: slideInDown 0.3s ease;
+  flex-wrap: wrap;
+}
+
+@keyframes slideInDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.active-workout-info {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.active-workout-pulse {
+  width: 14px;
+  height: 14px;
+  background-color: var(--accent-rose);
+  border-radius: 50%;
+  box-shadow: 0 0 0 rgba(244, 63, 94, 0.7);
+  animation: pulseDot 1.5s infinite;
+}
+
+@keyframes pulseDot {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(244, 63, 94, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(244, 63, 94, 0); }
+}
+
+.active-workout-badge {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.active-workout-timer-display {
+  font-size: 20px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent-rose);
+  letter-spacing: -0.5px;
+}
+
+.active-workout-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* ==========================================================================
+   GYM ANALYTICS & PR SECTION
+   ========================================================================== */
+.gym-analytics-card {
+  margin-bottom: 28px;
+}
+
+.gym-stats-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.gym-stat-box {
+  background-color: var(--bg-card-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.gym-stat-label {
+  font-size: 11.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+}
+
+.gym-stat-value {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+.gym-stat-sub {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.pr-cards-section {
+  margin-bottom: 20px;
+}
+
+.pr-section-subtitle {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: var(--text-main);
+}
+
+.pr-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.pr-card {
+  background-color: var(--bg-card-subtle);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: all var(--transition-fast);
+  position: relative;
+  overflow: hidden;
+}
+
+.pr-card:hover {
+  border-color: rgba(244, 63, 94, 0.4);
+  transform: translateY(-2px);
+}
+
+.pr-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 3px;
+  height: 100%;
+  background: var(--accent-rose);
+}
+
+.pr-card-name {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pr-card-main-stat {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.pr-card-weight {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--accent-rose);
+}
+
+.pr-card-reps {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.pr-card-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 4px;
+  padding-top: 6px;
+  border-top: 1px dashed var(--border-subtle);
+}
+
+.pr-1rm-badge {
+  font-weight: 700;
+  color: #38bdf8;
+  background-color: rgba(56, 189, 248, 0.1);
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+}
+
+.exercise-explorer-box {
+  background-color: var(--bg-card-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 16px;
+}
+
+.explorer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.explorer-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.explorer-history-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.explorer-timeline-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-size: 12.5px;
+}
+
+.explorer-timeline-date {
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.explorer-timeline-sets {
+  font-weight: 500;
+  color: var(--text-main);
+}
+
+/* Exercise Builder History & Increment Enhancements */
+.exercise-prev-history-badge {
+  font-size: 11.5px;
+  color: #38bdf8;
+  background-color: rgba(56, 189, 248, 0.1);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: var(--radius-sm);
+  padding: 3px 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.btn-quick-inc {
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-card-subtle);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  cursor: pointer;
+  line-height: 1.2;
+}
+
+.btn-quick-inc:hover {
+  background-color: var(--primary);
+  color: #ffffff;
+  border-color: var(--primary);
+}
+
+.split-manage-action-btns {
+  display: flex;
+  gap: 6px;
+}
+
+.new-split-inline-box {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+  background-color: var(--bg-card-subtle);
+  padding: 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+}
