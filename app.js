@@ -23,6 +23,63 @@ const DEFAULT_DATA = {
       { day: 6, dayName: 'Sobota', focus: 'Kardio / Běh / Procházka', rest: false },
       { day: 0, dayName: 'Neděle', focus: 'Rest day & Příprava na týden', rest: true }
     ],
+    exercisesBySplit: {
+      'Push': [
+        'Bench press',
+        'Tlaky s jednoručkami na šikmé lavici',
+        'Tlaky na ramena (OHP)',
+        'Upažování s jednoručkami',
+        'Triceps stahování kladky',
+        'Dips (Bradla)',
+        'Kliky'
+      ],
+      'Pull': [
+        'Shyby na hrazdě',
+        'Mrtvý tah',
+        'Přítahy činky v předklonu',
+        'Stahování horní kladky na hrudník',
+        'Bicepsový zdvih s velkou činkou',
+        'Kladivové zdvihy',
+        'Face pulls na kladce'
+      ],
+      'Legs': [
+        'Dřepy s činkou',
+        'Leg press',
+        'Rumunský mrtvý tah (RDL)',
+        'Předkopávání na stroji',
+        'Zakopávání na stroji',
+        'Výpony na lýtka',
+        'Zdvihy nohou / Břicho'
+      ],
+      'Fullbody': [
+        'Dřep s činkou',
+        'Bench press',
+        'Mrtvý tah',
+        'Tlaky na ramena',
+        'Shyby na hrazdě',
+        'Plank / Břicho'
+      ],
+      'Vrchní tělo': [
+        'Bench press',
+        'Přítahy činky v předklonu',
+        'Tlaky na ramena',
+        'Stahování kladky',
+        'Bicepsový zdvih',
+        'Triceps stahování'
+      ],
+      'Kardio': [
+        'Běh na pásu',
+        'Veslovací trenažér',
+        'Švihadlo',
+        'Rotoped / Kolo',
+        'Chůze do kopce (incline walk)'
+      ],
+      'Jiné': [
+        'Strečink & Mobilita',
+        'Core & Břicho',
+        'Funkční kruhový trénink'
+      ]
+    },
     logs: [
       {
         id: 'log_1',
@@ -30,7 +87,7 @@ const DEFAULT_DATA = {
         type: 'Push',
         duration: 65,
         rating: 5,
-        exercises: 'Bench press: 4x8 (80 kg)\nIncline DB Press: 3x10 (28 kg)\nTlaky na ramena: 4x10 (22 kg)\nTriceps lano na kladce: 3x15'
+        exercises: '• Bench press: 4 série (80 kg × 8, 80 kg × 8, 80 kg × 7, 75 kg × 8)\n• Tlaky na šikmé lavici: 3 série (28 kg × 10, 28 kg × 10, 26 kg × 9)\n• Upažování: 4 série (12 kg × 12, 12 kg × 12, 12 kg × 10, 10 kg × 12)\n• Triceps lano na kladce: 3 série (35 kg × 15, 35 kg × 14, 30 kg × 15)'
       },
       {
         id: 'log_2',
@@ -38,54 +95,57 @@ const DEFAULT_DATA = {
         type: 'Pull',
         duration: 70,
         rating: 4,
-        exercises: 'Shyby: 4x8 (vlastní váha)\nMrtvý tah: 3x6 (120 kg)\nPřítahy činky v předklonu: 4x10 (60 kg)\nBiceps velká činka: 3x12 (30 kg)'
+        exercises: '• Shyby na hrazdě: 4 série (8 reps, 8 reps, 7 reps, 6 reps)\n• Mrtvý tah: 3 série (120 kg × 6, 120 kg × 6, 120 kg × 5)\n• Přítahy činky v předklonu: 4 série (60 kg × 10, 60 kg × 10, 60 kg × 9, 55 kg × 10)\n• Biceps velká činka: 3 série (30 kg × 12, 30 kg × 11, 28 kg × 12)'
       }
     ]
   },
   projects: [
     {
-      id: 'proj_1',
-      title: 'Osobní PWA Dashboard',
-      description: 'Vývoj moderního osobního dashboardu s offline podporou, sledováním tréninků a školy.',
-      category: 'Frontend / PWA',
+      id: 'proj_pubmate',
+      title: 'PubMate',
+      description: 'Chytrý hospodský & pivní parťák. Vyhledávání a hodnocení pivnic, správa pivních deníků, sledování útraty a plánování srazů.',
+      category: 'Mobilní aplikace / Web',
       status: 'in_progress',
-      progress: 75,
-      deadline: getRelativeDateStr(5),
-      url: 'https://github.com',
-      tasks: [
-        { id: 't1', text: 'Návrh UI a responzivních layoutů', done: true },
-        { id: 't2', text: 'Implementace Service Workera a PWA', done: true },
-        { id: 't3', text: 'Lokální synchronizace a export JSON', done: true },
-        { id: 't4', text: 'Testování instalace na mobilu', done: false }
-      ]
-    },
-    {
-      id: 'proj_2',
-      title: 'Semestrální aplikace do školy',
-      description: 'Backend v Node.js/C# s relační databází a REST API.',
-      category: 'Škola / Backend',
-      status: 'in_progress',
-      progress: 40,
+      progress: 50,
       deadline: getRelativeDateStr(14),
-      url: '',
+      url: 'https://github.com/TomasVyo',
       tasks: [
-        { id: 't21', text: 'ERD schéma databáze', done: true },
-        { id: 't22', text: 'Autentizace uživatelů (JWT)', done: false },
-        { id: 't23', text: 'CRUD endpointy pro produkty', done: false }
+        { id: 't_pm1', text: 'Návrh UI a mobilního rozhraní pro vyhledávání pivnic', done: true },
+        { id: 't_pm2', text: 'Katalog piv, hodnocení a zápis návštěv', done: true },
+        { id: 't_pm3', text: 'Interaktivní mapa podniků a geolokace', done: false },
+        { id: 't_pm4', text: 'Offline mód a synchronizace útraty', done: false }
       ]
     },
     {
-      id: 'proj_3',
-      title: 'Optimalizace tréninkového plánu & Strava',
-      description: 'Příprava jídelníčku na objem a sledování progresivního přetížení ve fitku.',
-      category: 'Osobní',
+      id: 'proj_dockmaster',
+      title: 'Dockmaster',
+      description: 'Správa a monitoring Docker kontejnerů. Přehledný realtime dashboard stavu, orchestrace služeb, logistika deploymentů a alerty.',
+      category: 'DevOps / Backend',
+      status: 'in_progress',
+      progress: 35,
+      deadline: getRelativeDateStr(21),
+      url: 'https://github.com/TomasVyo',
+      tasks: [
+        { id: 't_dm1', text: 'Napojení na Docker Engine REST API socket', done: true },
+        { id: 't_dm2', text: 'Realtime dashboard stavu kontejnerů a paměti', done: false },
+        { id: 't_dm3', text: 'Automatické restarty a notifikace při pádu', done: false },
+        { id: 't_dm4', text: 'Podpora Docker Compose stacků', done: false }
+      ]
+    },
+    {
+      id: 'proj_logispace',
+      title: 'LogiSpace',
+      description: 'Optimalizace skladových prostor a logistické plánování. 3D mapování skladových pozic, správa zásob a dynamické naskladňování.',
+      category: 'Logistika / SaaS',
       status: 'planned',
-      progress: 20,
-      deadline: getRelativeDateStr(25),
+      progress: 15,
+      deadline: getRelativeDateStr(45),
       url: '',
       tasks: [
-        { id: 't31', text: 'Výpočet denního kalorického příjmu', done: true },
-        { id: 't32', text: 'Nákupní seznam suplementů', done: false }
+        { id: 't_ls1', text: 'Analýza parametrů skladů a regálových systémů', done: true },
+        { id: 't_ls2', text: 'Návrh databázové struktury skladových lokací', done: false },
+        { id: 't_ls3', text: 'Algoritmus optimalizace tras pro vychystávání', done: false },
+        { id: 't_ls4', text: 'Generování skladových reportů a štítků', done: false }
       ]
     }
   ],
@@ -173,12 +233,33 @@ function loadState() {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      // Ensure structure integrity
+
+      // Projects migration to user's personal projects: PubMate, Dockmaster, LogiSpace
+      let projects = Array.isArray(parsed.projects) ? parsed.projects : [];
+      const hasOldDemoProjects = projects.some(p => p.id === 'proj_1' || p.id === 'proj_2' || p.id === 'proj_3' || p.title?.includes('Osobní PWA') || p.title?.includes('Semestrální aplikace'));
+      const hasPersonalProjects = projects.some(p => p.title === 'PubMate' || p.title === 'Dockmaster' || p.title === 'LogiSpace');
+
+      if (hasOldDemoProjects || !hasPersonalProjects) {
+        ['proj_1', 'proj_2', 'proj_3'].forEach(id => markAsDeleted(id));
+        projects = JSON.parse(JSON.stringify(DEFAULT_DATA.projects));
+      }
+
+      // Gym exercises library by split
+      const gymData = {
+        ...DEFAULT_DATA.gym,
+        ...(parsed.gym || {}),
+        exercisesBySplit: {
+          ...DEFAULT_DATA.gym.exercisesBySplit,
+          ...((parsed.gym && parsed.gym.exercisesBySplit) || {})
+        }
+      };
+
       return {
         ...DEFAULT_DATA,
         ...parsed,
+        projects,
         user: { ...DEFAULT_DATA.user, ...(parsed.user || {}) },
-        gym: { ...DEFAULT_DATA.gym, ...(parsed.gym || {}) },
+        gym: gymData,
         habitLogs: parsed.habitLogs || {}
       };
     }
@@ -854,6 +935,52 @@ function renderWeeklySplitGrid() {
   }).join('');
 }
 
+function formatWorkoutLogExercisesHtml(rawText) {
+  if (!rawText) return '';
+  const lines = rawText.split('\n').map(l => l.trim()).filter(Boolean);
+  const isBulletList = lines.some(l => l.startsWith('•'));
+
+  if (!isBulletList) {
+    return `<div class="log-exercises-box">${escapeHtml(rawText)}</div>`;
+  }
+
+  const itemsHtml = lines.map(line => {
+    if (line.startsWith('•')) {
+      const clean = line.substring(1).trim();
+      const colonIdx = clean.indexOf(':');
+      if (colonIdx !== -1) {
+        const exName = clean.substring(0, colonIdx).trim();
+        const details = clean.substring(colonIdx + 1).trim();
+        const parenMatch = details.match(/\((.*?)\)/);
+        if (parenMatch) {
+          const setsPills = parenMatch[1].split(',')
+            .map(s => `<span class="log-set-pill">${escapeHtml(s.trim())}</span>`)
+            .join('');
+          const seriesCount = details.substring(0, parenMatch.index).trim();
+          return `
+            <div class="log-exercise-item">
+              <div class="log-exercise-title">${escapeHtml(exName)} <span class="text-xs text-muted" style="font-weight: 500;">(${escapeHtml(seriesCount)})</span></div>
+              <div class="log-exercise-sets-row">${setsPills}</div>
+            </div>
+          `;
+        }
+        return `
+          <div class="log-exercise-item">
+            <div class="log-exercise-title">${escapeHtml(exName)}</div>
+            <div class="text-xs text-muted">${escapeHtml(details)}</div>
+          </div>
+        `;
+      }
+      return `<div class="log-exercise-item"><div class="log-exercise-title">${escapeHtml(clean)}</div></div>`;
+    } else if (line.startsWith('Poznámka:')) {
+      return `<div class="text-xs text-muted" style="margin-top: 4px; font-style: italic;">📝 ${escapeHtml(line)}</div>`;
+    }
+    return `<div class="text-xs text-muted">${escapeHtml(line)}</div>`;
+  }).join('');
+
+  return `<div class="log-structured-exercises">${itemsHtml}</div>`;
+}
+
 function renderWorkoutLogs() {
   const container = document.getElementById('workout-logs-list');
   const countEl = document.getElementById('gym-logs-count');
@@ -882,9 +1009,7 @@ function renderWorkoutLogs() {
         <div class="log-meta-row">
           <span>⏱️ ${log.duration || 60} minut</span>
         </div>
-        ${log.exercises ? `
-          <div class="log-exercises-box">${escapeHtml(log.exercises)}</div>
-        ` : ''}
+        ${formatWorkoutLogExercisesHtml(log.exercises)}
         <div style="display: flex; justify-content: flex-end; margin-top: auto;">
           <button class="btn btn-sm btn-danger btn-delete-workout" data-id="${log.id}">Smazat</button>
         </div>
@@ -1141,6 +1266,11 @@ function openProjectModal(projectId = null) {
   modal.showModal();
 }
 
+// ==========================================================================
+// WORKOUT BUILDER & EXERCISES TEMPLATES
+// ==========================================================================
+let currentWorkoutExercises = [];
+
 function openWorkoutModal() {
   const modal = document.getElementById('modal-workout');
   const form = document.getElementById('form-workout');
@@ -1148,21 +1278,254 @@ function openWorkoutModal() {
 
   form.reset();
   document.getElementById('workout-date').value = getTodayStr();
+  document.getElementById('workout-duration').value = '60';
+  document.getElementById('workout-rating').value = '4';
+  const notesField = document.getElementById('workout-notes');
+  if (notesField) notesField.value = '';
 
   // Try to default workout type to today's split focus
   const dayIndex = new Date().getDay();
   const splitDay = state.gym.split.find(s => s.day === dayIndex);
-  if (splitDay && !splitDay.rest) {
-    const select = document.getElementById('workout-type');
-    for (let opt of select.options) {
-      if (splitDay.focus.includes(opt.value)) {
-        select.value = opt.value;
+  const typeSelect = document.getElementById('workout-type');
+  if (splitDay && !splitDay.rest && typeSelect) {
+    for (let opt of typeSelect.options) {
+      if (splitDay.focus.toLowerCase().includes(opt.value.toLowerCase())) {
+        typeSelect.value = opt.value;
         break;
       }
     }
   }
 
+  currentWorkoutExercises = [];
+  const selectedType = typeSelect ? typeSelect.value : 'Push';
+  renderWorkoutQuickChips(selectedType);
+  renderWorkoutExercisesBuilder();
+
   modal.showModal();
+}
+
+function renderWorkoutQuickChips(splitType) {
+  const container = document.getElementById('workout-exercise-chips');
+  if (!container) return;
+
+  const exercises = (state.gym.exercisesBySplit && state.gym.exercisesBySplit[splitType]) ||
+                    (DEFAULT_DATA.gym.exercisesBySplit && DEFAULT_DATA.gym.exercisesBySplit[splitType]) ||
+                    [];
+
+  if (exercises.length === 0) {
+    container.innerHTML = '<span class="text-xs text-muted">Pro tento split zatím nemáš přednastavené cviky. Napiš cvik níže nebo přidej šablonu v „Cviky & Šablony“.</span>';
+    return;
+  }
+
+  container.innerHTML = exercises.map(name => {
+    const isAdded = currentWorkoutExercises.some(e => e.name.toLowerCase() === name.toLowerCase());
+    return `
+      <button type="button" class="exercise-chip ${isAdded ? 'added' : ''}" data-name="${escapeHtml(name)}">
+        <span>${isAdded ? '✓' : '+'}</span>
+        <span>${escapeHtml(name)}</span>
+      </button>
+    `;
+  }).join('');
+
+  container.querySelectorAll('.exercise-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const name = chip.getAttribute('data-name');
+      addExerciseToWorkoutSession(name);
+    });
+  });
+}
+
+function addExerciseToWorkoutSession(exerciseName, initialWeight = null, initialReps = null) {
+  if (!exerciseName || !exerciseName.trim()) return;
+  const trimmed = exerciseName.trim();
+
+  // If already in session, duplicate the last set for quick tapping
+  const existing = currentWorkoutExercises.find(e => e.name.toLowerCase() === trimmed.toLowerCase());
+  if (existing) {
+    const lastSet = existing.sets[existing.sets.length - 1];
+    existing.sets.push({
+      setNum: existing.sets.length + 1,
+      weight: lastSet ? lastSet.weight : '',
+      reps: lastSet ? lastSet.reps : ''
+    });
+  } else {
+    currentWorkoutExercises.push({
+      id: 'ex_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+      name: trimmed,
+      sets: [
+        {
+          setNum: 1,
+          weight: initialWeight !== null ? initialWeight : '',
+          reps: initialReps !== null ? initialReps : ''
+        }
+      ]
+    });
+  }
+
+  renderWorkoutExercisesBuilder();
+  const typeSelect = document.getElementById('workout-type');
+  if (typeSelect) renderWorkoutQuickChips(typeSelect.value);
+}
+
+function renderWorkoutExercisesBuilder() {
+  const container = document.getElementById('workout-exercises-container');
+  if (!container) return;
+
+  if (currentWorkoutExercises.length === 0) {
+    container.innerHTML = '';
+    return;
+  }
+
+  container.innerHTML = currentWorkoutExercises.map(ex => {
+    return `
+      <div class="workout-exercise-card" data-ex-id="${ex.id}">
+        <div class="exercise-card-header">
+          <span class="exercise-card-name">🏋️ ${escapeHtml(ex.name)}</span>
+          <button type="button" class="btn-remove-exercise" data-ex-id="${ex.id}" title="Odstranit cvik">&times;</button>
+        </div>
+        <div class="exercise-sets-table">
+          ${ex.sets.map((s, idx) => `
+            <div class="exercise-set-row" data-set-index="${idx}">
+              <span class="set-num-badge">#${idx + 1}</span>
+              <div class="set-field-group">
+                <span class="set-field-label">Váha:</span>
+                <input type="number" step="0.5" class="set-input-num input-weight" value="${s.weight ?? ''}" placeholder="kg" data-ex-id="${ex.id}" data-set-index="${idx}">
+                <span class="set-field-label">kg</span>
+              </div>
+              <div class="set-field-group">
+                <span class="set-field-label">Opakování:</span>
+                <input type="number" min="1" max="999" class="set-input-num input-reps" value="${s.reps ?? ''}" placeholder="x" data-ex-id="${ex.id}" data-set-index="${idx}">
+                <span class="set-field-label">reps</span>
+              </div>
+              ${ex.sets.length > 1 ? `<button type="button" class="btn-del-set" data-ex-id="${ex.id}" data-set-index="${idx}" title="Smazat sérii">&times;</button>` : ''}
+            </div>
+          `).join('')}
+        </div>
+        <button type="button" class="btn-add-set" data-ex-id="${ex.id}">+ Další série</button>
+      </div>
+    `;
+  }).join('');
+
+  // Weight input sync
+  container.querySelectorAll('.input-weight').forEach(input => {
+    input.addEventListener('input', (e) => {
+      const exId = input.getAttribute('data-ex-id');
+      const setIdx = parseInt(input.getAttribute('data-set-index'), 10);
+      const ex = currentWorkoutExercises.find(x => x.id === exId);
+      if (ex && ex.sets[setIdx]) {
+        ex.sets[setIdx].weight = e.target.value;
+      }
+    });
+  });
+
+  // Reps input sync
+  container.querySelectorAll('.input-reps').forEach(input => {
+    input.addEventListener('input', (e) => {
+      const exId = input.getAttribute('data-ex-id');
+      const setIdx = parseInt(input.getAttribute('data-set-index'), 10);
+      const ex = currentWorkoutExercises.find(x => x.id === exId);
+      if (ex && ex.sets[setIdx]) {
+        ex.sets[setIdx].reps = e.target.value;
+      }
+    });
+  });
+
+  // Add set button
+  container.querySelectorAll('.btn-add-set').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const exId = btn.getAttribute('data-ex-id');
+      const ex = currentWorkoutExercises.find(x => x.id === exId);
+      if (!ex) return;
+      const prevSet = ex.sets[ex.sets.length - 1];
+      ex.sets.push({
+        setNum: ex.sets.length + 1,
+        weight: prevSet ? prevSet.weight : '',
+        reps: prevSet ? prevSet.reps : ''
+      });
+      renderWorkoutExercisesBuilder();
+    });
+  });
+
+  // Remove set button
+  container.querySelectorAll('.btn-del-set').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const exId = btn.getAttribute('data-ex-id');
+      const setIdx = parseInt(btn.getAttribute('data-set-index'), 10);
+      const ex = currentWorkoutExercises.find(x => x.id === exId);
+      if (!ex) return;
+      ex.sets.splice(setIdx, 1);
+      ex.sets.forEach((s, i) => { s.setNum = i + 1; });
+      renderWorkoutExercisesBuilder();
+    });
+  });
+
+  // Remove whole exercise button
+  container.querySelectorAll('.btn-remove-exercise').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const exId = btn.getAttribute('data-ex-id');
+      currentWorkoutExercises = currentWorkoutExercises.filter(x => x.id !== exId);
+      renderWorkoutExercisesBuilder();
+      const typeSelect = document.getElementById('workout-type');
+      if (typeSelect) renderWorkoutQuickChips(typeSelect.value);
+    });
+  });
+}
+
+// Manage Exercises Modal functions
+function openExercisesModal() {
+  const modal = document.getElementById('modal-exercises');
+  if (!modal) return;
+  const select = document.getElementById('manage-exercises-split-select');
+  if (select) {
+    select.value = 'Push';
+  }
+  renderTemplateExercisesList();
+  modal.showModal();
+}
+
+function renderTemplateExercisesList() {
+  const container = document.getElementById('template-exercises-list');
+  const select = document.getElementById('manage-exercises-split-select');
+  if (!container || !select) return;
+
+  const currentSplit = select.value;
+  if (!state.gym.exercisesBySplit) {
+    state.gym.exercisesBySplit = JSON.parse(JSON.stringify(DEFAULT_DATA.gym.exercisesBySplit));
+  }
+  if (!state.gym.exercisesBySplit[currentSplit]) {
+    state.gym.exercisesBySplit[currentSplit] = [];
+  }
+
+  const list = state.gym.exercisesBySplit[currentSplit];
+
+  if (list.length === 0) {
+    container.innerHTML = '<p class="text-sm text-muted" style="text-align: center; padding: 16px;">V této šabloně zatím nemáš žádné cviky. Přidej první výše!</p>';
+    return;
+  }
+
+  container.innerHTML = list.map((item, idx) => `
+    <div class="template-exercise-item">
+      <span>🏋️ ${escapeHtml(item)}</span>
+      <button type="button" class="btn btn-sm btn-danger btn-del-template-ex" data-split="${escapeHtml(currentSplit)}" data-index="${idx}" title="Smazat cvik">&times;</button>
+    </div>
+  `).join('');
+
+  container.querySelectorAll('.btn-del-template-ex').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const split = btn.getAttribute('data-split');
+      const idx = parseInt(btn.getAttribute('data-index'), 10);
+      if (state.gym.exercisesBySplit[split]) {
+        state.gym.exercisesBySplit[split].splice(idx, 1);
+        saveState();
+        renderTemplateExercisesList();
+        const workoutTypeSelect = document.getElementById('workout-type');
+        if (workoutTypeSelect && workoutTypeSelect.value === split) {
+          renderWorkoutQuickChips(split);
+        }
+        showToast('Cvik odebrán ze šablony');
+      }
+    });
+  });
 }
 
 function openSchoolModal(schoolId = null) {
@@ -1231,6 +1594,9 @@ function setupEventListeners() {
   const btnQuickWorkout = document.getElementById('btn-quick-workout');
   if (btnQuickWorkout) btnQuickWorkout.addEventListener('click', openWorkoutModal);
 
+  const btnManageExercises = document.getElementById('btn-manage-exercises');
+  if (btnManageExercises) btnManageExercises.addEventListener('click', openExercisesModal);
+
   const btnToggleTodayWorkout = document.getElementById('btn-toggle-today-workout');
   if (btnToggleTodayWorkout) {
     btnToggleTodayWorkout.addEventListener('click', () => {
@@ -1265,6 +1631,7 @@ function setupEventListeners() {
   // --- Modal Close Buttons ---
   setupModalClose('modal-project', 'modal-project-close', 'modal-project-cancel');
   setupModalClose('modal-workout', 'modal-workout-close', 'modal-workout-cancel');
+  setupModalClose('modal-exercises', 'modal-exercises-close', 'modal-exercises-cancel');
   setupModalClose('modal-school', 'modal-school-close', 'modal-school-cancel');
   setupModalClose('modal-split', 'modal-split-close', 'modal-split-cancel');
 
@@ -1274,6 +1641,82 @@ function setupEventListeners() {
   if (rangeInput && rangeVal) {
     rangeInput.addEventListener('input', (e) => {
       rangeVal.textContent = `${e.target.value} %`;
+    });
+  }
+
+  // --- Workout Modal Dynamic Controls ---
+  const workoutTypeSelect = document.getElementById('workout-type');
+  if (workoutTypeSelect) {
+    workoutTypeSelect.addEventListener('change', () => {
+      renderWorkoutQuickChips(workoutTypeSelect.value);
+    });
+  }
+
+  const btnAddCustomEx = document.getElementById('btn-add-custom-exercise');
+  const inputCustomEx = document.getElementById('custom-exercise-input');
+  if (btnAddCustomEx && inputCustomEx) {
+    const doAddCustom = () => {
+      const name = inputCustomEx.value.trim();
+      if (!name) return;
+      addExerciseToWorkoutSession(name);
+      inputCustomEx.value = '';
+    };
+    btnAddCustomEx.addEventListener('click', doAddCustom);
+    inputCustomEx.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        doAddCustom();
+      }
+    });
+  }
+
+  // --- Template Exercises Modal Controls ---
+  const manageSplitSelect = document.getElementById('manage-exercises-split-select');
+  if (manageSplitSelect) {
+    manageSplitSelect.addEventListener('change', renderTemplateExercisesList);
+  }
+
+  const formAddTemplateEx = document.getElementById('form-add-template-exercise');
+  if (formAddTemplateEx) {
+    formAddTemplateEx.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const input = document.getElementById('new-template-exercise-name');
+      const select = document.getElementById('manage-exercises-split-select');
+      if (!input || !select) return;
+      const name = input.value.trim();
+      const split = select.value;
+      if (!name) return;
+      if (!state.gym.exercisesBySplit) {
+        state.gym.exercisesBySplit = JSON.parse(JSON.stringify(DEFAULT_DATA.gym.exercisesBySplit));
+      }
+      if (!state.gym.exercisesBySplit[split]) state.gym.exercisesBySplit[split] = [];
+      if (!state.gym.exercisesBySplit[split].includes(name)) {
+        state.gym.exercisesBySplit[split].push(name);
+        saveState();
+        input.value = '';
+        renderTemplateExercisesList();
+        const wSelect = document.getElementById('workout-type');
+        if (wSelect && wSelect.value === split) {
+          renderWorkoutQuickChips(split);
+        }
+        showToast('Cvik přidán do šablony! 🏋️');
+      } else {
+        showToast('Tento cvik už v šabloně existuje');
+      }
+    });
+  }
+
+  const btnResetEx = document.getElementById('btn-reset-default-exercises');
+  if (btnResetEx) {
+    btnResetEx.addEventListener('click', () => {
+      if (confirm('Opravdu chceš obnovit výchozí cviky pro všechny splity?')) {
+        state.gym.exercisesBySplit = JSON.parse(JSON.stringify(DEFAULT_DATA.gym.exercisesBySplit));
+        saveState();
+        renderTemplateExercisesList();
+        const wSelect = document.getElementById('workout-type');
+        if (wSelect) renderWorkoutQuickChips(wSelect.value);
+        showToast('Výchozí cviky obnoveny');
+      }
     });
   }
 
@@ -1340,13 +1783,35 @@ function setupEventListeners() {
       const rating = parseInt(document.getElementById('workout-rating').value, 10) || 4;
       const notes = document.getElementById('workout-notes').value.trim();
 
+      // Compile exercises string from builder
+      let compiledExercises = '';
+      if (currentWorkoutExercises.length > 0) {
+        compiledExercises = currentWorkoutExercises.map(ex => {
+          const validSets = ex.sets.filter(s => (s.weight !== '' && s.weight !== null && s.weight !== undefined) || (s.reps !== '' && s.reps !== null && s.reps !== undefined));
+          const setsDetails = (validSets.length > 0 ? validSets : ex.sets).map(s => {
+            const w = (s.weight !== '' && s.weight !== null && s.weight !== undefined) ? `${s.weight} kg` : '';
+            const r = (s.reps !== '' && s.reps !== null && s.reps !== undefined) ? `${s.reps} reps` : '';
+            if (w && r) return `${s.weight} kg × ${s.reps}`;
+            return w || r || '1 série';
+          }).join(', ');
+
+          return `• ${ex.name}: ${ex.sets.length} série${setsDetails ? ` (${setsDetails})` : ''}`;
+        }).join('\n');
+
+        if (notes) {
+          compiledExercises += `\nPoznámka: ${notes}`;
+        }
+      } else {
+        compiledExercises = notes;
+      }
+
       state.gym.logs.unshift({
         id: 'log_' + Date.now(),
         date,
         duration,
         type,
         rating,
-        exercises: notes
+        exercises: compiledExercises
       });
 
       // Also mark gym habit done for that day
@@ -2310,7 +2775,7 @@ async function pullFromSupabase(isRealtime = false, isManual = false) {
 
       // 2. Projects
       if (projectsRes.data) {
-        state.projects = projectsRes.data
+        const cloudProjects = projectsRes.data
           .filter(p => !recentlyDeletedIds.has(p.id))
           .map(p => ({
             id: p.id,
@@ -2323,6 +2788,17 @@ async function pullFromSupabase(isRealtime = false, isManual = false) {
             url: p.url || '',
             tasks: Array.isArray(p.tasks) ? p.tasks : []
           }));
+
+        const hasOldDemo = cloudProjects.some(p => p.id === 'proj_1' || p.id === 'proj_2' || p.id === 'proj_3');
+        const hasPersonal = cloudProjects.some(p => p.title === 'PubMate' || p.title === 'Dockmaster' || p.title === 'LogiSpace');
+
+        if (hasOldDemo && !hasPersonal) {
+          ['proj_1', 'proj_2', 'proj_3'].forEach(id => markAsDeleted(id));
+          state.projects = JSON.parse(JSON.stringify(DEFAULT_DATA.projects));
+          saveState();
+        } else if (cloudProjects.length > 0) {
+          state.projects = cloudProjects;
+        }
       }
 
       // 3. Gym Split

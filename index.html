@@ -347,6 +347,10 @@
               <p class="section-desc">Týdenní tréninkový split, záznamy sérií a sledování kondice</p>
             </div>
             <div class="section-actions-row">
+              <button class="btn btn-secondary" id="btn-manage-exercises" title="Správa cviků a šablon pro jednotlivé splity">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h7"/></svg>
+                <span>Cviky & Šablony</span>
+              </button>
               <button class="btn btn-secondary" id="btn-edit-split">
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                 <span>Upravit plán</span>
@@ -643,7 +647,7 @@
   </dialog>
 
   <!-- ================= DIALOG: WORKOUT MODAL ================= -->
-  <dialog id="modal-workout" class="custom-dialog">
+  <dialog id="modal-workout" class="custom-dialog custom-dialog-wide">
     <div class="dialog-content">
       <div class="dialog-header">
         <h3 id="modal-workout-title">Zapsat trénink do fitka</h3>
@@ -662,7 +666,7 @@
         </div>
         <div class="form-row">
           <div class="form-group col-half">
-            <label for="workout-type">Typ tréninku *</label>
+            <label for="workout-type">Typ tréninku / Split *</label>
             <select id="workout-type" class="form-select" required>
               <option value="Push">Push (Hrudník, Ramena, Triceps)</option>
               <option value="Pull">Pull (Záda, Biceps)</option>
@@ -684,19 +688,88 @@
             </select>
           </div>
         </div>
-        <div class="form-group">
-          <label for="workout-notes">Odcvičené cviky, váhy a série</label>
-          <textarea id="workout-notes" class="form-textarea" rows="4" placeholder="Např.
-Bench press: 4x8 (80 kg)
-Tlaky na šikmé lavici: 3x10 (28 kg)
-Upažování: 4x12 (12 kg)
-Triceps stahování kladky: 3x15"></textarea>
+
+        <!-- Interactive Exercise Picker & Sets Builder -->
+        <div class="workout-builder-section">
+          <div class="builder-header">
+            <label class="builder-title">Rychlý výběr cviků (kliknutím přidáš):</label>
+            <span class="text-xs text-muted">Vyber cvik ze šablony nebo zadej vlastní</span>
+          </div>
+
+          <!-- Quick chips for exercises of chosen split -->
+          <div class="exercise-chips-wrap" id="workout-exercise-chips">
+            <!-- Populated dynamically based on workout-type -->
+          </div>
+
+          <!-- Add custom exercise inline -->
+          <div class="quick-add-custom-exercise">
+            <input type="text" id="custom-exercise-input" class="form-input form-input-sm" placeholder="+ Napsat jiný cvik...">
+            <button type="button" class="btn btn-secondary btn-sm" id="btn-add-custom-exercise">Přidat cvik</button>
+          </div>
+
+          <!-- Dynamic Exercises List Container -->
+          <div class="workout-exercises-container" id="workout-exercises-container">
+            <!-- Dynamic exercise cards with sets will appear here -->
+          </div>
         </div>
+
+        <!-- Collapsible / Optional Freeform Notes -->
+        <div class="form-group" style="margin-top: 14px;">
+          <label for="workout-notes" style="display: flex; justify-content: space-between;">
+            <span>Doplňující poznámky (volitelné)</span>
+            <span class="text-xs text-muted">např. warmup, supersérie, regenerace</span>
+          </label>
+          <textarea id="workout-notes" class="form-textarea" rows="2" placeholder="Jakékoliv další postřehy nebo poznámka k tréninku..."></textarea>
+        </div>
+
         <div class="dialog-actions">
           <button type="button" class="btn btn-secondary" id="modal-workout-cancel">Zrušit</button>
-          <button type="submit" class="btn btn-primary">Uložit trénink</button>
+          <button type="submit" class="btn btn-primary" id="btn-submit-workout">Uložit trénink</button>
         </div>
       </form>
+    </div>
+  </dialog>
+
+  <!-- ================= DIALOG: MANAGE EXERCISES & TEMPLATES ================= -->
+  <dialog id="modal-exercises" class="custom-dialog custom-dialog-wide">
+    <div class="dialog-content">
+      <div class="dialog-header">
+        <div>
+          <h3>Správa cviků & Šablony splitů</h3>
+          <p class="text-xs text-muted" style="margin-top: 2px;">Cviky, které se ti budou nabízet při rychlém zápisu tréninku</p>
+        </div>
+        <button class="btn-close" id="modal-exercises-close" aria-label="Zavřít">&times;</button>
+      </div>
+
+      <div class="form-group">
+        <label for="manage-exercises-split-select">Vyber split / kategorii:</label>
+        <select id="manage-exercises-split-select" class="form-select">
+          <option value="Push">Push (Hrudník, Ramena, Triceps)</option>
+          <option value="Pull">Pull (Záda, Biceps)</option>
+          <option value="Legs">Legs (Nohy, Lýtka, Břicho)</option>
+          <option value="Fullbody">Full Body</option>
+          <option value="Vrchní tělo">Vrchní tělo</option>
+          <option value="Kardio">Kardio / Kondice</option>
+        </select>
+      </div>
+
+      <!-- Add new exercise to template -->
+      <form id="form-add-template-exercise" class="new-habit-row" style="margin-bottom: 16px;">
+        <input type="text" id="new-template-exercise-name" class="form-input" placeholder="Název nového cviku (např. Incline bench)..." required>
+        <button type="submit" class="btn btn-primary btn-sm" style="white-space: nowrap;">Přidat do šablony</button>
+      </form>
+
+      <!-- List of exercises for selected category -->
+      <div class="template-exercises-list" id="template-exercises-list">
+        <!-- Rendered by JS -->
+      </div>
+
+      <div class="dialog-actions" style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
+        <button type="button" class="btn btn-outline btn-sm text-xs" id="btn-reset-default-exercises" title="Obnovit výchozí seznam cviků">
+          Obnovit výchozí cviky
+        </button>
+        <button type="button" class="btn btn-secondary" id="modal-exercises-cancel">Hotovo</button>
+      </div>
     </div>
   </dialog>
 
