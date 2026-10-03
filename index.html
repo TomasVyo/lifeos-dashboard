@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="cs" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Osobní Dashboard • Projekty, Fitko & Škola</title>
+  
+  <!-- PWA Meta Tags -->
+  <meta name="description" content="Osobní PWA dashboard pro sledování projektů, fitka, školy a denních návyků.">
+  <meta name="theme-color" content="#4f46e5">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Dashboard">
+  
+  <!-- Manifest & Favicons -->
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" type="image/svg+xml" href="./icons/favicon.svg">
+  <link rel="apple-touch-icon" href="./icons/icon-192.png">
+
+  <!-- Supabase JS Client Library -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="app-container">
+    
+    <!-- Sidebar Navigation for Desktop -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-logo">
+          <svg viewBox="0 0 64 64" width="32" height="32" fill="none">
+            <rect width="64" height="64" rx="14" fill="url(#brandGrad)"/>
+            <path d="M18 32l10 10 18-20" stroke="#ffffff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+            <defs>
+              <linearGradient id="brandGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#6366f1"/>
+                <stop offset="100%" stop-color="#8b5cf6"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <span class="brand-title">LifeOS</span>
+          <span class="brand-subtitle">Osobní Dashboard</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <button class="nav-item active" data-tab="overview">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+          <span>Přehled</span>
+        </button>
+        <button class="nav-item" data-tab="projects">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+          <span>Projekty</span>
+          <span class="badge" id="sidebar-projects-count">0</span>
+        </button>
+        <button class="nav-item" data-tab="gym">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 5v14M18 5v14M2 9v6M22 9v6M6 12h12"></path></svg>
+          <span>Fitko & Sport</span>
+          <span class="badge badge-accent" id="sidebar-gym-streak">0/4</span>
+        </button>
+        <button class="nav-item" data-tab="school">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+          <span>Škola & Zkoušky</span>
+          <span class="badge badge-warning" id="sidebar-school-count">0</span>
+        </button>
+        <button class="nav-item" data-tab="settings">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+          <span>Nastavení & Data</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="pwa-status-card">
+          <div class="status-indicator-dot online" id="connection-dot"></div>
+          <div class="status-meta">
+            <span class="status-title" id="connection-text">Online</span>
+            <span class="status-sub">PWA připraveno</span>
+          </div>
+        </div>
+        <button id="pwa-install-btn" class="btn btn-sm btn-pwa hidden">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          <span>Instalovat App</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="main-wrapper">
+      
+      <!-- Top Navigation Header -->
+      <header class="app-header">
+        <div class="header-left">
+          <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Menu">
+            <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+          </button>
+          <div class="header-datetime">
+            <span class="date-display" id="current-date">Sobota, 3. října</span>
+            <span class="time-display" id="current-time">14:00</span>
+          </div>
+        </div>
+
+        <div class="header-actions">
+          <!-- Cloud Sync Status Button -->
+          <button id="cloud-sync-status-btn" class="btn btn-sm btn-secondary" title="Supabase Cloud Realtime synchronizace">
+            <span id="cloud-sync-icon">☁️</span>
+            <span class="btn-text-responsive" id="cloud-sync-label">Lokální</span>
+          </button>
+
+          <!-- Install Button for Mobile / Header -->
+          <button id="header-install-btn" class="btn btn-sm btn-pwa-header hidden">
+            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            <span class="btn-text-responsive">Instalovat</span>
+          </button>
+
+          <!-- Theme Toggle -->
+          <button class="icon-btn" id="theme-toggle" aria-label="Přepnout motiv">
+            <svg id="theme-icon-sun" class="theme-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+            <svg id="theme-icon-moon" class="theme-icon hidden" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+          </button>
+        </div>
+      </header>
+
+      <!-- Main Body Scroll Container -->
+      <main class="content-container">
+
+        <!-- ================= TAB: OVERVIEW ================= -->
+        <section class="tab-content active" id="view-overview">
+          <!-- Hero Greeting -->
+          <div class="hero-greeting">
+            <div class="greeting-content">
+              <h1 class="greeting-title" id="greeting-title">Vítej zpět! 👋</h1>
+              <p class="greeting-subtitle" id="greeting-quote">Všechny projekty, tréninky a školní termíny na jednom místě.</p>
+            </div>
+            <div class="hero-actions">
+              <button class="btn btn-primary" id="btn-quick-workout">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 5v14M18 5v14M2 9v6M22 9v6M6 12h12"></path></svg>
+                <span>Zapsat trénink</span>
+              </button>
+              <button class="btn btn-secondary" id="btn-quick-school">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                <span>Nový úkol do školy</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 4 Metrics KPI Grid -->
+          <div class="metrics-grid">
+            <div class="metric-card" data-tab-jump="projects">
+              <div class="metric-icon-wrap icon-projects">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+              </div>
+              <div class="metric-data">
+                <span class="metric-label">Aktivní projekty</span>
+                <div class="metric-value-row">
+                  <span class="metric-number" id="metric-projects-count">0</span>
+                  <span class="metric-tag" id="metric-projects-sub">v realizaci</span>
+                </div>
+              </div>
+              <div class="metric-progress-wrap">
+                <div class="progress-bar">
+                  <div class="progress-fill fill-indigo" id="metric-projects-bar" style="width: 0%"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="metric-card" data-tab-jump="gym">
+              <div class="metric-icon-wrap icon-gym">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 5v14M18 5v14M2 9v6M22 9v6M6 12h12"></path></svg>
+              </div>
+              <div class="metric-data">
+                <span class="metric-label">Fitko tento týden</span>
+                <div class="metric-value-row">
+                  <span class="metric-number" id="metric-gym-count">0 / 4</span>
+                  <span class="metric-tag tag-accent" id="metric-gym-tag">tréninků</span>
+                </div>
+              </div>
+              <div class="metric-progress-wrap">
+                <div class="progress-bar">
+                  <div class="progress-fill fill-rose" id="metric-gym-bar" style="width: 0%"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="metric-card" data-tab-jump="school">
+              <div class="metric-icon-wrap icon-school">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+              </div>
+              <div class="metric-data">
+                <span class="metric-label">Školní termíny</span>
+                <div class="metric-value-row">
+                  <span class="metric-number" id="metric-school-pending">0</span>
+                  <span class="metric-tag tag-warning" id="metric-school-urgent">0 tento týden</span>
+                </div>
+              </div>
+              <div class="metric-progress-wrap">
+                <div class="progress-bar">
+                  <div class="progress-fill fill-amber" id="metric-school-bar" style="width: 0%"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-icon-wrap icon-habits">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+              </div>
+              <div class="metric-data">
+                <span class="metric-label">Dnešní návyky</span>
+                <div class="metric-value-row">
+                  <span class="metric-number" id="metric-habits-count">0 / 0</span>
+                  <span class="metric-tag tag-emerald" id="metric-habits-pct">0 %</span>
+                </div>
+              </div>
+              <div class="metric-progress-wrap">
+                <div class="progress-bar">
+                  <div class="progress-fill fill-emerald" id="metric-habits-bar" style="width: 0%"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dual Column Dashboard Overview -->
+          <div class="overview-dual-grid">
+            
+            <!-- Left Column: Today's Routine & Fitness Plan -->
+            <div class="dashboard-col">
+              
+              <!-- Today Gym Status Widget -->
+              <div class="card widget-card">
+                <div class="widget-header">
+                  <div class="widget-title-wrap">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" class="text-rose"><path d="M6 5v14M18 5v14M2 9v6M22 9v6M6 12h12"></path></svg>
+                    <h3>Dnešní tréninkový plán</h3>
+                  </div>
+                  <span class="badge" id="today-day-name">Dnes</span>
+                </div>
+                <div class="today-workout-box" id="today-workout-box">
+                  <div class="workout-plan-details">
+                    <h4 id="today-split-title">Načítání...</h4>
+                    <p id="today-split-desc">Zaměření tréninku</p>
+                  </div>
+                  <div class="workout-plan-action">
+                    <button class="btn btn-sm btn-accent" id="btn-toggle-today-workout">
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                      <span id="today-workout-btn-label">Označit odcvičeno</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Daily Habits / To-Do Checklist -->
+              <div class="card widget-card">
+                <div class="widget-header">
+                  <div class="widget-title-wrap">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" class="text-emerald"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+                    <h3>Denní návyky a úkoly</h3>
+                  </div>
+                  <span class="text-muted text-sm" id="habits-counter-text">0 splněno</span>
+                </div>
+                <div class="habits-list" id="overview-habits-list">
+                  <!-- Dynamic Habits injected by JS -->
+                </div>
+                <div class="widget-footer-action">
+                  <button class="btn-text" id="btn-add-habit-shortcut">+ Přidat vlastní návyk</button>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Right Column: Urgent Deadlines & Key Projects -->
+            <div class="dashboard-col">
+              
+              <!-- School Deadlines Widget -->
+              <div class="card widget-card">
+                <div class="widget-header">
+                  <div class="widget-title-wrap">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" class="text-amber"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    <h3>Blížící se termíny do školy</h3>
+                  </div>
+                  <button class="btn-text" data-tab-jump="school">Všechny &rarr;</button>
+                </div>
+                <div class="school-urgent-list" id="overview-deadlines-list">
+                  <!-- Dynamic School Deadlines injected by JS -->
+                </div>
+              </div>
+
+              <!-- Active Projects Highlight -->
+              <div class="card widget-card">
+                <div class="widget-header">
+                  <div class="widget-title-wrap">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" class="text-indigo"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+                    <h3>Rozpracované projekty</h3>
+                  </div>
+                  <button class="btn-text" data-tab-jump="projects">Přejít na projekty &rarr;</button>
+                </div>
+                <div class="overview-projects-list" id="overview-projects-list">
+                  <!-- Dynamic Projects injected by JS -->
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+        </section>
+
+        <!-- ================= TAB: PROJECTS ================= -->
+        <section class="tab-content" id="view-projects">
+          <div class="section-header">
+            <div>
+              <h2 class="section-title">Moje Projekty</h2>
+              <p class="section-desc">Sledování vývoje, kódování a osobních projektů</p>
+            </div>
+            <button class="btn btn-primary" id="btn-open-project-modal">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              <span>Nový projekt</span>
+            </button>
+          </div>
+
+          <!-- Filter & Search Toolbar -->
+          <div class="toolbar">
+            <div class="search-input-wrap">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              <input type="text" id="project-search-input" placeholder="Hledat v projektech..." class="search-input">
+            </div>
+            <div class="filter-pills" id="project-filters">
+              <button class="filter-pill active" data-filter="all">Všechny (<span id="count-proj-all">0</span>)</button>
+              <button class="filter-pill" data-filter="in_progress">V řešení (<span id="count-proj-progress">0</span>)</button>
+              <button class="filter-pill" data-filter="planned">Plánováno (<span id="count-proj-planned">0</span>)</button>
+              <button class="filter-pill" data-filter="completed">Hotovo (<span id="count-proj-done">0</span>)</button>
+            </div>
+          </div>
+
+          <!-- Projects Grid -->
+          <div class="projects-grid" id="projects-grid">
+            <!-- Dynamic Project Cards -->
+          </div>
+        </section>
+
+        <!-- ================= TAB: GYM & FITNESS ================= -->
+        <section class="tab-content" id="view-gym">
+          <div class="section-header">
+            <div>
+              <h2 class="section-title">Fitko & Fitness Tracker</h2>
+              <p class="section-desc">Týdenní tréninkový split, záznamy sérií a sledování kondice</p>
+            </div>
+            <div class="section-actions-row">
+              <button class="btn btn-secondary" id="btn-edit-split">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                <span>Upravit plán</span>
+              </button>
+              <button class="btn btn-primary" id="btn-open-workout-modal">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                <span>Zapsat trénink</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Weekly Schedule Split Overview -->
+          <div class="card weekly-schedule-card">
+            <div class="widget-header">
+              <div class="widget-title-wrap">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" class="text-rose"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                <h3>Týdenní plán (Split)</h3>
+              </div>
+              <div class="gym-stats-badges">
+                <span class="badge badge-accent" id="gym-weekly-progress-badge">Tento týden: 0 / 4</span>
+              </div>
+            </div>
+            <div class="days-split-grid" id="days-split-container">
+              <!-- 7 Day cards generated by JS -->
+            </div>
+          </div>
+
+          <!-- Workout History & Logs -->
+          <div class="workout-history-section">
+            <div class="sub-header">
+              <h3>Historie a deník tréninků</h3>
+              <span class="text-muted text-sm" id="gym-logs-count">0 záznamů</span>
+            </div>
+            <div class="workout-logs-list" id="workout-logs-list">
+              <!-- Log cards generated by JS -->
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= TAB: SCHOOL ================= -->
+        <section class="tab-content" id="view-school">
+          <div class="section-header">
+            <div>
+              <h2 class="section-title">Škola & Studium</h2>
+              <p class="section-desc">Hlídání zápočtů, zkoušek, semestrálních prací a úkolů</p>
+            </div>
+            <button class="btn btn-primary" id="btn-open-school-modal">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              <span>Přidat úkol / termín</span>
+            </button>
+          </div>
+
+          <!-- Filter Toolbar for School -->
+          <div class="toolbar">
+            <div class="search-input-wrap">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              <input type="text" id="school-search-input" placeholder="Hledat předmět nebo úkol..." class="search-input">
+            </div>
+            <div class="filter-pills" id="school-filters">
+              <button class="filter-pill active" data-filter="pending">Aktivní (<span id="count-school-active">0</span>)</button>
+              <button class="filter-pill" data-filter="urgent">Tento týden (<span id="count-school-urgent">0</span>)</button>
+              <button class="filter-pill" data-filter="done">Splněné (<span id="count-school-done">0</span>)</button>
+              <button class="filter-pill" data-filter="all">Všechny (<span id="count-school-all">0</span>)</button>
+            </div>
+          </div>
+
+          <!-- School Items List -->
+          <div class="school-items-grid" id="school-items-grid">
+            <!-- Dynamic School Cards -->
+          </div>
+        </section>
+
+        <!-- ================= TAB: SETTINGS & BACKUP ================= -->
+        <section class="tab-content" id="view-settings">
+          <div class="section-header">
+            <div>
+              <h2 class="section-title">Nastavení & Data</h2>
+              <p class="section-desc">Personalizace, zálohování a offline správa</p>
+            </div>
+          </div>
+
+          <div class="settings-grid">
+            
+            <!-- Profile & Personalization Card -->
+            <div class="card settings-card">
+              <div class="card-title-row">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" class="text-indigo"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                <h3>Osobní profil</h3>
+              </div>
+              <div class="form-group">
+                <label for="setting-user-name">Tvoje jméno (pro pozdrav)</label>
+                <input type="text" id="setting-user-name" class="form-input" placeholder="Např. Tomáš">
+              </div>
+              <div class="form-group">
+                <label for="setting-gym-goal">Týdenní cíl návštěv fitka</label>
+                <input type="number" id="setting-gym-goal" class="form-input" min="1" max="7" value="4">
+              </div>
+              <button class="btn btn-primary btn-sm" id="btn-save-profile">Uložit profil</button>
+            </div>
+
+            <!-- Habits Management Card -->
+            <div class="card settings-card">
+              <div class="card-title-row">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" class="text-emerald"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                <h3>Správa denních návyků</h3>
+              </div>
+              <div class="new-habit-row">
+                <input type="text" id="new-habit-text" class="form-input" placeholder="Nový návyk (např. Číst 20 stran knihy)">
+                <button class="btn btn-secondary btn-sm" id="btn-add-habit">Přidat</button>
+              </div>
+              <div class="settings-habits-list" id="settings-habits-list">
+                <!-- Manage habits list injected by JS -->
+              </div>
+            </div>
+
+            <!-- Supabase Cloud Sync Card -->
+            <div class="card settings-card">
+              <div class="card-title-row">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" class="text-emerald"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
+                <h3>Supabase Cloud & Okamžitá synchronizace</h3>
+              </div>
+              <p class="text-muted text-sm">Automatická záloha a okamžité promítnutí změn na všech tvých zařízeních (PC, mobil, tablet) v reálném čase přes WebSockets.</p>
+
+              <div class="sync-status-box" id="supabase-status-banner">
+                <div class="status-indicator-dot offline" id="supabase-status-dot"></div>
+                <div style="flex: 1;">
+                  <strong id="supabase-status-heading">Lokální režim (Bez cloudu)</strong>
+                  <p class="text-sm text-muted" id="supabase-status-sub">Připoj svůj Supabase projekt pro synchronizaci mezi zařízeními.</p>
+                </div>
+              </div>
+
+              <div class="backup-actions">
+                <button class="btn btn-primary" id="btn-open-supabase-modal">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                  <span id="btn-supabase-config-label">Připojit Supabase Cloud</span>
+                </button>
+                <div style="display: flex; gap: 8px;">
+                  <button class="btn btn-secondary btn-sm" id="btn-force-sync" style="flex: 1;">
+                    <span>🔄 Synchronizovat</span>
+                  </button>
+                  <button class="btn btn-outline btn-sm" id="btn-upload-local-to-cloud" style="flex: 1;" title="Nahraje lokální data do Supabase cloudu">
+                    <span>☁️ Nahrát lokální</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Backup & Restore Card -->
+            <div class="card settings-card">
+              <div class="card-title-row">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" class="text-sky"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                <h3>Záloha & Obnova dat (JSON)</h3>
+              </div>
+              <p class="text-muted text-sm">Všechna data jsou bezpečně uložena v tvém prohlížeči. Zde si můžeš kdykoliv stáhnout kompletní zálohu nebo ji obnovit na jiném zařízení.</p>
+              
+              <div class="backup-actions">
+                <button class="btn btn-secondary" id="btn-export-data">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                  <span>Exportovat data (Stáhnout JSON)</span>
+                </button>
+                
+                <label class="btn btn-secondary file-upload-label">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                  <span>Importovat ze zálohy</span>
+                  <input type="file" id="file-import-data" accept=".json" class="hidden-file-input">
+                </label>
+              </div>
+
+              <div class="danger-zone">
+                <h4>Reset a ukázková data</h4>
+                <div class="danger-actions-row">
+                  <button class="btn btn-sm btn-outline" id="btn-load-sample-data">Obnovit ukázková data</button>
+                  <button class="btn btn-sm btn-danger" id="btn-reset-data">Vymazat vše</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- PWA & System Information Card -->
+            <div class="card settings-card">
+              <div class="card-title-row">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" class="text-rose"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+                <h3>Stav aplikace & PWA</h3>
+              </div>
+              <ul class="system-info-list">
+                <li>
+                  <span class="info-label">Aplikace:</span>
+                  <span class="info-val">LifeOS PWA Dashboard v1.0</span>
+                </li>
+                <li>
+                  <span class="info-label">Režim zobrazení:</span>
+                  <span class="info-val" id="pwa-display-mode">Prohlížeč</span>
+                </li>
+                <li>
+                  <span class="info-label">Offline mezipaměť:</span>
+                  <span class="info-val" id="sw-status-text">Aktivní (Service Worker)</span>
+                </li>
+                <li>
+                  <span class="info-label">Úložiště:</span>
+                  <span class="info-val">Lokální prohlížeč (LocalStorage)</span>
+                </li>
+              </ul>
+              <div class="pwa-help-box">
+                <p class="text-sm">💡 <strong>Jak nainstalovat jako aplikaci?</strong><br>
+                V Chrome nebo Edge klikni na ikonku instalace v adresním řádku nebo v menu vyber <em>„Nainstalovat aplikaci...“</em>. Na mobilu zvol <em>„Přidat na plochu“</em>.</p>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+      </main>
+
+      <!-- Bottom Navigation for Mobile -->
+      <nav class="bottom-nav">
+        <button class="bottom-nav-item active" data-tab="overview">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+          <span>Přehled</span>
+        </button>
+        <button class="bottom-nav-item" data-tab="projects">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+          <span>Projekty</span>
+        </button>
+        <button class="bottom-nav-item" data-tab="gym">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 5v14M18 5v14M2 9v6M22 9v6M6 12h12"></path></svg>
+          <span>Fitko</span>
+        </button>
+        <button class="bottom-nav-item" data-tab="school">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+          <span>Škola</span>
+        </button>
+        <button class="bottom-nav-item" data-tab="settings">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+          <span>Nastavení</span>
+        </button>
+      </nav>
+
+    </div>
+  </div>
+
+  <!-- ================= DIALOG: PROJECT MODAL ================= -->
+  <dialog id="modal-project" class="custom-dialog">
+    <div class="dialog-content">
+      <div class="dialog-header">
+        <h3 id="modal-project-title">Nový projekt</h3>
+        <button class="btn-close" id="modal-project-close" aria-label="Zavřít">&times;</button>
+      </div>
+      <form id="form-project">
+        <input type="hidden" id="proj-id">
+        <div class="form-group">
+          <label for="proj-title">Název projektu *</label>
+          <input type="text" id="proj-title" class="form-input" required placeholder="Např. Osobní portfolio nebo E-shop">
+        </div>
+        <div class="form-row">
+          <div class="form-group col-half">
+            <label for="proj-category">Kategorie / Tag</label>
+            <input type="text" id="proj-category" class="form-input" placeholder="Frontend, Backend, Škola, Osobní">
+          </div>
+          <div class="form-group col-half">
+            <label for="proj-status">Stav</label>
+            <select id="proj-status" class="form-select">
+              <option value="in_progress">V řešení</option>
+              <option value="planned">Plánováno</option>
+              <option value="completed">Dokončeno</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group col-half">
+            <label for="proj-progress">Dokončeno (%)</label>
+            <div class="range-row">
+              <input type="range" id="proj-progress" class="form-range" min="0" max="100" value="0">
+              <span id="proj-progress-val" class="range-val">0 %</span>
+            </div>
+          </div>
+          <div class="form-group col-half">
+            <label for="proj-deadline">Cílové datum (Termín)</label>
+            <input type="date" id="proj-deadline" class="form-input">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="proj-url">Odkaz (GitHub repo, web, design...)</label>
+          <input type="url" id="proj-url" class="form-input" placeholder="https://github.com/...">
+        </div>
+        <div class="form-group">
+          <label for="proj-desc">Popis a poznámky</label>
+          <textarea id="proj-desc" class="form-textarea" rows="3" placeholder="Stručný cíl a klíčové milníky projektu..."></textarea>
+        </div>
+        <div class="dialog-actions">
+          <button type="button" class="btn btn-secondary" id="modal-project-cancel">Zrušit</button>
+          <button type="submit" class="btn btn-primary" id="btn-save-project">Uložit projekt</button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+
+  <!-- ================= DIALOG: WORKOUT MODAL ================= -->
+  <dialog id="modal-workout" class="custom-dialog">
+    <div class="dialog-content">
+      <div class="dialog-header">
+        <h3 id="modal-workout-title">Zapsat trénink do fitka</h3>
+        <button class="btn-close" id="modal-workout-close" aria-label="Zavřít">&times;</button>
+      </div>
+      <form id="form-workout">
+        <div class="form-row">
+          <div class="form-group col-half">
+            <label for="workout-date">Datum *</label>
+            <input type="date" id="workout-date" class="form-input" required>
+          </div>
+          <div class="form-group col-half">
+            <label for="workout-duration">Délka (minuty)</label>
+            <input type="number" id="workout-duration" class="form-input" min="5" max="300" value="60">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group col-half">
+            <label for="workout-type">Typ tréninku *</label>
+            <select id="workout-type" class="form-select" required>
+              <option value="Push">Push (Hrudník, Ramena, Triceps)</option>
+              <option value="Pull">Pull (Záda, Biceps)</option>
+              <option value="Legs">Legs (Nohy, Lýtka, Břicho)</option>
+              <option value="Fullbody">Full Body</option>
+              <option value="Vrchní tělo">Vrchní tělo</option>
+              <option value="Kardio">Kardio / Běh</option>
+              <option value="Jiné">Jiné cvičení</option>
+            </select>
+          </div>
+          <div class="form-group col-half">
+            <label for="workout-rating">Hodnocení pocitu</label>
+            <select id="workout-rating" class="form-select">
+              <option value="5">⭐⭐⭐⭐⭐ Skvělý výkon</option>
+              <option value="4" selected>⭐⭐⭐⭐ Dobrý trénink</option>
+              <option value="3">⭐⭐⭐ Průměr</option>
+              <option value="2">⭐⭐ Těžký den</option>
+              <option value="1">⭐ Špatná energie</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="workout-notes">Odcvičené cviky, váhy a série</label>
+          <textarea id="workout-notes" class="form-textarea" rows="4" placeholder="Např.
+Bench press: 4x8 (80 kg)
+Tlaky na šikmé lavici: 3x10 (28 kg)
+Upažování: 4x12 (12 kg)
+Triceps stahování kladky: 3x15"></textarea>
+        </div>
+        <div class="dialog-actions">
+          <button type="button" class="btn btn-secondary" id="modal-workout-cancel">Zrušit</button>
+          <button type="submit" class="btn btn-primary">Uložit trénink</button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+
+  <!-- ================= DIALOG: EDIT WEEKLY SPLIT MODAL ================= -->
+  <dialog id="modal-split" class="custom-dialog">
+    <div class="dialog-content">
+      <div class="dialog-header">
+        <h3>Upravit týdenní plán (Split)</h3>
+        <button class="btn-close" id="modal-split-close" aria-label="Zavřít">&times;</button>
+      </div>
+      <form id="form-split">
+        <div class="split-edit-list" id="split-edit-list">
+          <!-- 7 day split rows generated by JS -->
+        </div>
+        <div class="dialog-actions">
+          <button type="button" class="btn btn-secondary" id="modal-split-cancel">Zrušit</button>
+          <button type="submit" class="btn btn-primary">Uložit plán</button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+
+  <!-- ================= DIALOG: SCHOOL MODAL ================= -->
+  <dialog id="modal-school" class="custom-dialog">
+    <div class="dialog-content">
+      <div class="dialog-header">
+        <h3 id="modal-school-title">Přidat školní povinnost</h3>
+        <button class="btn-close" id="modal-school-close" aria-label="Zavřít">&times;</button>
+      </div>
+      <form id="form-school">
+        <input type="hidden" id="school-id">
+        <div class="form-row">
+          <div class="form-group col-half">
+            <label for="school-subject">Předmět *</label>
+            <input type="text" id="school-subject" class="form-input" required placeholder="Např. Matematika, Databáze...">
+          </div>
+          <div class="form-group col-half">
+            <label for="school-type">Typ termínu</label>
+            <select id="school-type" class="form-select">
+              <option value="Semestrálka">Semestrální projekt</option>
+              <option value="Zkouška">Zkouška</option>
+              <option value="Zápočet">Zápočtový test</option>
+              <option value="Domácí úkol">Domácí úkol</option>
+              <option value="Prezentace">Prezentace</option>
+              <option value="Jiné">Jiné</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="school-task-title">Název úkolu / téma *</label>
+          <input type="text" id="school-task-title" class="form-input" required placeholder="Např. ERD model a odevzdání SQL skriptů">
+        </div>
+        <div class="form-row">
+          <div class="form-group col-half">
+            <label for="school-deadline">Termín odevzdání / zkoušky *</label>
+            <input type="date" id="school-deadline" class="form-input" required>
+          </div>
+          <div class="form-group col-half">
+            <label for="school-priority">Priorita</label>
+            <select id="school-priority" class="form-select">
+              <option value="high">🔴 Vysoká priorita</option>
+              <option value="medium" selected>🟡 Střední priorita</option>
+              <option value="low">🟢 Nízká priorita</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="school-status">Stav</label>
+          <select id="school-status" class="form-select">
+            <option value="pending">Čeká na vypracování</option>
+            <option value="in_progress">Rozpracováno</option>
+            <option value="done">Splněno / Odevzdáno</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="school-notes">Poznámky, zadání, odkazy</label>
+          <textarea id="school-notes" class="form-textarea" rows="3" placeholder="Podrobnosti ze školního systému, body, co nezapomenout..."></textarea>
+        </div>
+        <div class="dialog-actions">
+          <button type="button" class="btn btn-secondary" id="modal-school-cancel">Zrušit</button>
+          <button type="submit" class="btn btn-primary" id="btn-save-school">Uložit termín</button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+
+  <!-- ================= DIALOG: SUPABASE CLOUD SYNC MODAL ================= -->
+  <dialog id="modal-supabase" class="custom-dialog">
+    <div class="dialog-content">
+      <div class="dialog-header">
+        <h3>Supabase Cloud & Synchronizace</h3>
+        <button class="btn-close" id="modal-supabase-close" aria-label="Zavřít">&times;</button>
+      </div>
+
+      <!-- Logged In State View -->
+      <div id="supabase-logged-in-view" class="hidden">
+        <div class="sync-status-box" style="margin-bottom: 16px;">
+          <div class="status-indicator-dot online"></div>
+          <div>
+            <span class="text-sm text-muted">Přihlášený uživatel:</span>
+            <div style="font-weight: 600;" id="sb-logged-user-email">email@example.com</div>
+          </div>
+        </div>
+        
+        <p class="text-sm text-muted" style="margin-bottom: 16px; line-height: 1.5;">
+          Synchronizace v reálném čase je <strong>aktivní</strong>. Všechny změny na projektech, trénincích i ve škole se okamžitě přenášejí do tvého mobilu, tabletu i PC.
+        </p>
+
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
+          <button type="button" class="btn btn-primary" id="btn-sb-sync-now">
+            <span>🔄 Synchronizovat data ihned</span>
+          </button>
+          <button type="button" class="btn btn-outline" id="btn-sb-push-local">
+            <span>☁️ Přepsat cloud mými aktuálními lokálními daty</span>
+          </button>
+        </div>
+
+        <div class="dialog-actions">
+          <button type="button" class="btn btn-danger btn-sm" id="btn-sb-logout">Odhlásit se ze Supabase</button>
+          <button type="button" class="btn btn-secondary btn-sm" id="modal-supabase-close-btn">Zavřít</button>
+        </div>
+      </div>
+
+      <!-- Logged Out / Setup Form View -->
+      <div id="supabase-auth-form-view">
+        <p class="text-sm text-muted" style="margin-bottom: 16px; line-height: 1.5;">
+          Zadej přístupové údaje z projektu na <a href="https://supabase.com" target="_blank" rel="noopener">supabase.com</a> (Project Settings &rarr; API) pro automatické zálohování a okamžitou synchronizaci mezi všemi tvými zařízeními.
+        </p>
+
+        <form id="form-supabase-auth">
+          <div class="form-group">
+            <label for="sb-url">Supabase Project URL *</label>
+            <input type="url" id="sb-url" class="form-input" placeholder="https://abcdefghijklmno.supabase.co" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="sb-key">Supabase Project Anon Key *</label>
+            <input type="password" id="sb-key" class="form-input" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6..." required>
+          </div>
+
+          <div class="form-group">
+            <label for="sb-email">E-mail tvého účtu *</label>
+            <input type="email" id="sb-email" class="form-input" placeholder="tomas@email.cz" required>
+          </div>
+
+          <div class="form-group">
+            <label for="sb-password">Heslo *</label>
+            <input type="password" id="sb-password" class="form-input" placeholder="Heslo (min. 6 znaků)" minlength="6" required>
+          </div>
+
+          <div class="dialog-actions" style="margin-top: 20px; display: flex; gap: 8px; flex-wrap: wrap;">
+            <button type="button" class="btn btn-secondary" id="modal-supabase-cancel">Zrušit</button>
+            <button type="button" class="btn btn-outline" id="btn-sb-register">Vytvořit nový účet</button>
+            <button type="submit" class="btn btn-primary" id="btn-sb-login">Přihlásit se</button>
+          </div>
+
+          <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border-color);" class="text-sm text-muted">
+            💡 <strong>První nastavení:</strong> Zkopíruj a spusť připravený soubor <code>supabase-schema.sql</code> v Supabase SQL Editoru (vytvoří všechny tabulky a zabezpečení jedním klikem).
+          </div>
+        </form>
+      </div>
+
+    </div>
+  </dialog>
+
+  <!-- Toast Container for Notifications -->
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+  <!-- JavaScript App Logic -->
+  <script src="./app.js"></script>
+</body>
+</html>
