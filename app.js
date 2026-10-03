@@ -1164,6 +1164,7 @@ function openProjectNotesModal(projId) {
 
   renderProjectDevNotesList(projId);
   modal.showModal();
+  markModalInitialState(modal);
 }
 
 function renderProjectDevNotesList(projId) {
@@ -1666,7 +1667,26 @@ function openProjectModal(projectId = null) {
     if (techEl) techEl.value = '';
   }
 
+  // Restore draft if any was left in sessionStorage
+  const draftKey = `lifeos_draft_proj_${projectId || 'new'}`;
+  try {
+    const draftRaw = sessionStorage.getItem(draftKey);
+    if (draftRaw) {
+      const draft = JSON.parse(draftRaw);
+      if (draft && draft.desc) {
+        document.getElementById('proj-desc').value = draft.desc;
+        if (draft.title) document.getElementById('proj-title').value = draft.title;
+        if (draft.category) document.getElementById('proj-category').value = draft.category;
+        if (draft.techStack) document.getElementById('proj-tech-stack').value = draft.techStack;
+        if (draft.liveUrl) document.getElementById('proj-live-url').value = draft.liveUrl;
+        if (draft.url) document.getElementById('proj-url').value = draft.url;
+        showToast('Obnoven rozepsaný koncept 📝');
+      }
+    }
+  } catch (e) {}
+
   modal.showModal();
+  markModalInitialState(modal);
 }
 
 // ==========================================================================
@@ -1705,6 +1725,7 @@ function openWorkoutModal() {
   renderWorkoutExercisesBuilder();
 
   modal.showModal();
+  markModalInitialState(modal);
 }
 
 function renderWorkoutQuickChips(splitType) {
@@ -1884,6 +1905,7 @@ function openExercisesModal() {
   }
   renderTemplateExercisesList();
   modal.showModal();
+  markModalInitialState(modal);
 }
 
 function renderTemplateExercisesList() {
@@ -1957,6 +1979,7 @@ function openSchoolModal(schoolId = null) {
   }
 
   modal.showModal();
+  markModalInitialState(modal);
 }
 
 function openSplitModal() {
@@ -1981,6 +2004,7 @@ function openSplitModal() {
   `).join('');
 
   modal.showModal();
+  markModalInitialState(modal);
 }
 
 // ==========================================================================
@@ -2181,12 +2205,38 @@ function setupEventListeners() {
       }
 
       saveState();
-      document.getElementById('modal-project').close();
+      try {
+        sessionStorage.removeItem(`lifeos_draft_proj_${id || 'new'}`);
+      } catch (e) {}
+      const modalProj = document.getElementById('modal-project');
+      if (modalProj) {
+        modalProj._initialValues = null;
+        modalProj.close();
+      }
       renderProjects();
       renderOverview();
       updateMetrics();
       updateSidebarBadges();
       showToast('Projekt byl úspěšně uložen');
+    });
+
+    // Auto-save draft while typing
+    formProject.addEventListener('input', () => {
+      const pId = document.getElementById('proj-id').value || 'new';
+      const draft = {
+        title: document.getElementById('proj-title').value,
+        category: document.getElementById('proj-category').value,
+        status: document.getElementById('proj-status').value,
+        progress: document.getElementById('proj-progress').value,
+        deadline: document.getElementById('proj-deadline').value,
+        url: document.getElementById('proj-url').value,
+        liveUrl: document.getElementById('proj-live-url').value,
+        techStack: document.getElementById('proj-tech-stack').value,
+        desc: document.getElementById('proj-desc').value
+      };
+      try {
+        sessionStorage.setItem(`lifeos_draft_proj_${pId}`, JSON.stringify(draft));
+      } catch (e) {}
     });
   }
 
@@ -2258,7 +2308,11 @@ function setupEventListeners() {
       }
 
       saveState();
-      document.getElementById('modal-workout').close();
+      const modalWorkout = document.getElementById('modal-workout');
+      if (modalWorkout) {
+        modalWorkout._initialValues = null;
+        modalWorkout.close();
+      }
       renderGym();
       renderOverview();
       updateMetrics();
@@ -2306,7 +2360,11 @@ function setupEventListeners() {
       }
 
       saveState();
-      document.getElementById('modal-school').close();
+      const modalSchool = document.getElementById('modal-school');
+      if (modalSchool) {
+        modalSchool._initialValues = null;
+        modalSchool.close();
+      }
       renderSchool();
       renderOverview();
       updateMetrics();
@@ -2333,7 +2391,11 @@ function setupEventListeners() {
       });
 
       saveState();
-      document.getElementById('modal-split').close();
+      const modalSplit = document.getElementById('modal-split');
+      if (modalSplit) {
+        modalSplit._initialValues = null;
+        modalSplit.close();
+      }
       renderGym();
       renderOverview();
       showToast('Týdenní plán upraven');
@@ -2450,21 +2512,87 @@ function setupEventListeners() {
   }
 }
 
+function markModalInitialState(modal) {
+  if (!modal) return;
+  const form = modal.querySelector('form');
+  if (!form) return;
+  const values = {};
+  form.querySelectorAll('input, textarea, select').forEach(el => {
+    if (el.id) values[el.id] = el.value;
+  });
+  modal._initialValues = JSON.stringify(values);
+}
+
+function isModalFormDirty(modal) {
+  if (!modal || !modal._initialValues) return false;
+  const form = modal.querySelector('form');
+  if (!form) return false;
+  const values = {};
+  form.querySelectorAll('input, textarea, select').forEach(el => {
+    if (el.id) values[el.id] = el.value;
+  });
+  return JSON.stringify(values) !== modal._initialValues;
+}
+
 function setupModalClose(modalId, closeBtnId, cancelBtnId) {
   const modal = document.getElementById(modalId);
   const closeBtn = document.getElementById(closeBtnId);
   const cancelBtn = document.getElementById(cancelBtnId);
 
+  const confirmCloseIfDirty = () => {
+    if (isModalFormDirty(modal)) {
+      return confirm('Máš rozepsané neuložené změny. Opravdu chceš okno zavřít bez uložení?');
+    }
+    return true;
+  };
+
   if (closeBtn && modal) {
-    closeBtn.addEventListener('click', () => modal.close());
+    closeBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (confirmCloseIfDirty()) {
+        modal._initialValues = null;
+        modal.close();
+      }
+    });
   }
+
   if (cancelBtn && modal) {
-    cancelBtn.addEventListener('click', () => modal.close());
+    cancelBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (confirmCloseIfDirty()) {
+        modal._initialValues = null;
+        modal.close();
+      }
+    });
   }
+
   if (modal) {
-    // Click outside backdrop to close
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) modal.close();
+    // Safe backdrop click handling:
+    // Only close if BOTH mousedown and mouseup genuinely occurred on the backdrop (never during text selection)
+    let mousedownOnBackdrop = false;
+
+    modal.addEventListener('mousedown', (e) => {
+      const content = modal.querySelector('.dialog-content');
+      mousedownOnBackdrop = (e.target === modal && (!content || !content.contains(e.target)));
+    });
+
+    modal.addEventListener('mouseup', (e) => {
+      if (e.target === modal && mousedownOnBackdrop) {
+        if (confirmCloseIfDirty()) {
+          modal._initialValues = null;
+          modal.close();
+        }
+      }
+      mousedownOnBackdrop = false;
+    });
+
+    // Native ESC key cancellation
+    modal.addEventListener('cancel', (e) => {
+      if (!confirmCloseIfDirty()) {
+        e.preventDefault(); // Stop native ESC dismiss
+      } else {
+        modal._initialValues = null;
+      }
     });
   }
 }
@@ -2640,6 +2768,8 @@ let supabaseClient = null;
 let currentUser = null;
 let realtimeChannel = null;
 let syncDebounceTimer = null;
+let realtimeDebounceTimer = null;
+let lastLocalPushTimestamp = 0;
 let isSyncing = false;
 
 function initSupabase() {
@@ -2934,6 +3064,14 @@ function subscribeToSupabaseRealtime() {
     .on('postgres_changes', { event: '*', schema: 'public' }, (payload) => {
       console.log('Realtime broadcast received from Supabase:', payload);
       
+      // 1. SUPPRESS LOCAL ECHO:
+      // If we pushed to Supabase recently (last 4 seconds), ignore this broadcast.
+      // We already have the newest data locally!
+      if (Date.now() - lastLocalPushTimestamp < 4000) {
+        console.log('Skipping Realtime event: local push echo');
+        return;
+      }
+
       // Handle DELETE events from other devices
       if (payload.eventType === 'DELETE') {
         const table = payload.table;
@@ -2951,14 +3089,18 @@ function subscribeToSupabaseRealtime() {
           }
           saveState(true);
           renderAllViews();
-          showToast('Položka smazána 🗑️');
+          showToast('Položka smazána z druhého zařízení 🗑️');
         }
-        // Never call pullFromSupabase on a DELETE event to prevent race-condition resurrection
         return;
       }
 
-      // For INSERT and UPDATE, pull fresh data from cloud
-      pullFromSupabase(true, false);
+      // For INSERT and UPDATE from other devices:
+      // DEBOUNCE the pull so that if multiple tables change simultaneously,
+      // we only perform a SINGLE clean pull and re-render after 400ms!
+      if (realtimeDebounceTimer) clearTimeout(realtimeDebounceTimer);
+      realtimeDebounceTimer = setTimeout(() => {
+        pullFromSupabase(true, false);
+      }, 400);
     })
     .subscribe((status) => {
       console.log('Supabase Realtime Channel Status:', status);
@@ -2979,6 +3121,7 @@ async function pushToSupabase(isManual = false) {
     return;
   }
 
+  lastLocalPushTimestamp = Date.now();
   updateSyncStatusUI('syncing');
 
   try {
@@ -3162,6 +3305,8 @@ async function pushToSupabase(isManual = false) {
     if (isManual) {
       alert('Chyba při nahrávání do cloudu: ' + (err.message || err));
     }
+  } finally {
+    lastLocalPushTimestamp = Date.now();
   }
 }
 
@@ -3324,7 +3469,19 @@ async function pullFromSupabase(isRealtime = false, isManual = false) {
 
       // Save locally (skip remote sync to prevent loop)
       saveState(true);
-      renderAllViews();
+
+      const activeDialog = document.querySelector('dialog[open]');
+      if (!activeDialog) {
+        renderAllViews();
+      } else {
+        // User has an active modal open - do not disrupt active form focus
+        renderOverview();
+        renderGym();
+        renderSchool();
+        renderSettings();
+        updateMetrics();
+        updateSidebarBadges();
+      }
 
       if (isRealtime) {
         showToast('⚡ Změna z druhého zařízení synchronizována!');
