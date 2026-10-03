@@ -790,6 +790,11 @@ function deleteProject(projId) {
   if (!confirm('Opravdu chceš tento projekt smazat?')) return;
   state.projects = state.projects.filter(p => p.id !== projId);
   saveState();
+  if (supabaseClient && currentUser) {
+    supabaseClient.from('projects').delete().eq('id', projId).eq('user_id', currentUser.id).then(({ error }) => {
+      if (error) console.error('Error deleting project from Supabase:', error);
+    });
+  }
   renderProjects();
   renderOverview();
   updateMetrics();
@@ -889,6 +894,11 @@ function deleteWorkoutLog(id) {
   if (!confirm('Opravdu smazat tento trénink?')) return;
   state.gym.logs = state.gym.logs.filter(l => l.id !== id);
   saveState();
+  if (supabaseClient && currentUser) {
+    supabaseClient.from('gym_logs').delete().eq('id', id).eq('user_id', currentUser.id).then(({ error }) => {
+      if (error) console.error('Error deleting gym log from Supabase:', error);
+    });
+  }
   renderGym();
   renderOverview();
   updateMetrics();
@@ -1034,6 +1044,11 @@ function deleteSchoolItem(id) {
   if (!confirm('Opravdu smazat tento školní termín?')) return;
   state.school = state.school.filter(s => s.id !== id);
   saveState();
+  if (supabaseClient && currentUser) {
+    supabaseClient.from('school_items').delete().eq('id', id).eq('user_id', currentUser.id).then(({ error }) => {
+      if (error) console.error('Error deleting school item from Supabase:', error);
+    });
+  }
   renderSchool();
   renderOverview();
   updateMetrics();
@@ -1066,6 +1081,11 @@ function renderSettings() {
       const id = btn.getAttribute('data-id');
       state.habits = state.habits.filter(h => h.id !== id);
       saveState();
+      if (supabaseClient && currentUser) {
+        supabaseClient.from('habits').delete().eq('id', id).eq('user_id', currentUser.id).then(({ error }) => {
+          if (error) console.error('Error deleting habit from Supabase:', error);
+        });
+      }
       renderSettings();
       renderHabitsWidget();
       updateMetrics();
@@ -2003,7 +2023,29 @@ function subscribeToSupabaseRealtime() {
   realtimeChannel = supabaseClient.channel('lifeos-realtime-channel')
     .on('postgres_changes', { event: '*', schema: 'public' }, (payload) => {
       console.log('Realtime broadcast received from Supabase:', payload);
-      // Automatically pull and refresh views
+      
+      // Handle DELETE events from other devices
+      if (payload.eventType === 'DELETE') {
+        const table = payload.table;
+        const deletedId = payload.old?.id;
+        if (deletedId) {
+          if (table === 'gym_logs') {
+            state.gym.logs = state.gym.logs.filter(l => l.id !== deletedId);
+          } else if (table === 'projects') {
+            state.projects = state.projects.filter(p => p.id !== deletedId);
+          } else if (table === 'school_items') {
+            state.school = state.school.filter(s => s.id !== deletedId);
+          } else if (table === 'habits') {
+            state.habits = state.habits.filter(h => h.id !== deletedId);
+          }
+          saveState(true);
+          renderAllViews();
+          showToast('Položka smazána z druhého zařízení 🗑️');
+          return;
+        }
+      }
+
+      // For INSERT and UPDATE, pull fresh data from cloud
       pullFromSupabase(true, false);
     })
     .subscribe((status) => {
@@ -2041,21 +2083,34 @@ async function pushToSupabase(isManual = false) {
     });
 
     // 2. Projects
-    if (state.projects && state.projects.length > 0) {
-      const projectRows = state.projects.map(p => ({
-        id: p.id,
-        user_id: userId,
-        title: p.title,
-        description: p.description || '',
-        category: p.category || '',
-        status: p.status || 'in_progress',
-        progress: p.progress || 0,
-        deadline: p.deadline || null,
-        url: p.url || '',
-        tasks: p.tasks || [],
-        updated_at: nowIso
-      }));
-      await supabaseClient.from('projects').upsert(projectRows);
+    if (state.projects) {
+      if (state.projects.length > 0) {
+        const projectRows = state.projects.map(p => ({
+          id: p.id,
+          user_id: userId,
+          title: p.title,
+          description: p.description || '',
+          category: p.category || '',
+          status: p.status || 'in_progress',
+          progress: p.progress || 0,
+          deadline: p.deadline || null,
+          url: p.url || '',
+          tasks: p.tasks || [],
+          updated_at: nowIso
+        }));
+        await supabaseClient.from('projects').upsert(projectRows);
+
+        const localProjIds = state.projects.map(p => p.id);
+        const { data: dbProjects } = await supabaseClient.from('projects').select('id').eq('user_id', userId);
+        if (dbProjects) {
+          const toDelete = dbProjects.filter(r => !localProjIds.includes(r.id)).map(r => r.id);
+          if (toDelete.length > 0) {
+            await supabaseClient.from('projects').delete().in('id', toDelete).eq('user_id', userId);
+          }
+        }
+      } else {
+        await supabaseClient.from('projects').delete().eq('user_id', userId);
+      }
     }
 
     // 3. Gym Split
@@ -2073,46 +2128,85 @@ async function pushToSupabase(isManual = false) {
     }
 
     // 4. Gym Logs
-    if (state.gym && state.gym.logs && state.gym.logs.length > 0) {
-      const logRows = state.gym.logs.map(l => ({
-        id: l.id,
-        user_id: userId,
-        date: l.date,
-        duration: l.duration || 60,
-        type: l.type,
-        rating: l.rating || 4,
-        exercises: l.exercises || '',
-        created_at: nowIso
-      }));
-      await supabaseClient.from('gym_logs').upsert(logRows);
+    if (state.gym && state.gym.logs) {
+      if (state.gym.logs.length > 0) {
+        const logRows = state.gym.logs.map(l => ({
+          id: l.id,
+          user_id: userId,
+          date: l.date,
+          duration: l.duration || 60,
+          type: l.type,
+          rating: l.rating || 4,
+          exercises: l.exercises || '',
+          created_at: nowIso
+        }));
+        await supabaseClient.from('gym_logs').upsert(logRows);
+
+        const localLogIds = state.gym.logs.map(l => l.id);
+        const { data: dbLogs } = await supabaseClient.from('gym_logs').select('id').eq('user_id', userId);
+        if (dbLogs) {
+          const toDelete = dbLogs.filter(r => !localLogIds.includes(r.id)).map(r => r.id);
+          if (toDelete.length > 0) {
+            await supabaseClient.from('gym_logs').delete().in('id', toDelete).eq('user_id', userId);
+          }
+        }
+      } else {
+        await supabaseClient.from('gym_logs').delete().eq('user_id', userId);
+      }
     }
 
     // 5. School Items
-    if (state.school && state.school.length > 0) {
-      const schoolRows = state.school.map(s => ({
-        id: s.id,
-        user_id: userId,
-        subject: s.subject,
-        type: s.type,
-        title: s.title,
-        deadline: s.deadline,
-        priority: s.priority || 'medium',
-        status: s.status || 'pending',
-        notes: s.notes || '',
-        updated_at: nowIso
-      }));
-      await supabaseClient.from('school_items').upsert(schoolRows);
+    if (state.school) {
+      if (state.school.length > 0) {
+        const schoolRows = state.school.map(s => ({
+          id: s.id,
+          user_id: userId,
+          subject: s.subject,
+          type: s.type,
+          title: s.title,
+          deadline: s.deadline,
+          priority: s.priority || 'medium',
+          status: s.status || 'pending',
+          notes: s.notes || '',
+          updated_at: nowIso
+        }));
+        await supabaseClient.from('school_items').upsert(schoolRows);
+
+        const localSchoolIds = state.school.map(s => s.id);
+        const { data: dbSchool } = await supabaseClient.from('school_items').select('id').eq('user_id', userId);
+        if (dbSchool) {
+          const toDelete = dbSchool.filter(r => !localSchoolIds.includes(r.id)).map(r => r.id);
+          if (toDelete.length > 0) {
+            await supabaseClient.from('school_items').delete().in('id', toDelete).eq('user_id', userId);
+          }
+        }
+      } else {
+        await supabaseClient.from('school_items').delete().eq('user_id', userId);
+      }
     }
 
     // 6. Habits
-    if (state.habits && state.habits.length > 0) {
-      const habitRows = state.habits.map(h => ({
-        id: h.id,
-        user_id: userId,
-        text: h.text,
-        updated_at: nowIso
-      }));
-      await supabaseClient.from('habits').upsert(habitRows);
+    if (state.habits) {
+      if (state.habits.length > 0) {
+        const habitRows = state.habits.map(h => ({
+          id: h.id,
+          user_id: userId,
+          text: h.text,
+          updated_at: nowIso
+        }));
+        await supabaseClient.from('habits').upsert(habitRows);
+
+        const localHabitIds = state.habits.map(h => h.id);
+        const { data: dbHabits } = await supabaseClient.from('habits').select('id').eq('user_id', userId);
+        if (dbHabits) {
+          const toDelete = dbHabits.filter(r => !localHabitIds.includes(r.id)).map(r => r.id);
+          if (toDelete.length > 0) {
+            await supabaseClient.from('habits').delete().in('id', toDelete).eq('user_id', userId);
+          }
+        }
+      } else {
+        await supabaseClient.from('habits').delete().eq('user_id', userId);
+      }
     }
 
     // 7. Habit Logs
