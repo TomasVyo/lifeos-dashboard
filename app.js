@@ -158,6 +158,15 @@ let deferredPrompt = null;
 let currentProjectFilter = 'all';
 let currentSchoolFilter = 'pending';
 
+// Tombstone set for items deleted in current session to prevent race conditions during sync
+const recentlyDeletedIds = new Set();
+function markAsDeleted(id) {
+  if (!id) return;
+  recentlyDeletedIds.add(id);
+  // Auto-expire after 10 minutes
+  setTimeout(() => recentlyDeletedIds.delete(id), 10 * 60 * 1000);
+}
+
 // State Management
 function loadState() {
   try {
@@ -788,8 +797,9 @@ function addProjectSubtask(projId, text) {
 
 function deleteProject(projId) {
   if (!confirm('Opravdu chceš tento projekt smazat?')) return;
+  markAsDeleted(projId);
   state.projects = state.projects.filter(p => p.id !== projId);
-  saveState();
+  saveState(true);
   if (supabaseClient && currentUser) {
     supabaseClient.from('projects').delete().eq('id', projId).eq('user_id', currentUser.id).then(({ error }) => {
       if (error) console.error('Error deleting project from Supabase:', error);
@@ -892,8 +902,9 @@ function renderWorkoutLogs() {
 
 function deleteWorkoutLog(id) {
   if (!confirm('Opravdu smazat tento trénink?')) return;
+  markAsDeleted(id);
   state.gym.logs = state.gym.logs.filter(l => l.id !== id);
-  saveState();
+  saveState(true);
   if (supabaseClient && currentUser) {
     supabaseClient.from('gym_logs').delete().eq('id', id).eq('user_id', currentUser.id).then(({ error }) => {
       if (error) console.error('Error deleting gym log from Supabase:', error);
@@ -1042,8 +1053,9 @@ function toggleSchoolStatus(id) {
 
 function deleteSchoolItem(id) {
   if (!confirm('Opravdu smazat tento školní termín?')) return;
+  markAsDeleted(id);
   state.school = state.school.filter(s => s.id !== id);
-  saveState();
+  saveState(true);
   if (supabaseClient && currentUser) {
     supabaseClient.from('school_items').delete().eq('id', id).eq('user_id', currentUser.id).then(({ error }) => {
       if (error) console.error('Error deleting school item from Supabase:', error);
@@ -1079,8 +1091,9 @@ function renderSettings() {
   habitsContainer.querySelectorAll('.btn-del-habit').forEach(btn => {
     btn.addEventListener('click', () => {
       const id = btn.getAttribute('data-id');
+      markAsDeleted(id);
       state.habits = state.habits.filter(h => h.id !== id);
-      saveState();
+      saveState(true);
       if (supabaseClient && currentUser) {
         supabaseClient.from('habits').delete().eq('id', id).eq('user_id', currentUser.id).then(({ error }) => {
           if (error) console.error('Error deleting habit from Supabase:', error);
@@ -2029,6 +2042,7 @@ function subscribeToSupabaseRealtime() {
         const table = payload.table;
         const deletedId = payload.old?.id;
         if (deletedId) {
+          markAsDeleted(deletedId);
           if (table === 'gym_logs') {
             state.gym.logs = state.gym.logs.filter(l => l.id !== deletedId);
           } else if (table === 'projects') {
@@ -2040,9 +2054,10 @@ function subscribeToSupabaseRealtime() {
           }
           saveState(true);
           renderAllViews();
-          showToast('Položka smazána z druhého zařízení 🗑️');
-          return;
+          showToast('Položka smazána 🗑️');
         }
+        // Never call pullFromSupabase on a DELETE event to prevent race-condition resurrection
+        return;
       }
 
       // For INSERT and UPDATE, pull fresh data from cloud
@@ -2295,17 +2310,19 @@ async function pullFromSupabase(isRealtime = false, isManual = false) {
 
       // 2. Projects
       if (projectsRes.data) {
-        state.projects = projectsRes.data.map(p => ({
-          id: p.id,
-          title: p.title,
-          description: p.description || '',
-          category: p.category || '',
-          status: p.status || 'in_progress',
-          progress: p.progress || 0,
-          deadline: p.deadline || '',
-          url: p.url || '',
-          tasks: Array.isArray(p.tasks) ? p.tasks : []
-        }));
+        state.projects = projectsRes.data
+          .filter(p => !recentlyDeletedIds.has(p.id))
+          .map(p => ({
+            id: p.id,
+            title: p.title,
+            description: p.description || '',
+            category: p.category || '',
+            status: p.status || 'in_progress',
+            progress: p.progress || 0,
+            deadline: p.deadline || '',
+            url: p.url || '',
+            tasks: Array.isArray(p.tasks) ? p.tasks : []
+          }));
       }
 
       // 3. Gym Split
@@ -2320,36 +2337,42 @@ async function pullFromSupabase(isRealtime = false, isManual = false) {
 
       // 4. Gym Logs
       if (logsRes.data) {
-        state.gym.logs = logsRes.data.map(l => ({
-          id: l.id,
-          date: l.date,
-          duration: l.duration || 60,
-          type: l.type,
-          rating: l.rating || 4,
-          exercises: l.exercises || ''
-        }));
+        state.gym.logs = logsRes.data
+          .filter(l => !recentlyDeletedIds.has(l.id))
+          .map(l => ({
+            id: l.id,
+            date: l.date,
+            duration: l.duration || 60,
+            type: l.type,
+            rating: l.rating || 4,
+            exercises: l.exercises || ''
+          }));
       }
 
       // 5. School Items
       if (schoolRes.data) {
-        state.school = schoolRes.data.map(s => ({
-          id: s.id,
-          subject: s.subject,
-          type: s.type,
-          title: s.title,
-          deadline: s.deadline,
-          priority: s.priority || 'medium',
-          status: s.status || 'pending',
-          notes: s.notes || ''
-        }));
+        state.school = schoolRes.data
+          .filter(s => !recentlyDeletedIds.has(s.id))
+          .map(s => ({
+            id: s.id,
+            subject: s.subject,
+            type: s.type,
+            title: s.title,
+            deadline: s.deadline,
+            priority: s.priority || 'medium',
+            status: s.status || 'pending',
+            notes: s.notes || ''
+          }));
       }
 
       // 6. Habits
       if (habitsRes.data && habitsRes.data.length > 0) {
-        state.habits = habitsRes.data.map(h => ({
-          id: h.id,
-          text: h.text
-        }));
+        state.habits = habitsRes.data
+          .filter(h => !recentlyDeletedIds.has(h.id))
+          .map(h => ({
+            id: h.id,
+            text: h.text
+          }));
       }
 
       // 7. Habit Logs
