@@ -281,7 +281,7 @@ function loadState() {
         });
       }
 
-      // Gym split migration & sanitization (strictly 7 days, no rogue virtual items)
+      // Gym split sanitization (strictly ensure 7 days 0..6, respect user's custom focuses)
       let split = (parsed.gym && parsed.gym.split) || DEFAULT_DATA.gym.split;
       if (Array.isArray(split)) {
         split = split.filter(s => s &&
@@ -292,9 +292,14 @@ function loadState() {
           (!s.focus || (!s.focus.startsWith('{') && !s.focus.startsWith('[')))
         );
       }
-      const hasOldSplit = Array.isArray(split) && split.some(s => s.focus && (s.focus.includes('Push') || s.focus.includes('Pull') || (s.focus.includes('Legs') && !s.focus.includes('Lower')) || s.focus === 'Upper' || s.focus === 'Lower'));
-      if (!Array.isArray(split) || split.length !== 7 || hasOldSplit || !split.some(s => s.focus && (s.focus.includes('Upper A') || s.focus.includes('Upper')))) {
-        split = JSON.parse(JSON.stringify(DEFAULT_DATA.gym.split));
+      const dayIndices = new Set(Array.isArray(split) ? split.map(s => s.day) : []);
+      const hasAll7Days = [0, 1, 2, 3, 4, 5, 6].every(d => dayIndices.has(d));
+      if (!Array.isArray(split) || !hasAll7Days || split.length !== 7) {
+        const defaultSplit = JSON.parse(JSON.stringify(DEFAULT_DATA.gym.split));
+        split = defaultSplit.map(defDay => {
+          const existing = (Array.isArray(split) ? split : []).find(v => v.day === defDay.day);
+          return existing || defDay;
+        });
       }
 
       // Gym exercises library migration to Upper A / Lower A / Upper B / Lower B
@@ -2125,16 +2130,42 @@ function renderWeeklySplitGrid() {
 
   container.innerHTML = sortedSplit.map(dayItem => {
     const isToday = dayItem.day === currentDayIndex;
+    const focus = (dayItem.focus || '').trim();
+    const focusLower = focus.toLowerCase();
+
+    // Determine badge theme class
+    let badgeClass = 'focus-other';
+    if (dayItem.rest || focusLower.includes('odpočinek') || focusLower.includes('rest') || focusLower.includes('volno') || focusLower.includes('regenerace')) {
+      badgeClass = 'focus-rest';
+    } else if (focusLower.includes('upper') || focusLower.includes('vršek') || focusLower.includes('push') || focusLower.includes('pull')) {
+      badgeClass = 'focus-upper';
+    } else if (focusLower.includes('lower') || focusLower.includes('spodek') || focusLower.includes('nohy') || focusLower.includes('legs')) {
+      badgeClass = 'focus-lower';
+    }
+
+    const displayFocus = focus || (dayItem.rest ? 'Volný den' : 'Trénink');
+
     return `
-      <div class="day-card ${isToday ? 'today' : ''} ${dayItem.rest ? 'rest' : ''}">
-        <span class="day-name">${escapeHtml((dayItem.dayName || '').substring(0, 2))}</span>
-        <span class="day-focus">${escapeHtml(dayItem.focus || 'Volný den')}</span>
-        <div class="day-check-indicator ${dayItem.rest ? '' : ''}">
+      <div class="day-card ${isToday ? 'today' : ''} ${dayItem.rest ? 'rest' : ''}" data-day="${dayItem.day}" title="Klikni pro úpravu plánu na ${escapeHtml(dayItem.dayName)}">
+        <div class="day-name-row">
+          <span class="day-name">${escapeHtml((dayItem.dayName || '').substring(0, 2))}</span>
+          ${isToday ? '<span class="day-today-badge">DNES</span>' : ''}
+        </div>
+        <div class="day-focus-badge ${badgeClass}">${escapeHtml(displayFocus)}</div>
+        <div class="day-check-indicator ${dayItem.rest ? 'rest' : ''}">
           ${dayItem.rest ? '💤' : '🏋️'}
         </div>
       </div>
     `;
   }).join('');
+
+  // Make each day card clickable to open split modal directly
+  container.querySelectorAll('.day-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const day = parseInt(card.getAttribute('data-day'), 10);
+      openSplitModal(day);
+    });
+  });
 }
 
 function formatWorkoutLogExercisesHtml(rawText) {
@@ -3094,7 +3125,7 @@ function openSchoolModal(schoolId = null) {
   markModalInitialState(modal);
 }
 
-function openSplitModal() {
+function openSplitModal(targetDay = null) {
   const modal = document.getElementById('modal-split');
   const listContainer = document.getElementById('split-edit-list');
   if (!modal || !listContainer) return;
@@ -3117,52 +3148,202 @@ function openSplitModal() {
   });
 
   const availableSplits = Object.keys(state.gym.exercisesBySplit || {});
+  const defaultSuggestions = ['Upper A', 'Lower A', 'Upper B', 'Lower B', 'Kardio', 'Full Body'];
+  const suggestions = Array.from(new Set([...availableSplits, ...defaultSuggestions])).slice(0, 8);
+  const currentDayIndex = new Date().getDay();
+
+  const fullDayNames = {
+    1: 'Pondělí',
+    2: 'Úterý',
+    3: 'Středa',
+    4: 'Čtvrtek',
+    5: 'Pátek',
+    6: 'Sobota',
+    0: 'Neděle'
+  };
 
   listContainer.innerHTML = sortedSplit.map(s => {
+    const isToday = s.day === currentDayIndex;
+    const isTarget = targetDay !== null && s.day === targetDay;
+    const isRest = !!s.rest;
+
     return `
-      <div class="split-edit-row" data-day="${s.day}">
-        <span class="split-day-label">${s.dayName}:</span>
-        <select class="form-select split-focus-select" style="flex: 1;">
-          ${availableSplits.map(sp => `
-            <option value="${escapeHtml(sp)}" ${s.focus === sp ? 'selected' : ''}>${escapeHtml(sp)}</option>
-          `).join('')}
-          <option value="Odpočinek / Regenerace" ${s.focus.includes('Odpočinek') || s.focus.includes('Rest') ? 'selected' : ''}>Odpočinek / Regenerace</option>
-          <option value="custom" ${!availableSplits.includes(s.focus) && !s.focus.includes('Odpočinek') ? 'selected' : ''}>Vlastní text...</option>
-        </select>
-        <input type="text" class="form-input split-focus-input ${availableSplits.includes(s.focus) || s.focus.includes('Odpočinek') ? 'hidden' : ''}" value="${escapeHtml(s.focus)}" placeholder="Vlastní zaměření" style="flex: 1;">
-        <label style="display: flex; align-items: center; gap: 4px; font-size: 12px; white-space: nowrap;">
-          <input type="checkbox" class="split-rest-check" ${s.rest ? 'checked' : ''}> Rest
-        </label>
+      <div class="split-day-card ${isRest ? 'is-rest' : ''} ${isToday ? 'is-today' : ''} ${isTarget ? 'highlight-target' : ''}" data-day="${s.day}">
+        <div class="split-day-card-header">
+          <div class="split-day-info">
+            <span class="split-day-title">${fullDayNames[s.day] || s.dayName}</span>
+            ${isToday ? '<span class="split-today-pill">DNES</span>' : ''}
+          </div>
+          <div class="split-day-toggle-group">
+            <button type="button" class="split-mode-btn ${!isRest ? 'active' : ''}" data-mode="workout">🏋️ Trénink</button>
+            <button type="button" class="split-mode-btn ${isRest ? 'active' : ''}" data-mode="rest">💤 Volno / Rest</button>
+          </div>
+        </div>
+        <div class="split-day-body ${isRest ? 'hidden' : ''}">
+          <input type="text" class="form-input split-focus-input" value="${escapeHtml(s.focus || '')}" placeholder="Zaměření (např. Upper A, Nohy, Kardio...)">
+          <div class="split-suggestions-chips">
+            ${suggestions.map(sug => `
+              <button type="button" class="split-sug-chip" data-sug="${escapeHtml(sug)}">+ ${escapeHtml(sug)}</button>
+            `).join('')}
+          </div>
+        </div>
+        <div class="split-day-rest-info ${!isRest ? 'hidden' : ''}">
+          <span>💤 Regenerace a odpočinek</span>
+        </div>
       </div>
     `;
   }).join('');
 
-  // Handle select changes to show/hide custom text input or auto-check rest
-  listContainer.querySelectorAll('.split-edit-row').forEach(row => {
-    const sel = row.querySelector('.split-focus-select');
-    const input = row.querySelector('.split-focus-input');
-    const restCheck = row.querySelector('.split-rest-check');
-    if (sel) {
-      sel.addEventListener('change', () => {
-        if (sel.value === 'custom') {
-          if (input) input.classList.remove('hidden');
-        } else {
-          if (input) {
-            input.classList.add('hidden');
-            input.value = sel.value;
-          }
-          if (sel.value.includes('Odpočinek') && restCheck) {
-            restCheck.checked = true;
-          } else if (restCheck) {
-            restCheck.checked = false;
-          }
+  // Wire day card toggles and suggestion chips
+  listContainer.querySelectorAll('.split-day-card').forEach(card => {
+    const workoutBtn = card.querySelector('.split-mode-btn[data-mode="workout"]');
+    const restBtn = card.querySelector('.split-mode-btn[data-mode="rest"]');
+    const bodyEl = card.querySelector('.split-day-body');
+    const restInfoEl = card.querySelector('.split-day-rest-info');
+    const inputEl = card.querySelector('.split-focus-input');
+
+    const setMode = (mode) => {
+      if (mode === 'workout') {
+        card.classList.remove('is-rest');
+        workoutBtn.classList.add('active');
+        restBtn.classList.remove('active');
+        bodyEl.classList.remove('hidden');
+        restInfoEl.classList.add('hidden');
+        if (!inputEl.value.trim() || inputEl.value.includes('Odpočinek') || inputEl.value.includes('Volno')) {
+          inputEl.value = 'Upper A';
+        }
+        inputEl.focus();
+      } else {
+        card.classList.add('is-rest');
+        workoutBtn.classList.remove('active');
+        restBtn.classList.add('active');
+        bodyEl.classList.add('hidden');
+        restInfoEl.classList.remove('hidden');
+      }
+    };
+
+    if (workoutBtn) workoutBtn.addEventListener('click', () => setMode('workout'));
+    if (restBtn) restBtn.addEventListener('click', () => setMode('rest'));
+
+    card.querySelectorAll('.split-sug-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const val = chip.getAttribute('data-sug');
+        if (inputEl) {
+          inputEl.value = val;
+          inputEl.focus();
         }
       });
-    }
+    });
   });
+
+  // Wire preset buttons
+  const presetsBar = document.getElementById('split-presets-bar');
+  if (presetsBar) {
+    presetsBar.querySelectorAll('.btn-preset-pill').forEach(btn => {
+      btn.onclick = () => {
+        const presetKey = btn.getAttribute('data-preset');
+        applySplitPreset(presetKey);
+      };
+    });
+  }
 
   modal.showModal();
   markModalInitialState(modal);
+
+  if (targetDay !== null) {
+    const targetCard = listContainer.querySelector(`.split-day-card[data-day="${targetDay}"]`);
+    if (targetCard) {
+      setTimeout(() => {
+        targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const input = targetCard.querySelector('.split-focus-input');
+        if (input && !targetCard.classList.contains('is-rest')) input.focus();
+      }, 120);
+    }
+  }
+}
+
+function applySplitPreset(presetKey) {
+  const SPLIT_PRESETS = {
+    'upper-lower-4': {
+      1: { focus: 'Upper A', rest: false },
+      2: { focus: 'Lower A', rest: false },
+      3: { focus: 'Odpočinek / Regenerace', rest: true },
+      4: { focus: 'Upper B', rest: false },
+      5: { focus: 'Lower B', rest: false },
+      6: { focus: 'Odpočinek / Regenerace', rest: true },
+      0: { focus: 'Odpočinek / Regenerace', rest: true }
+    },
+    'upper-lower-3': {
+      1: { focus: 'Upper A', rest: false },
+      2: { focus: 'Odpočinek / Regenerace', rest: true },
+      3: { focus: 'Lower A', rest: false },
+      4: { focus: 'Odpočinek / Regenerace', rest: true },
+      5: { focus: 'Upper B', rest: false },
+      6: { focus: 'Odpočinek / Regenerace', rest: true },
+      0: { focus: 'Odpočinek / Regenerace', rest: true }
+    },
+    'ppl': {
+      1: { focus: 'Push', rest: false },
+      2: { focus: 'Pull', rest: false },
+      3: { focus: 'Legs', rest: false },
+      4: { focus: 'Odpočinek / Regenerace', rest: true },
+      5: { focus: 'Push', rest: false },
+      6: { focus: 'Pull', rest: false },
+      0: { focus: 'Odpočinek / Regenerace', rest: true }
+    },
+    'fullbody': {
+      1: { focus: 'Full Body A', rest: false },
+      2: { focus: 'Odpočinek / Regenerace', rest: true },
+      3: { focus: 'Full Body B', rest: false },
+      4: { focus: 'Odpočinek / Regenerace', rest: true },
+      5: { focus: 'Full Body C', rest: false },
+      6: { focus: 'Odpočinek / Regenerace', rest: true },
+      0: { focus: 'Odpočinek / Regenerace', rest: true }
+    },
+    'clear': {
+      1: { focus: 'Odpočinek / Regenerace', rest: true },
+      2: { focus: 'Odpočinek / Regenerace', rest: true },
+      3: { focus: 'Odpočinek / Regenerace', rest: true },
+      4: { focus: 'Odpočinek / Regenerace', rest: true },
+      5: { focus: 'Odpočinek / Regenerace', rest: true },
+      6: { focus: 'Odpočinek / Regenerace', rest: true },
+      0: { focus: 'Odpočinek / Regenerace', rest: true }
+    }
+  };
+
+  const preset = SPLIT_PRESETS[presetKey];
+  if (!preset) return;
+
+  const cards = document.querySelectorAll('#split-edit-list .split-day-card');
+  cards.forEach(card => {
+    const day = parseInt(card.getAttribute('data-day'), 10);
+    const dayPreset = preset[day];
+    if (dayPreset) {
+      const workoutBtn = card.querySelector('.split-mode-btn[data-mode="workout"]');
+      const restBtn = card.querySelector('.split-mode-btn[data-mode="rest"]');
+      const bodyEl = card.querySelector('.split-day-body');
+      const restInfoEl = card.querySelector('.split-day-rest-info');
+      const inputEl = card.querySelector('.split-focus-input');
+
+      if (dayPreset.rest) {
+        card.classList.add('is-rest');
+        if (workoutBtn) workoutBtn.classList.remove('active');
+        if (restBtn) restBtn.classList.add('active');
+        if (bodyEl) bodyEl.classList.add('hidden');
+        if (restInfoEl) restInfoEl.classList.remove('hidden');
+        if (inputEl) inputEl.value = 'Odpočinek / Regenerace';
+      } else {
+        card.classList.remove('is-rest');
+        if (workoutBtn) workoutBtn.classList.add('active');
+        if (restBtn) restBtn.classList.remove('active');
+        if (bodyEl) bodyEl.classList.remove('hidden');
+        if (restInfoEl) restInfoEl.classList.add('hidden');
+        if (inputEl) inputEl.value = dayPreset.focus;
+      }
+    }
+  });
+
+  showToast('⚡ Šablona aplikována! Zkontroluj dny a klikni na „Uložit plán“.');
 }
 
 // ==========================================================================
@@ -3775,22 +3956,24 @@ function setupEventListeners() {
   if (formSplit) {
     formSplit.addEventListener('submit', (e) => {
       e.preventDefault();
-      const rows = document.querySelectorAll('.split-edit-row');
-      rows.forEach(row => {
-        const day = parseInt(row.getAttribute('data-day'), 10);
-        const focusSelect = row.querySelector('.split-focus-select');
-        const focusInput = row.querySelector('.split-focus-input');
-        const restCheck = row.querySelector('.split-rest-check');
+      const cards = document.querySelectorAll('.split-day-card');
+      cards.forEach(card => {
+        const day = parseInt(card.getAttribute('data-day'), 10);
+        const isRest = card.classList.contains('is-rest');
+        const input = card.querySelector('.split-focus-input');
         const splitItem = state.gym.split.find(s => s.day === day);
         if (splitItem) {
-          const chosen = (focusSelect && focusSelect.value !== 'custom')
-            ? focusSelect.value
-            : (focusInput ? focusInput.value.trim() : '');
-          splitItem.focus = chosen || 'Volný den';
-          splitItem.rest = restCheck ? restCheck.checked : false;
+          splitItem.rest = isRest;
+          if (isRest) {
+            splitItem.focus = 'Odpočinek / Regenerace';
+          } else {
+            const val = input ? input.value.trim() : '';
+            splitItem.focus = val || 'Trénink';
+          }
         }
       });
 
+      sanitizeGymSplit();
       saveState();
       const modalSplit = document.getElementById('modal-split');
       if (modalSplit) {
@@ -3799,7 +3982,7 @@ function setupEventListeners() {
       }
       renderGym();
       renderOverview();
-      showToast('Týdenní plán upraven');
+      showToast('Týdenní plán upraven! 🏋️');
     });
   }
 
@@ -4880,13 +5063,7 @@ async function pullFromSupabase(isRealtime = false, isManual = false) {
             rest: !!s.rest
           }));
 
-          const hasOldSplit = cloudSplit.some(s => s.focus && (s.focus.includes('Push') || s.focus.includes('Pull') || (s.focus.includes('Legs') && !s.focus.includes('Lower'))));
-          if (hasOldSplit || !cloudSplit.some(s => s.focus && (s.focus.includes('Upper A') || s.focus.includes('Upper')))) {
-            state.gym.split = JSON.parse(JSON.stringify(DEFAULT_DATA.gym.split));
-            saveState();
-          } else {
-            state.gym.split = cloudSplit;
-          }
+          state.gym.split = cloudSplit;
         }
         sanitizeGymSplit();
       }
