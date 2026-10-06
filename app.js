@@ -68,6 +68,12 @@ const DEFAULT_DATA = {
         'Funkční kruhový trénink'
       ]
     },
+    prExercises: [
+      'Bench press',
+      'Dřepy s velkou činkou',
+      'Rumunský mrtvý tah (RDL)',
+      'Tlaky na ramena (OHP / Jednoručky)'
+    ],
     logs: [
       {
         id: 'log_1',
@@ -300,11 +306,16 @@ function loadState() {
         });
       }
 
+      const prExercises = (Array.isArray(parsed?.gym?.prExercises) && parsed.gym.prExercises.length > 0)
+        ? parsed.gym.prExercises
+        : JSON.parse(JSON.stringify(DEFAULT_DATA.gym.prExercises));
+
       const gymData = {
         ...DEFAULT_DATA.gym,
         ...(parsed.gym || {}),
         split,
         exercisesBySplit,
+        prExercises,
         logs
       };
 
@@ -1486,6 +1497,56 @@ function calculateGymStats() {
   };
 }
 
+function findExerciseStat(targetName, exerciseStats) {
+  if (!exerciseStats || !targetName) return null;
+  if (exerciseStats[targetName]) return exerciseStats[targetName];
+
+  const lowerTarget = targetName.toLowerCase().trim();
+  for (const [name, st] of Object.entries(exerciseStats)) {
+    if (name.toLowerCase().trim() === lowerTarget) {
+      return st;
+    }
+  }
+
+  for (const [name, st] of Object.entries(exerciseStats)) {
+    const lowerName = name.toLowerCase().trim();
+    if (lowerName.includes(lowerTarget) || lowerTarget.includes(lowerName)) {
+      return st;
+    }
+  }
+
+  return null;
+}
+
+function getAllKnownGymExercises() {
+  const set = new Set();
+  if (state.gym && state.gym.exercisesBySplit) {
+    Object.values(state.gym.exercisesBySplit).forEach(arr => {
+      if (Array.isArray(arr)) arr.forEach(ex => set.add(ex.trim()));
+    });
+  }
+  if (DEFAULT_DATA.gym && DEFAULT_DATA.gym.exercisesBySplit) {
+    Object.values(DEFAULT_DATA.gym.exercisesBySplit).forEach(arr => {
+      if (Array.isArray(arr)) arr.forEach(ex => set.add(ex.trim()));
+    });
+  }
+  if (state.gym && state.gym.logs) {
+    state.gym.logs.forEach(l => {
+      if (!l.exercises) return;
+      l.exercises.split('\n').forEach(raw => {
+        const line = raw.trim();
+        if (!line.includes(':') || line.startsWith('Poznámka:')) return;
+        const name = line.replace(/^[•\-\*]\s*/, '').split(':')[0].trim();
+        if (name) set.add(name);
+      });
+    });
+  }
+  if (state.gym && Array.isArray(state.gym.prExercises)) {
+    state.gym.prExercises.forEach(ex => set.add(ex.trim()));
+  }
+  return Array.from(set).filter(Boolean).sort((a, b) => a.localeCompare(b, 'cs'));
+}
+
 function renderGymAnalytics() {
   const stats = calculateGymStats();
 
@@ -1497,6 +1558,7 @@ function renderGymAnalytics() {
   const totalBadgeEl = document.getElementById('gym-analytics-total-badge');
   const prGrid = document.getElementById('pr-cards-grid');
   const exSelect = document.getElementById('pr-exercise-select');
+  const countBadge = document.getElementById('pr-exercises-count');
 
   if (totalVolEl) totalVolEl.textContent = `${stats.totalVolumeKg.toLocaleString('cs-CZ')} kg`;
   if (monthVolEl) monthVolEl.textContent = `Tento měsíc: ${stats.monthVolumeKg.toLocaleString('cs-CZ')} kg`;
@@ -1509,68 +1571,117 @@ function renderGymAnalytics() {
   if (totalWorkoutsEl) totalWorkoutsEl.textContent = stats.totalWorkouts;
   if (totalBadgeEl) totalBadgeEl.textContent = `${stats.totalWorkouts} tréninků`;
 
+  if (!state.gym.prExercises || !Array.isArray(state.gym.prExercises)) {
+    state.gym.prExercises = JSON.parse(JSON.stringify(DEFAULT_DATA.gym.prExercises));
+  }
+
+  if (countBadge) {
+    countBadge.textContent = state.gym.prExercises.length;
+  }
+
   // Render Highlighted PR Cards
   if (prGrid) {
-    const keyExercises = [
-      { key: 'Bench press', aliases: ['bench press', 'bench'] },
-      { key: 'Dřepy s velkou činkou', aliases: ['dřepy', 'dřep', 'squat'] },
-      { key: 'Rumunský mrtvý tah (RDL)', aliases: ['rumunský', 'rdl', 'mrtvý tah', 'deadlift'] },
-      { key: 'Tlaky na ramena', aliases: ['ramena', 'ohp', 'tlaky s jednoručkami na ramena'] }
-    ];
+    if (state.gym.prExercises.length === 0) {
+      prGrid.innerHTML = `
+        <div style="grid-column: 1/-1; text-align: center; padding: 26px 16px; border: 1px dashed var(--border-color); border-radius: var(--radius-md); background: rgba(255,255,255,0.01);">
+          <p class="text-sm text-muted">Zatím nemáš vybrané žádné cviky pro sledování PR.</p>
+          <button type="button" class="btn btn-primary btn-sm" id="btn-empty-pr-configure" style="margin-top: 10px;">
+            ⚙️ Vybrat cviky na PR
+          </button>
+        </div>
+      `;
+      const emptyBtn = document.getElementById('btn-empty-pr-configure');
+      if (emptyBtn) emptyBtn.addEventListener('click', openPrExercisesModal);
+    } else {
+      const cardsHtml = state.gym.prExercises.map(targetName => {
+        const foundStat = findExerciseStat(targetName, stats.exerciseStats);
 
-    const cardsHtml = keyExercises.map(target => {
-      let foundStat = null;
-      for (const [name, st] of Object.entries(stats.exerciseStats)) {
-        if (target.aliases.some(a => name.toLowerCase().includes(a))) {
-          foundStat = st;
-          break;
+        if (foundStat && foundStat.maxWeight > 0) {
+          return `
+            <div class="pr-card" data-exercise="${escapeHtml(targetName)}" title="Klikni pro detailní historii">
+              <div class="pr-card-header-row">
+                <span class="pr-card-name" title="${escapeHtml(foundStat.name || targetName)}">🏆 ${escapeHtml(foundStat.name || targetName)}</span>
+                <button type="button" class="btn-remove-pr-card" data-exercise="${escapeHtml(targetName)}" title="Odebrat z hlavních PR">&times;</button>
+              </div>
+              <div class="pr-card-main-stat">
+                <span class="pr-card-weight">${foundStat.maxWeight} kg</span>
+                <span class="pr-card-reps">× ${foundStat.maxRepsAtMaxWeight} reps</span>
+              </div>
+              <div class="pr-card-meta">
+                <span>Odhad 1RM: <strong class="pr-1rm-badge">${foundStat.max1RM} kg</strong></span>
+                <span>📅 ${foundStat.bestDate}</span>
+              </div>
+            </div>
+          `;
+        } else {
+          return `
+            <div class="pr-card" style="opacity: 0.72;" data-exercise="${escapeHtml(targetName)}" title="Klikni pro detailní historii">
+              <div class="pr-card-header-row">
+                <span class="pr-card-name" title="${escapeHtml(targetName)}">🏋️ ${escapeHtml(targetName)}</span>
+                <button type="button" class="btn-remove-pr-card" data-exercise="${escapeHtml(targetName)}" title="Odebrat z hlavních PR">&times;</button>
+              </div>
+              <div class="pr-card-main-stat">
+                <span class="pr-card-weight" style="font-size: 15px; color: var(--text-muted); font-weight: 600;">Zatím nezaznamenáno</span>
+              </div>
+              <div class="pr-card-meta">
+                <span>1RM: -</span>
+                <span class="text-xs text-muted">Zapiš trénink</span>
+              </div>
+            </div>
+          `;
         }
-      }
+      }).join('');
 
-      if (foundStat && foundStat.maxWeight > 0) {
-        return `
-          <div class="pr-card">
-            <span class="pr-card-name">🏆 ${escapeHtml(foundStat.name)}</span>
-            <div class="pr-card-main-stat">
-              <span class="pr-card-weight">${foundStat.maxWeight} kg</span>
-              <span class="pr-card-reps">× ${foundStat.maxRepsAtMaxWeight} reps</span>
-            </div>
-            <div class="pr-card-meta">
-              <span>Odhad 1RM: <strong class="pr-1rm-badge">${foundStat.max1RM} kg</strong></span>
-              <span>📅 ${foundStat.bestDate}</span>
-            </div>
-          </div>
-        `;
-      } else {
-        return `
-          <div class="pr-card" style="opacity: 0.65;">
-            <span class="pr-card-name">🏋️ ${escapeHtml(target.key)}</span>
-            <div class="pr-card-main-stat">
-              <span class="pr-card-weight" style="font-size: 16px; color: var(--text-muted);">Zatím nezaznamenáno</span>
-            </div>
-            <div class="pr-card-meta">
-              <span>1RM: -</span>
-              <span>Zapiš trénink</span>
-            </div>
-          </div>
-        `;
-      }
-    }).join('');
+      prGrid.innerHTML = cardsHtml;
 
-    prGrid.innerHTML = cardsHtml;
+      // Handle clicking "×" button on PR card
+      prGrid.querySelectorAll('.btn-remove-pr-card').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const name = btn.getAttribute('data-exercise');
+          state.gym.prExercises = state.gym.prExercises.filter(x => x !== name);
+          saveState();
+          renderGymAnalytics();
+          showToast(`Cvik "${name}" byl odebrán z PR.`);
+        });
+      });
+
+      // Handle clicking PR card to inspect in Explorer
+      prGrid.querySelectorAll('.pr-card').forEach(card => {
+        card.addEventListener('click', (e) => {
+          if (e.target.closest('.btn-remove-pr-card')) return;
+          const name = card.getAttribute('data-exercise');
+          if (exSelect && name) {
+            let matchedValue = null;
+            for (const opt of exSelect.options) {
+              if (opt.value.toLowerCase() === name.toLowerCase()) {
+                matchedValue = opt.value;
+                break;
+              }
+            }
+            if (!matchedValue) {
+              for (const opt of exSelect.options) {
+                if (opt.value.toLowerCase().includes(name.toLowerCase()) || name.toLowerCase().includes(opt.value.toLowerCase())) {
+                  matchedValue = opt.value;
+                  break;
+                }
+              }
+            }
+            if (matchedValue) {
+              exSelect.value = matchedValue;
+              renderExerciseExplorerDetails(matchedValue, stats.exerciseStats);
+              const explorerBox = document.querySelector('.exercise-explorer-box');
+              if (explorerBox) explorerBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+          }
+        });
+      });
+    }
   }
 
   // Populate Exercise Select Dropdown
   if (exSelect) {
-    const allKnownExercises = new Set();
-    if (state.gym.exercisesBySplit) {
-      Object.values(state.gym.exercisesBySplit).forEach(arr => {
-        if (Array.isArray(arr)) arr.forEach(ex => allKnownExercises.add(ex));
-      });
-    }
-    Object.keys(stats.exerciseStats).forEach(ex => allKnownExercises.add(ex));
-
-    const sortedExercises = Array.from(allKnownExercises).sort((a, b) => a.localeCompare(b, 'cs'));
+    const sortedExercises = getAllKnownGymExercises();
     const prevSelected = exSelect.value;
 
     exSelect.innerHTML = sortedExercises.map(name => `
@@ -1589,18 +1700,34 @@ function renderGymAnalytics() {
 
 function renderExerciseExplorerDetails(exerciseName, statsMap = null) {
   const container = document.getElementById('pr-explorer-details');
+  const pinBtn = document.getElementById('btn-toggle-explorer-pr');
   if (!container || !exerciseName) return;
+
+  if (pinBtn) {
+    const isPinned = state.gym.prExercises && state.gym.prExercises.some(x => x.toLowerCase() === exerciseName.toLowerCase());
+    if (isPinned) {
+      pinBtn.innerHTML = '★ V PR kartách';
+      pinBtn.classList.remove('btn-secondary');
+      pinBtn.classList.add('btn-accent');
+      pinBtn.title = 'Tento cvik je sledován v hlavních PR kartách. Klikni pro odebrání.';
+    } else {
+      pinBtn.innerHTML = '⭐ Sledovat v PR';
+      pinBtn.classList.remove('btn-accent');
+      pinBtn.classList.add('btn-secondary');
+      pinBtn.title = 'Přidat tento cvik do hlavních PR karet.';
+    }
+  }
 
   if (!statsMap) {
     const s = calculateGymStats();
     statsMap = s.exerciseStats;
   }
 
-  const stat = statsMap[exerciseName];
-  if (!stat || stat.history.length === 0) {
+  const stat = findExerciseStat(exerciseName, statsMap);
+  if (!stat || !stat.history || stat.history.length === 0) {
     container.innerHTML = `
       <p class="text-sm text-muted" style="text-align: center; padding: 16px;">
-        Pro cvik <strong>${escapeHtml(exerciseName)}</strong> zatím nemáš žádné zaznamenané výkony.
+        Pro cvik <strong>${escapeHtml(exerciseName)}</strong> zatím nemáš žádné zaznamenané výkony v historii tréninků.
       </p>
     `;
     return;
@@ -1626,6 +1753,103 @@ function renderExerciseExplorerDetails(exerciseName, statsMap = null) {
       ${historyItems}
     </div>
   `;
+}
+
+function openPrExercisesModal() {
+  const modal = document.getElementById('modal-pr-exercises');
+  if (!modal) return;
+  const filterInput = document.getElementById('pr-exercises-filter-input');
+  if (filterInput) filterInput.value = '';
+  renderPrSelectionList();
+  modal.showModal();
+  markModalInitialState(modal);
+}
+
+function closePrExercisesModal() {
+  const modal = document.getElementById('modal-pr-exercises');
+  if (modal) modal.close();
+}
+
+function renderPrSelectionList(filterQuery = '') {
+  const container = document.getElementById('pr-selection-list');
+  if (!container) return;
+
+  const allExercises = getAllKnownGymExercises();
+  const currentPr = new Set((state.gym.prExercises || []).map(x => x.toLowerCase()));
+  const stats = calculateGymStats();
+  const query = (filterQuery || '').toLowerCase().trim();
+
+  const filtered = allExercises.filter(name => !query || name.toLowerCase().includes(query));
+
+  if (filtered.length === 0) {
+    container.innerHTML = `<p class="text-sm text-muted" style="text-align: center; padding: 20px;">Žádný cvik neodpovídá hledání "${escapeHtml(filterQuery)}".</p>`;
+    return;
+  }
+
+  container.innerHTML = filtered.map(name => {
+    const isChecked = currentPr.has(name.toLowerCase());
+    const stat = findExerciseStat(name, stats.exerciseStats);
+    const statBadge = (stat && stat.maxWeight > 0)
+      ? `<span class="badge text-xs" style="margin-left: auto; font-weight: 700; color: var(--accent-rose);">${stat.maxWeight} kg</span>`
+      : '';
+
+    return `
+      <label class="pr-select-item">
+        <input type="checkbox" value="${escapeHtml(name)}" class="pr-checkbox-item" ${isChecked ? 'checked' : ''}>
+        <span class="pr-select-name">${escapeHtml(name)}</span>
+        ${statBadge}
+      </label>
+    `;
+  }).join('');
+}
+
+function savePrExercisesSelection() {
+  const container = document.getElementById('pr-selection-list');
+  if (!container) return;
+
+  const checkedBoxes = container.querySelectorAll('.pr-checkbox-item:checked');
+  const selected = Array.from(checkedBoxes).map(cb => cb.value);
+
+  const filterInput = document.getElementById('pr-exercises-filter-input');
+  const filterText = filterInput ? filterInput.value.trim().toLowerCase() : '';
+
+  let finalPr = [];
+  if (filterText) {
+    const keptHidden = (state.gym.prExercises || []).filter(name => !name.toLowerCase().includes(filterText));
+    finalPr = Array.from(new Set([...keptHidden, ...selected]));
+  } else {
+    finalPr = selected;
+  }
+
+  state.gym.prExercises = finalPr;
+  saveState();
+  renderGymAnalytics();
+  closePrExercisesModal();
+  showToast(`Sledovaná PR uložena (${finalPr.length} cviků)!`);
+}
+
+function resetDefaultPrExercises() {
+  state.gym.prExercises = JSON.parse(JSON.stringify(DEFAULT_DATA.gym.prExercises));
+  saveState();
+  renderPrSelectionList();
+  renderGymAnalytics();
+  showToast('Sledovaná PR vrácena na výchozí hodnoty!');
+}
+
+function toggleExercisePrPin(exerciseName) {
+  if (!exerciseName) return;
+  if (!state.gym.prExercises) state.gym.prExercises = [];
+
+  const existsIdx = state.gym.prExercises.findIndex(x => x.toLowerCase() === exerciseName.toLowerCase());
+  if (existsIdx >= 0) {
+    state.gym.prExercises.splice(existsIdx, 1);
+    showToast(`Cvik "${exerciseName}" odebrán z PR.`);
+  } else {
+    state.gym.prExercises.push(exerciseName);
+    showToast(`Cvik "${exerciseName}" přidán do PR! 🏆`);
+  }
+  saveState();
+  renderGymAnalytics();
 }
 
 function getLastExercisePerformance(exerciseName) {
@@ -2395,20 +2619,26 @@ function renderWorkoutExercisesBuilder() {
           <button type="button" class="btn-remove-exercise" data-ex-id="${ex.id}" title="Odstranit cvik">&times;</button>
         </div>
         <div class="exercise-sets-table">
+          <div class="exercise-sets-header">
+            <span class="set-col-num">#</span>
+            <span class="set-col-weight">Váha (kg)</span>
+            <span class="set-col-reps">Reps</span>
+            <span class="set-col-del"></span>
+          </div>
           ${ex.sets.map((s, idx) => `
             <div class="exercise-set-row" data-set-index="${idx}">
               <span class="set-num-badge">#${idx + 1}</span>
               <div class="set-field-group">
-                <span class="set-field-label">Váha:</span>
-                <input type="number" step="0.5" class="set-input-num input-weight" value="${s.weight ?? ''}" placeholder="kg" data-ex-id="${ex.id}" data-set-index="${idx}">
+                <input type="number" step="0.5" class="set-input-num input-weight" value="${s.weight ?? ''}" placeholder="0" data-ex-id="${ex.id}" data-set-index="${idx}">
                 <button type="button" class="btn-quick-inc btn-inc-weight" data-ex-id="${ex.id}" data-set-index="${idx}" data-inc="2.5" title="Přidat +2.5 kg">+2.5</button>
               </div>
               <div class="set-field-group">
-                <span class="set-field-label">Opakování:</span>
-                <input type="number" min="1" max="999" class="set-input-num input-reps" value="${s.reps ?? ''}" placeholder="x" data-ex-id="${ex.id}" data-set-index="${idx}">
+                <input type="number" min="1" max="999" class="set-input-num input-reps" value="${s.reps ?? ''}" placeholder="0" data-ex-id="${ex.id}" data-set-index="${idx}">
                 <button type="button" class="btn-quick-inc btn-inc-reps" data-ex-id="${ex.id}" data-set-index="${idx}" data-inc="1" title="Přidat +1 opakování">+1</button>
               </div>
-              ${ex.sets.length > 1 ? `<button type="button" class="btn-del-set" data-ex-id="${ex.id}" data-set-index="${idx}" title="Smazat sérii">&times;</button>` : ''}
+              <div class="set-del-wrap">
+                ${ex.sets.length > 1 ? `<button type="button" class="btn-del-set" data-ex-id="${ex.id}" data-set-index="${idx}" title="Smazat sérii">&times;</button>` : ''}
+              </div>
             </div>
           `).join('')}
         </div>
@@ -2718,6 +2948,32 @@ function setupEventListeners() {
   const btnLoadEntireSplit = document.getElementById('btn-load-entire-split');
   if (btnLoadEntireSplit) btnLoadEntireSplit.addEventListener('click', loadEntireSplitIntoWorkout);
 
+  const btnConfigPr = document.getElementById('btn-configure-pr-exercises');
+  if (btnConfigPr) btnConfigPr.addEventListener('click', openPrExercisesModal);
+
+  const btnToggleExplorerPr = document.getElementById('btn-toggle-explorer-pr');
+  if (btnToggleExplorerPr) {
+    btnToggleExplorerPr.addEventListener('click', () => {
+      const select = document.getElementById('pr-exercise-select');
+      if (select && select.value) {
+        toggleExercisePrPin(select.value);
+      }
+    });
+  }
+
+  const prFilterInput = document.getElementById('pr-exercises-filter-input');
+  if (prFilterInput) {
+    prFilterInput.addEventListener('input', (e) => {
+      renderPrSelectionList(e.target.value);
+    });
+  }
+
+  const btnSavePr = document.getElementById('btn-save-pr-exercises');
+  if (btnSavePr) btnSavePr.addEventListener('click', savePrExercisesSelection);
+
+  const btnResetPr = document.getElementById('btn-reset-default-pr');
+  if (btnResetPr) btnResetPr.addEventListener('click', resetDefaultPrExercises);
+
   const prSelect = document.getElementById('pr-exercise-select');
   if (prSelect) {
     prSelect.addEventListener('change', (e) => {
@@ -2739,6 +2995,7 @@ function setupEventListeners() {
   setupModalClose('modal-project-notes', 'modal-project-notes-close', 'modal-project-notes-cancel');
   setupModalClose('modal-workout', 'modal-workout-close', 'modal-workout-cancel');
   setupModalClose('modal-exercises', 'modal-exercises-close', 'modal-exercises-cancel');
+  setupModalClose('modal-pr-exercises', 'modal-pr-exercises-close', 'modal-pr-exercises-cancel');
   setupModalClose('modal-school', 'modal-school-close', 'modal-school-cancel');
   setupModalClose('modal-split', 'modal-split-close', 'modal-split-cancel');
 
@@ -4020,6 +4277,19 @@ async function pushToSupabase(isManual = false) {
         });
       }
 
+      // Virtual row for pinned PR exercises
+      if (state.gym.prExercises && Array.isArray(state.gym.prExercises)) {
+        splitRows.push({
+          id: `split_${userId}_pr_exercises`,
+          user_id: userId,
+          day: 998,
+          day_name: '__PR_EXERCISES__',
+          focus: JSON.stringify(state.gym.prExercises),
+          rest: false,
+          updated_at: nowIso
+        });
+      }
+
       await supabaseClient.from('gym_split').upsert(splitRows);
     }
 
@@ -4240,6 +4510,18 @@ async function pullFromSupabase(isRealtime = false, isManual = false) {
             }
           } catch (e) {
             console.warn('Error parsing split templates from cloud:', e);
+          }
+        }
+
+        const prRow = splitRes.data.find(s => s.day === 998 || s.day_name === '__PR_EXERCISES__');
+        if (prRow && prRow.focus) {
+          try {
+            const parsedPr = JSON.parse(prRow.focus);
+            if (Array.isArray(parsedPr) && parsedPr.length > 0) {
+              state.gym.prExercises = parsedPr;
+            }
+          } catch (e) {
+            console.warn('Error parsing PR exercises from cloud:', e);
           }
         }
 

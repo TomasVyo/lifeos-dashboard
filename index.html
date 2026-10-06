@@ -475,7 +475,12 @@
 
             <!-- Key PR Highlights -->
             <div class="pr-cards-section">
-              <h4 class="pr-section-subtitle">🏆 Klíčové osobní rekordy (PR)</h4>
+              <div class="pr-cards-header">
+                <h4 class="pr-section-subtitle">🏆 Klíčové osobní rekordy (PR)</h4>
+                <button type="button" class="btn btn-outline btn-xs" id="btn-configure-pr-exercises" title="Vybrat, které cviky chceš mít mezi hlavními PR kartami">
+                  ⚙️ Vybrat cviky (<span id="pr-exercises-count">4</span>)
+                </button>
+              </div>
               <div class="pr-cards-grid" id="pr-cards-grid">
                 <!-- Dynamic PR cards injected by JS -->
               </div>
@@ -485,9 +490,14 @@
             <div class="exercise-explorer-box">
               <div class="explorer-header">
                 <label for="pr-exercise-select" class="explorer-label">🔍 Detailní historie & Progres cviku:</label>
-                <select id="pr-exercise-select" class="form-select form-select-sm" style="max-width: 280px;">
-                  <!-- Dynamic list of all exercises -->
-                </select>
+                <div class="explorer-header-actions">
+                  <select id="pr-exercise-select" class="form-select form-select-sm" style="max-width: 260px;">
+                    <!-- Dynamic list of all exercises -->
+                  </select>
+                  <button type="button" class="btn btn-secondary btn-xs" id="btn-toggle-explorer-pr" title="Připnout nebo odepnout tento cvik mezi hlavní PR karty">
+                    ⭐ Sledovat v PR
+                  </button>
+                </div>
               </div>
               <div class="explorer-details" id="pr-explorer-details">
                 <!-- Rendered by JS -->
@@ -957,6 +967,38 @@
           Obnovit výchozí cviky
         </button>
         <button type="button" class="btn btn-secondary" id="modal-exercises-cancel">Hotovo</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- ================= DIALOG: CONFIGURE PR EXERCISES ================= -->
+  <dialog id="modal-pr-exercises" class="custom-dialog">
+    <div class="dialog-content">
+      <div class="dialog-header">
+        <div>
+          <h3>Sledované osobní rekordy (PR)</h3>
+          <p class="text-xs text-muted" style="margin-top: 2px;">Vyber cviky, které chceš sledovat v přehledových kartách PR</p>
+        </div>
+        <button class="btn-close" id="modal-pr-exercises-close" aria-label="Zavřít">&times;</button>
+      </div>
+
+      <div class="search-input-wrap" style="max-width: 100%; margin-bottom: 12px; width: 100%;">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input type="text" id="pr-exercises-filter-input" placeholder="Hledat cvik v seznamu..." class="search-input" style="font-size: 13px;">
+      </div>
+
+      <div class="pr-selection-list" id="pr-selection-list">
+        <!-- Dynamic checkboxes injected by JS -->
+      </div>
+
+      <div class="dialog-actions" style="margin-top: 18px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+        <button type="button" class="btn btn-outline btn-sm text-xs" id="btn-reset-default-pr" title="Vrátit základní 4 cviky (Bench, Dřep, RDL, Ramena)">
+          Výchozí cviky
+        </button>
+        <div style="display: flex; gap: 8px;">
+          <button type="button" class="btn btn-secondary btn-sm" id="modal-pr-exercises-cancel">Zrušit</button>
+          <button type="button" class="btn btn-primary btn-sm" id="btn-save-pr-exercises">Uložit výběr</button>
+        </div>
       </div>
     </div>
   </dialog>
