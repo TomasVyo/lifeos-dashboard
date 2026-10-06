@@ -281,10 +281,19 @@ function loadState() {
         });
       }
 
-      // Gym split migration to Upper A / Lower A / Upper B / Lower B
+      // Gym split migration & sanitization (strictly 7 days, no rogue virtual items)
       let split = (parsed.gym && parsed.gym.split) || DEFAULT_DATA.gym.split;
-      const hasOldSplit = split.some(s => s.focus && (s.focus.includes('Push') || s.focus.includes('Pull') || (s.focus.includes('Legs') && !s.focus.includes('Lower')) || s.focus === 'Upper' || s.focus === 'Lower'));
-      if (hasOldSplit || !split.some(s => s.focus && (s.focus.includes('Upper A') || s.focus.includes('Upper')))) {
+      if (Array.isArray(split)) {
+        split = split.filter(s => s &&
+          typeof s.day === 'number' &&
+          s.day >= 0 &&
+          s.day <= 6 &&
+          (!s.dayName || !s.dayName.startsWith('__')) &&
+          (!s.focus || (!s.focus.startsWith('{') && !s.focus.startsWith('[')))
+        );
+      }
+      const hasOldSplit = Array.isArray(split) && split.some(s => s.focus && (s.focus.includes('Push') || s.focus.includes('Pull') || (s.focus.includes('Legs') && !s.focus.includes('Lower')) || s.focus === 'Upper' || s.focus === 'Lower'));
+      if (!Array.isArray(split) || split.length !== 7 || hasOldSplit || !split.some(s => s.focus && (s.focus.includes('Upper A') || s.focus.includes('Upper')))) {
         split = JSON.parse(JSON.stringify(DEFAULT_DATA.gym.split));
       }
 
@@ -1337,18 +1346,87 @@ function initActiveWorkout() {
   }
 }
 
+function sanitizeGymSplit() {
+  if (!state.gym || !Array.isArray(state.gym.split)) {
+    if (!state.gym) state.gym = {};
+    state.gym.split = JSON.parse(JSON.stringify(DEFAULT_DATA.gym.split));
+    return;
+  }
+
+  // Strictly filter out any items with day > 6, starting with '__' or focus being JSON
+  const validDays = state.gym.split.filter(s => {
+    return s &&
+      typeof s.day === 'number' &&
+      s.day >= 0 &&
+      s.day <= 6 &&
+      (!s.dayName || !s.dayName.startsWith('__')) &&
+      (!s.focus || (!s.focus.startsWith('{') && !s.focus.startsWith('[')));
+  });
+
+  const dayIndices = new Set(validDays.map(s => s.day));
+  const hasAll7Days = [0, 1, 2, 3, 4, 5, 6].every(d => dayIndices.has(d));
+
+  if (validDays.length === 7 && hasAll7Days) {
+    state.gym.split = validDays;
+  } else {
+    const defaultSplit = JSON.parse(JSON.stringify(DEFAULT_DATA.gym.split));
+    state.gym.split = defaultSplit.map(defDay => {
+      const existing = validDays.find(v => v.day === defDay.day);
+      return existing || defDay;
+    });
+  }
+}
+
 function startActiveWorkout(split = null) {
+  if (activeWorkout) {
+    showToast(`🔥 Trénink (${activeWorkout.split}) již běží! Stopky pokračují.`);
+    openWorkoutModal();
+    return;
+  }
+
   const chosenSplit = split || getTodaySplitFocus() || 'Upper A';
+
+  // Automatically prepare exercise templates for chosen split with previous weights
+  let initialExercises = [];
+  const templateNames = (state.gym.exercisesBySplit && state.gym.exercisesBySplit[chosenSplit]) ||
+                        (DEFAULT_DATA.gym.exercisesBySplit && DEFAULT_DATA.gym.exercisesBySplit[chosenSplit]) ||
+                        [];
+  if (templateNames.length > 0) {
+    initialExercises = templateNames.map(name => {
+      const perf = getLastExercisePerformance(name);
+      let initialSets = [{ setNum: 1, weight: '', reps: '' }];
+      if (perf && perf.sets && perf.sets.length > 0) {
+        initialSets = perf.sets.map((s, idx) => ({
+          setNum: idx + 1,
+          weight: s.weight,
+          reps: s.reps
+        }));
+      }
+      return {
+        id: 'ex_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+        name,
+        sets: initialSets
+      };
+    });
+  }
+
   activeWorkout = {
+    id: 'log_' + Date.now(),
     startTime: Date.now(),
-    split: chosenSplit
+    split: chosenSplit,
+    exercises: initialExercises,
+    rating: 4,
+    notes: ''
   };
+
   try {
     localStorage.setItem('lifeos_active_workout', JSON.stringify(activeWorkout));
   } catch (e) {}
+
   startActiveWorkoutTimer();
   renderActiveWorkoutBanner();
-  showToast(`🔥 Trénink (${chosenSplit}) zahájen! Stopky běží.`);
+  showToast(`🔥 Trénink (${chosenSplit}) zahájen! Stopky běží. Průběžně zapisuj své série.`);
+  openWorkoutModal();
 }
 
 function startActiveWorkoutTimer() {
@@ -1390,24 +1468,136 @@ function renderActiveWorkoutBanner() {
 }
 
 function cancelActiveWorkout() {
-  if (!confirm('Opravdu chceš běžící trénink zrušit? Zaznamenaný čas bude zahozen.')) return;
+  if (!confirm('Opravdu chceš běžící trénink zrušit? Pokud jsi už průběžně uložil série, bude záznam odstraněn.')) return;
+  if (activeWorkout && activeWorkout.id) {
+    state.gym.logs = state.gym.logs.filter(l => l.id !== activeWorkout.id);
+    if (supabaseClient && currentUser) {
+      supabaseClient.from('gym_logs').delete().eq('id', activeWorkout.id).eq('user_id', currentUser.id).then(() => {});
+    }
+  }
   if (activeWorkoutTimerInterval) clearInterval(activeWorkoutTimerInterval);
   activeWorkout = null;
   try {
     localStorage.removeItem('lifeos_active_workout');
   } catch (e) {}
   renderActiveWorkoutBanner();
-  showToast('Trénink zrušen');
+  saveState();
+  renderGym();
+  renderOverview();
+  updateMetrics();
+  updateSidebarBadges();
+  showToast('Běžící trénink byl zrušen.');
 }
 
-function finishActiveWorkout() {
+function finishActiveWorkout(isFromModal = false) {
   if (!activeWorkout) return;
+
   const elapsedMinutes = Math.max(1, Math.round((Date.now() - activeWorkout.startTime) / 60000));
-  openWorkoutModal(activeWorkout.split, elapsedMinutes);
+  const today = getTodayStr();
+
+  let compiledExercises = '';
+  let rating = 4;
+  let splitType = activeWorkout.split;
+
+  if (isFromModal) {
+    const exercisesArr = [];
+    currentWorkoutExercises.forEach(ex => {
+      const validSets = ex.sets.filter(s => s.weight !== '' || s.reps !== '');
+      if (validSets.length > 0) {
+        const setsSummary = validSets.map(s => {
+          const w = s.weight ? `${s.weight} kg` : 'vlastní váha';
+          const r = s.reps ? `${s.reps}` : 'max';
+          return `${w} × ${r}`;
+        }).join(', ');
+        exercisesArr.push(`• ${ex.name}: ${validSets.length} série (${setsSummary})`);
+      }
+    });
+    const notes = document.getElementById('workout-notes')?.value.trim();
+    if (exercisesArr.length > 0) {
+      compiledExercises = exercisesArr.join('\n');
+      if (notes) compiledExercises += `\nPoznámka: ${notes}`;
+    } else {
+      compiledExercises = notes;
+    }
+    rating = parseInt(document.getElementById('workout-rating')?.value || '4', 10);
+    splitType = document.getElementById('workout-type')?.value || activeWorkout.split;
+  } else {
+    // Called from banner outside modal
+    const existingLog = state.gym.logs.find(l => l.id === activeWorkout.id);
+    if (existingLog) {
+      compiledExercises = existingLog.exercises;
+      rating = existingLog.rating;
+      splitType = existingLog.type;
+    } else if (activeWorkout.exercises && activeWorkout.exercises.length > 0) {
+      const exercisesArr = [];
+      activeWorkout.exercises.forEach(ex => {
+        const validSets = ex.sets.filter(s => s.weight !== '' || s.reps !== '');
+        if (validSets.length > 0) {
+          const setsSummary = validSets.map(s => {
+            const w = s.weight ? `${s.weight} kg` : 'vlastní váha';
+            const r = s.reps ? `${s.reps}` : 'max';
+            return `${w} × ${r}`;
+          }).join(', ');
+          exercisesArr.push(`• ${ex.name}: ${validSets.length} série (${setsSummary})`);
+        }
+      });
+      compiledExercises = exercisesArr.join('\n');
+    }
+
+    if (!confirm(`Chceš dokončit trénink? Celková délka: ${elapsedMinutes} minut.`)) {
+      return;
+    }
+  }
+
+  // Save / Update final log
+  const finalLog = {
+    id: activeWorkout.id,
+    date: today,
+    duration: elapsedMinutes,
+    type: splitType,
+    rating,
+    exercises: compiledExercises
+  };
+
+  const existingIdx = state.gym.logs.findIndex(l => l.id === activeWorkout.id);
+  if (existingIdx >= 0) {
+    state.gym.logs[existingIdx] = finalLog;
+  } else {
+    state.gym.logs.unshift(finalLog);
+  }
+
+  // Mark gym habit done today
+  const gymHabit = state.habits.find(h => h.id === 'h_gym');
+  if (gymHabit) {
+    if (!state.habitLogs[today]) state.habitLogs[today] = [];
+    if (!state.habitLogs[today].includes(gymHabit.id)) {
+      state.habitLogs[today].push(gymHabit.id);
+    }
+  }
+
+  if (activeWorkoutTimerInterval) clearInterval(activeWorkoutTimerInterval);
+  activeWorkout = null;
+  try {
+    localStorage.removeItem('lifeos_active_workout');
+  } catch (e) {}
+
+  const modalWorkout = document.getElementById('modal-workout');
+  if (modalWorkout) {
+    modalWorkout._initialValues = null;
+    modalWorkout.close();
+  }
+
+  renderActiveWorkoutBanner();
+  saveState();
+  renderGym();
+  renderOverview();
+  updateMetrics();
+  updateSidebarBadges();
+  showToast(`🎉 Skvělá práce! Trénink (${elapsedMinutes} min) dokončen! 💪`);
 }
 
 function getTodaySplitFocus() {
-  if (!state.gym || !state.gym.split) return 'Upper A';
+  sanitizeGymSplit();
   const dayIndex = new Date().getDay();
   const dayItem = state.gym.split.find(s => s.day === dayIndex);
   if (dayItem && !dayItem.rest && dayItem.focus) {
@@ -1906,6 +2096,8 @@ function renderWeeklySplitGrid() {
   const badge = document.getElementById('gym-weekly-progress-badge');
   if (!container) return;
 
+  sanitizeGymSplit();
+
   const currentDayIndex = new Date().getDay();
   const workoutsCount = getWorkoutsThisWeekCount();
   const goal = state.user?.gymWeeklyGoal || 4;
@@ -1914,8 +2106,18 @@ function renderWeeklySplitGrid() {
     badge.textContent = `Tento týden: ${workoutsCount} / ${goal} tréninků`;
   }
 
+  // Strictly filter only genuine 7 days (day 0..6, no __ prefix, no JSON string in focus)
+  const validDays = state.gym.split.filter(s =>
+    s &&
+    typeof s.day === 'number' &&
+    s.day >= 0 &&
+    s.day <= 6 &&
+    (!s.dayName || !s.dayName.startsWith('__')) &&
+    (!s.focus || (!s.focus.startsWith('{') && !s.focus.startsWith('[')))
+  );
+
   // Split order: Monday(1) to Sunday(0)
-  const sortedSplit = [...state.gym.split].sort((a, b) => {
+  const sortedSplit = [...validDays].sort((a, b) => {
     const aOrder = a.day === 0 ? 7 : a.day;
     const bOrder = b.day === 0 ? 7 : b.day;
     return aOrder - bOrder;
@@ -1925,8 +2127,8 @@ function renderWeeklySplitGrid() {
     const isToday = dayItem.day === currentDayIndex;
     return `
       <div class="day-card ${isToday ? 'today' : ''} ${dayItem.rest ? 'rest' : ''}">
-        <span class="day-name">${dayItem.dayName.substring(0, 2)}</span>
-        <span class="day-focus">${escapeHtml(dayItem.focus)}</span>
+        <span class="day-name">${escapeHtml((dayItem.dayName || '').substring(0, 2))}</span>
+        <span class="day-focus">${escapeHtml(dayItem.focus || 'Volný den')}</span>
         <div class="day-check-indicator ${dayItem.rest ? '' : ''}">
           ${dayItem.rest ? '💤' : '🏋️'}
         </div>
@@ -2345,44 +2547,101 @@ function openWorkoutModal(forcedSplit = null, forcedDuration = null) {
   const titleEl = document.getElementById('modal-workout-title');
   const editIdInput = document.getElementById('workout-edit-id');
   const submitBtn = document.getElementById('btn-submit-workout');
+  const btnModalFinish = document.getElementById('btn-modal-finish-workout');
   if (!modal || !form) return;
 
   form.reset();
   syncAllSplitDropdowns();
 
-  if (editIdInput) editIdInput.value = '';
-  if (titleEl) titleEl.textContent = 'Zapsat trénink do fitka';
-  if (submitBtn) submitBtn.textContent = 'Uložit trénink';
+  if (activeWorkout) {
+    const elapsedMinutes = Math.max(1, Math.round((Date.now() - activeWorkout.startTime) / 60000));
+    if (editIdInput) editIdInput.value = activeWorkout.id;
+    if (titleEl) titleEl.textContent = `🔥 Probíhá trénink: ${activeWorkout.split}`;
+    if (submitBtn) submitBtn.textContent = '💾 Průběžně uložit (cvičit dál)';
+    if (btnModalFinish) btnModalFinish.classList.remove('hidden');
 
-  const dateInput = document.getElementById('workout-date');
-  if (dateInput) dateInput.value = getTodayStr();
+    const dateInput = document.getElementById('workout-date');
+    if (dateInput) dateInput.value = getTodayStr();
 
-  const durationInput = document.getElementById('workout-duration');
-  if (durationInput) durationInput.value = forcedDuration || '60';
+    const durationInput = document.getElementById('workout-duration');
+    if (durationInput) durationInput.value = forcedDuration || elapsedMinutes;
 
-  const ratingSelect = document.getElementById('workout-rating');
-  if (ratingSelect) ratingSelect.value = '4';
+    const ratingSelect = document.getElementById('workout-rating');
+    if (ratingSelect) ratingSelect.value = String(activeWorkout.rating || 4);
 
-  const notesField = document.getElementById('workout-notes');
-  if (notesField) notesField.value = '';
+    const notesField = document.getElementById('workout-notes');
+    if (notesField) notesField.value = activeWorkout.notes || '';
 
-  const typeSelect = document.getElementById('workout-type');
-  if (typeSelect) {
-    const targetFocus = forcedSplit || getTodaySplitFocus() || 'Upper A';
-    const foundOption = Array.from(typeSelect.options).find(o =>
-      o.value.toLowerCase() === targetFocus.toLowerCase() ||
-      targetFocus.toLowerCase().includes(o.value.toLowerCase()) ||
-      o.value.toLowerCase().includes(targetFocus.toLowerCase())
-    );
-    if (foundOption) {
-      typeSelect.value = foundOption.value;
+    const typeSelect = document.getElementById('workout-type');
+    if (typeSelect) {
+      typeSelect.value = activeWorkout.split || 'Upper A';
     }
-  }
 
-  currentWorkoutExercises = [];
-  const selectedType = (typeSelect && typeSelect.value) ? typeSelect.value : 'Upper A';
-  renderWorkoutQuickChips(selectedType);
-  renderWorkoutExercisesBuilder();
+    // Prefill exercises from ongoing active workout
+    currentWorkoutExercises = (activeWorkout.exercises && activeWorkout.exercises.length > 0)
+      ? JSON.parse(JSON.stringify(activeWorkout.exercises))
+      : [];
+
+    if (currentWorkoutExercises.length === 0) {
+      const templateNames = (state.gym.exercisesBySplit && state.gym.exercisesBySplit[activeWorkout.split]) || [];
+      if (templateNames.length > 0) {
+        currentWorkoutExercises = templateNames.map(name => {
+          const perf = getLastExercisePerformance(name);
+          let initialSets = [{ setNum: 1, weight: '', reps: '' }];
+          if (perf && perf.sets && perf.sets.length > 0) {
+            initialSets = perf.sets.map((s, idx) => ({
+              setNum: idx + 1,
+              weight: s.weight,
+              reps: s.reps
+            }));
+          }
+          return {
+            id: 'ex_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+            name,
+            sets: initialSets
+          };
+        });
+      }
+    }
+
+    renderWorkoutQuickChips(activeWorkout.split);
+    renderWorkoutExercisesBuilder();
+  } else {
+    if (editIdInput) editIdInput.value = '';
+    if (titleEl) titleEl.textContent = 'Zapsat trénink do fitka';
+    if (submitBtn) submitBtn.textContent = 'Uložit trénink';
+    if (btnModalFinish) btnModalFinish.classList.add('hidden');
+
+    const dateInput = document.getElementById('workout-date');
+    if (dateInput) dateInput.value = getTodayStr();
+
+    const durationInput = document.getElementById('workout-duration');
+    if (durationInput) durationInput.value = forcedDuration || '60';
+
+    const ratingSelect = document.getElementById('workout-rating');
+    if (ratingSelect) ratingSelect.value = '4';
+
+    const notesField = document.getElementById('workout-notes');
+    if (notesField) notesField.value = '';
+
+    const typeSelect = document.getElementById('workout-type');
+    if (typeSelect) {
+      const targetFocus = forcedSplit || getTodaySplitFocus() || 'Upper A';
+      const foundOption = Array.from(typeSelect.options).find(o =>
+        o.value.toLowerCase() === targetFocus.toLowerCase() ||
+        targetFocus.toLowerCase().includes(o.value.toLowerCase()) ||
+        o.value.toLowerCase().includes(targetFocus.toLowerCase())
+      );
+      if (foundOption) {
+        typeSelect.value = foundOption.value;
+      }
+    }
+
+    currentWorkoutExercises = [];
+    const selectedType = (typeSelect && typeSelect.value) ? typeSelect.value : 'Upper A';
+    renderWorkoutQuickChips(selectedType);
+    renderWorkoutExercisesBuilder();
+  }
 
   modal.showModal();
   markModalInitialState(modal);
@@ -2394,11 +2653,20 @@ function openEditWorkoutModal(logId) {
   const titleEl = document.getElementById('modal-workout-title');
   const editIdInput = document.getElementById('workout-edit-id');
   const submitBtn = document.getElementById('btn-submit-workout');
+  const btnModalFinish = document.getElementById('btn-modal-finish-workout');
   const log = state.gym.logs.find(l => l.id === logId);
   if (!modal || !form || !log) return;
 
   form.reset();
   syncAllSplitDropdowns();
+
+  if (btnModalFinish) {
+    if (activeWorkout && log.id === activeWorkout.id) {
+      btnModalFinish.classList.remove('hidden');
+    } else {
+      btnModalFinish.classList.add('hidden');
+    }
+  }
 
   if (editIdInput) editIdInput.value = log.id;
   if (titleEl) titleEl.textContent = `Upravit trénink (${log.date})`;
@@ -2831,7 +3099,18 @@ function openSplitModal() {
   const listContainer = document.getElementById('split-edit-list');
   if (!modal || !listContainer) return;
 
-  const sortedSplit = [...state.gym.split].sort((a, b) => {
+  sanitizeGymSplit();
+
+  const validDays = state.gym.split.filter(s =>
+    s &&
+    typeof s.day === 'number' &&
+    s.day >= 0 &&
+    s.day <= 6 &&
+    (!s.dayName || !s.dayName.startsWith('__')) &&
+    (!s.focus || (!s.focus.startsWith('{') && !s.focus.startsWith('[')))
+  );
+
+  const sortedSplit = [...validDays].sort((a, b) => {
     const aOrder = a.day === 0 ? 7 : a.day;
     const bOrder = b.day === 0 ? 7 : b.day;
     return aOrder - bOrder;
@@ -2940,7 +3219,10 @@ function setupEventListeners() {
   });
 
   const btnActiveFinish = document.getElementById('btn-active-workout-finish');
-  if (btnActiveFinish) btnActiveFinish.addEventListener('click', finishActiveWorkout);
+  if (btnActiveFinish) btnActiveFinish.addEventListener('click', () => finishActiveWorkout(false));
+
+  const btnModalFinish = document.getElementById('btn-modal-finish-workout');
+  if (btnModalFinish) btnModalFinish.addEventListener('click', () => finishActiveWorkout(true));
 
   const btnActiveCancel = document.getElementById('btn-active-workout-cancel');
   if (btnActiveCancel) btnActiveCancel.addEventListener('click', cancelActiveWorkout);
@@ -3336,6 +3618,60 @@ function setupEventListeners() {
       }
 
       const editId = document.getElementById('workout-edit-id')?.value;
+      const isCurrentActiveWorkout = activeWorkout && (editId === activeWorkout.id || date === getTodayStr());
+
+      if (isCurrentActiveWorkout) {
+        // Save current sets into activeWorkout state & persistence
+        activeWorkout.exercises = JSON.parse(JSON.stringify(currentWorkoutExercises));
+        activeWorkout.split = type;
+        activeWorkout.rating = rating;
+        activeWorkout.notes = notes;
+        try {
+          localStorage.setItem('lifeos_active_workout', JSON.stringify(activeWorkout));
+        } catch (e) {}
+
+        const elapsedMinutes = Math.max(1, Math.round((Date.now() - activeWorkout.startTime) / 60000));
+        const activeLogData = {
+          id: activeWorkout.id,
+          date: date || getTodayStr(),
+          duration: elapsedMinutes,
+          type,
+          rating,
+          exercises: compiledExercises
+        };
+
+        const existingIdx = state.gym.logs.findIndex(l => l.id === activeWorkout.id);
+        if (existingIdx >= 0) {
+          state.gym.logs[existingIdx] = activeLogData;
+        } else {
+          state.gym.logs.unshift(activeLogData);
+        }
+
+        // Habit check for today
+        if (date === getTodayStr()) {
+          const gymHabit = state.habits.find(h => h.id === 'h_gym');
+          if (gymHabit) {
+            if (!state.habitLogs[date]) state.habitLogs[date] = [];
+            if (!state.habitLogs[date].includes(gymHabit.id)) {
+              state.habitLogs[date].push(gymHabit.id);
+            }
+          }
+        }
+
+        saveState();
+        const modalWorkout = document.getElementById('modal-workout');
+        if (modalWorkout) {
+          modalWorkout._initialValues = null;
+          modalWorkout.close();
+        }
+        renderGym();
+        renderOverview();
+        updateMetrics();
+        updateSidebarBadges();
+        showToast('💾 Série průběžně uloženy! Stopky tréninku dál běží. 💪');
+        return;
+      }
+
       if (editId) {
         const existing = state.gym.logs.find(l => l.id === editId);
         if (existing) {
@@ -3356,16 +3692,6 @@ function setupEventListeners() {
           exercises: compiledExercises
         });
         showToast('Trénink byl úspěšně zaznamenán! 🏋️');
-      }
-
-      // If active workout was running and date is today, complete and reset active workout
-      if (activeWorkout && date === getTodayStr()) {
-        if (activeWorkoutTimerInterval) clearInterval(activeWorkoutTimerInterval);
-        activeWorkout = null;
-        try {
-          localStorage.removeItem('lifeos_active_workout');
-        } catch (e) {}
-        renderActiveWorkoutBanner();
       }
 
       // Also mark gym habit done for that day
@@ -4254,7 +4580,13 @@ async function pushToSupabase(isManual = false) {
 
     // 3. Gym Split & Split Templates
     if (state.gym && state.gym.split) {
-      const splitRows = state.gym.split.map(s => ({
+      sanitizeGymSplit();
+      const validWeekly = state.gym.split.filter(s =>
+        s.day >= 0 && s.day <= 6 &&
+        (!s.dayName || !s.dayName.startsWith('__')) &&
+        (!s.focus || (!s.focus.startsWith('{') && !s.focus.startsWith('[')))
+      );
+      const splitRows = validWeekly.map(s => ({
         id: `split_${userId}_${s.day}`,
         user_id: userId,
         day: s.day,
@@ -4291,6 +4623,16 @@ async function pushToSupabase(isManual = false) {
       }
 
       await supabaseClient.from('gym_split').upsert(splitRows);
+
+      // Clean up any rogue rows in Supabase gym_split
+      const validSplitRowIds = new Set(splitRows.map(r => r.id));
+      const { data: dbSplits } = await supabaseClient.from('gym_split').select('id').eq('user_id', userId);
+      if (dbSplits) {
+        const toDelete = dbSplits.filter(r => !validSplitRowIds.has(r.id)).map(r => r.id);
+        if (toDelete.length > 0) {
+          await supabaseClient.from('gym_split').delete().in('id', toDelete).eq('user_id', userId);
+        }
+      }
     }
 
     // 4. Gym Logs
@@ -4525,7 +4867,11 @@ async function pullFromSupabase(isRealtime = false, isManual = false) {
           }
         }
 
-        const weeklyRows = splitRes.data.filter(s => s.day >= 0 && s.day <= 6);
+        const weeklyRows = splitRes.data.filter(s =>
+          s.day >= 0 && s.day <= 6 &&
+          (!s.day_name || !s.day_name.startsWith('__')) &&
+          (!s.focus || (!s.focus.startsWith('{') && !s.focus.startsWith('[')))
+        );
         if (weeklyRows.length > 0) {
           const cloudSplit = weeklyRows.map(s => ({
             day: s.day,
@@ -4542,6 +4888,7 @@ async function pullFromSupabase(isRealtime = false, isManual = false) {
             state.gym.split = cloudSplit;
           }
         }
+        sanitizeGymSplit();
       }
 
       // 4. Gym Logs

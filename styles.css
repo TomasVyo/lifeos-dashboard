@@ -1485,6 +1485,8 @@ a {
   gap: 8px;
   position: relative;
   transition: all var(--transition-fast);
+  min-width: 0;
+  overflow: hidden;
 }
 
 .day-card.today {
@@ -1511,6 +1513,8 @@ a {
   font-size: 12px;
   font-weight: 600;
   line-height: 1.2;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .day-check-indicator {
