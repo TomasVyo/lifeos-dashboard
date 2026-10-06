@@ -2581,6 +2581,9 @@ function openWorkoutModal(forcedSplit = null, forcedDuration = null) {
   const btnModalFinish = document.getElementById('btn-modal-finish-workout');
   if (!modal || !form) return;
 
+  const validForcedSplit = (typeof forcedSplit === 'string' && forcedSplit) ? forcedSplit : null;
+  const validForcedDuration = (typeof forcedDuration === 'number' || (typeof forcedDuration === 'string' && forcedDuration)) ? forcedDuration : null;
+
   form.reset();
   syncAllSplitDropdowns();
 
@@ -2595,7 +2598,7 @@ function openWorkoutModal(forcedSplit = null, forcedDuration = null) {
     if (dateInput) dateInput.value = getTodayStr();
 
     const durationInput = document.getElementById('workout-duration');
-    if (durationInput) durationInput.value = forcedDuration || elapsedMinutes;
+    if (durationInput) durationInput.value = validForcedDuration || elapsedMinutes;
 
     const ratingSelect = document.getElementById('workout-rating');
     if (ratingSelect) ratingSelect.value = String(activeWorkout.rating || 4);
@@ -2647,7 +2650,7 @@ function openWorkoutModal(forcedSplit = null, forcedDuration = null) {
     if (dateInput) dateInput.value = getTodayStr();
 
     const durationInput = document.getElementById('workout-duration');
-    if (durationInput) durationInput.value = forcedDuration || '60';
+    if (durationInput) durationInput.value = validForcedDuration || '60';
 
     const ratingSelect = document.getElementById('workout-rating');
     if (ratingSelect) ratingSelect.value = '4';
@@ -2657,7 +2660,7 @@ function openWorkoutModal(forcedSplit = null, forcedDuration = null) {
 
     const typeSelect = document.getElementById('workout-type');
     if (typeSelect) {
-      const targetFocus = forcedSplit || getTodaySplitFocus() || 'Upper A';
+      const targetFocus = validForcedSplit || getTodaySplitFocus() || 'Upper A';
       const foundOption = Array.from(typeSelect.options).find(o =>
         o.value.toLowerCase() === targetFocus.toLowerCase() ||
         targetFocus.toLowerCase().includes(o.value.toLowerCase()) ||
@@ -2851,6 +2854,69 @@ function renderWorkoutQuickChips(splitType) {
   });
 }
 
+function generateExerciseSetRowHtml(exId, s, idx, canDelete) {
+  const safeWeight = (s.weight !== null && s.weight !== undefined) ? s.weight : '';
+  const safeReps = (s.reps !== null && s.reps !== undefined) ? s.reps : '';
+  return `
+    <div class="exercise-set-row" data-set-index="${idx}">
+      <span class="set-num-badge">#${idx + 1}</span>
+      <div class="set-field-group">
+        <div class="set-input-box">
+          <input type="number" step="0.5" class="set-input-num input-weight" value="${escapeHtml(String(safeWeight))}" placeholder="0" inputmode="decimal" data-ex-id="${exId}" data-set-index="${idx}">
+          <span class="set-unit-suffix">kg</span>
+        </div>
+        <button type="button" class="btn-quick-inc btn-inc-weight" data-ex-id="${exId}" data-set-index="${idx}" data-inc="2.5" title="Přidat +2.5 kg">+2.5</button>
+      </div>
+      <div class="set-field-group">
+        <div class="set-input-box">
+          <input type="number" min="1" max="999" class="set-input-num input-reps" value="${escapeHtml(String(safeReps))}" placeholder="0" inputmode="numeric" data-ex-id="${exId}" data-set-index="${idx}">
+          <span class="set-unit-suffix">reps</span>
+        </div>
+        <button type="button" class="btn-quick-inc btn-inc-reps" data-ex-id="${exId}" data-set-index="${idx}" data-inc="1" title="Přidat +1 opakování">+1</button>
+      </div>
+      <div class="set-del-wrap">
+        <button type="button" class="btn-del-set" data-ex-id="${exId}" data-set-index="${idx}" title="Smazat sérii" style="${canDelete ? '' : 'visibility: hidden;'}">&times;</button>
+      </div>
+    </div>
+  `;
+}
+
+function generateExerciseCardHtml(ex) {
+  const perf = getLastExercisePerformance(ex.name);
+  const historyBadgeHtml = (perf && perf.rawSetsSummary)
+    ? `<span class="exercise-prev-history-badge" title="Předchozí výkon z ${perf.date}">💡 Minule: <strong>${escapeHtml(perf.rawSetsSummary)}</strong></span>`
+    : '';
+
+  const canDelete = ex.sets && ex.sets.length > 1;
+  const rowsHtml = (ex.sets || []).map((s, idx) => generateExerciseSetRowHtml(ex.id, s, idx, canDelete)).join('');
+
+  return `
+    <div class="workout-exercise-card" data-ex-id="${ex.id}">
+      <div class="exercise-card-header">
+        <div class="exercise-card-info">
+          <span class="exercise-card-name">🏋️ ${escapeHtml(ex.name)}</span>
+          ${historyBadgeHtml}
+        </div>
+        <button type="button" class="btn-remove-exercise" data-ex-id="${ex.id}" title="Odstranit cvik" aria-label="Odstranit cvik">&times;</button>
+      </div>
+      <div class="exercise-sets-table">
+        <div class="exercise-sets-header">
+          <span class="set-col-num">#</span>
+          <span class="set-col-weight">Váha</span>
+          <span class="set-col-reps">Reps</span>
+          <span class="set-col-del"></span>
+        </div>
+        <div class="exercise-sets-rows-container">
+          ${rowsHtml}
+        </div>
+      </div>
+      <div class="exercise-card-footer">
+        <button type="button" class="btn-add-set" data-ex-id="${ex.id}">+ Další série</button>
+      </div>
+    </div>
+  `;
+}
+
 function addExerciseToWorkoutSession(exerciseName, initialWeight = null, initialReps = null) {
   if (!exerciseName || !exerciseName.trim()) return;
   const trimmed = exerciseName.trim();
@@ -2858,12 +2924,26 @@ function addExerciseToWorkoutSession(exerciseName, initialWeight = null, initial
   // If already in session, duplicate the last set for quick tapping
   const existing = currentWorkoutExercises.find(e => e.name.toLowerCase() === trimmed.toLowerCase());
   if (existing) {
+    const card = document.querySelector(`.workout-exercise-card[data-ex-id="${existing.id}"]`);
     const lastSet = existing.sets[existing.sets.length - 1];
-    existing.sets.push({
-      setNum: existing.sets.length + 1,
+    const newIdx = existing.sets.length;
+    const newSet = {
+      setNum: newIdx + 1,
       weight: lastSet ? lastSet.weight : '',
       reps: lastSet ? lastSet.reps : ''
-    });
+    };
+    existing.sets.push(newSet);
+
+    if (card) {
+      const rowsContainer = card.querySelector('.exercise-sets-rows-container');
+      if (rowsContainer) {
+        rowsContainer.insertAdjacentHTML('beforeend', generateExerciseSetRowHtml(existing.id, newSet, newIdx, true));
+      }
+      card.querySelectorAll('.btn-del-set').forEach(b => { b.style.visibility = 'visible'; });
+      card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    } else {
+      renderWorkoutExercisesBuilder();
+    }
   } else {
     // Check previous performance for prefilling
     const perf = getLastExercisePerformance(trimmed);
@@ -2881,14 +2961,26 @@ function addExerciseToWorkoutSession(exerciseName, initialWeight = null, initial
       setsToUse = [{ setNum: 1, weight: '', reps: '' }];
     }
 
-    currentWorkoutExercises.push({
+    const newEx = {
       id: 'ex_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
       name: trimmed,
       sets: setsToUse
-    });
+    };
+    currentWorkoutExercises.push(newEx);
+
+    const container = document.getElementById('workout-exercises-container');
+    if (container) {
+      const emptyBox = container.querySelector('.workout-exercises-empty');
+      if (emptyBox) {
+        container.innerHTML = generateExerciseCardHtml(newEx);
+      } else {
+        container.insertAdjacentHTML('beforeend', generateExerciseCardHtml(newEx));
+      }
+      const newCard = container.querySelector(`.workout-exercise-card[data-ex-id="${newEx.id}"]`);
+      if (newCard) newCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
   }
 
-  renderWorkoutExercisesBuilder();
   const typeSelect = document.getElementById('workout-type');
   if (typeSelect) renderWorkoutQuickChips(typeSelect.value);
 }
@@ -2898,146 +2990,171 @@ function renderWorkoutExercisesBuilder() {
   if (!container) return;
 
   if (currentWorkoutExercises.length === 0) {
-    container.innerHTML = '';
+    container.innerHTML = `
+      <div class="workout-exercises-empty">
+        <p class="text-sm text-muted">Zatím nemáš vybrané žádné cviky pro tento trénink.</p>
+        <p class="text-xs text-dim" style="margin-top: 4px;">Klikni na cvik ze šablony výše nebo načti celý split tlačítkem „⚡ Načíst celý split“.</p>
+      </div>
+    `;
     return;
   }
 
-  container.innerHTML = currentWorkoutExercises.map(ex => {
-    const perf = getLastExercisePerformance(ex.name);
-    const historyBadgeHtml = (perf && perf.rawSetsSummary)
-      ? `<div class="exercise-prev-history-badge">💡 Minule (${perf.date}): ${escapeHtml(perf.rawSetsSummary)}</div>`
-      : '';
+  container.innerHTML = currentWorkoutExercises.map(ex => generateExerciseCardHtml(ex)).join('');
+}
 
-    return `
-      <div class="workout-exercise-card" data-ex-id="${ex.id}">
-        <div class="exercise-card-header">
-          <div>
-            <span class="exercise-card-name">🏋️ ${escapeHtml(ex.name)}</span>
-            ${historyBadgeHtml}
-          </div>
-          <button type="button" class="btn-remove-exercise" data-ex-id="${ex.id}" title="Odstranit cvik">&times;</button>
-        </div>
-        <div class="exercise-sets-table">
-          <div class="exercise-sets-header">
-            <span class="set-col-num">#</span>
-            <span class="set-col-weight">Váha (kg)</span>
-            <span class="set-col-reps">Reps</span>
-            <span class="set-col-del"></span>
-          </div>
-          ${ex.sets.map((s, idx) => `
-            <div class="exercise-set-row" data-set-index="${idx}">
-              <span class="set-num-badge">#${idx + 1}</span>
-              <div class="set-field-group">
-                <input type="number" step="0.5" class="set-input-num input-weight" value="${s.weight ?? ''}" placeholder="0" data-ex-id="${ex.id}" data-set-index="${idx}">
-                <button type="button" class="btn-quick-inc btn-inc-weight" data-ex-id="${ex.id}" data-set-index="${idx}" data-inc="2.5" title="Přidat +2.5 kg">+2.5</button>
-              </div>
-              <div class="set-field-group">
-                <input type="number" min="1" max="999" class="set-input-num input-reps" value="${s.reps ?? ''}" placeholder="0" data-ex-id="${ex.id}" data-set-index="${idx}">
-                <button type="button" class="btn-quick-inc btn-inc-reps" data-ex-id="${ex.id}" data-set-index="${idx}" data-inc="1" title="Přidat +1 opakování">+1</button>
-              </div>
-              <div class="set-del-wrap">
-                ${ex.sets.length > 1 ? `<button type="button" class="btn-del-set" data-ex-id="${ex.id}" data-set-index="${idx}" title="Smazat sérii">&times;</button>` : ''}
-              </div>
-            </div>
-          `).join('')}
-        </div>
-        <button type="button" class="btn-add-set" data-ex-id="${ex.id}">+ Další série</button>
-      </div>
-    `;
-  }).join('');
+function setupWorkoutExercisesDelegation() {
+  const container = document.getElementById('workout-exercises-container');
+  if (!container || container._hasDelegation) return;
+  container._hasDelegation = true;
 
-  // Quick weight increment button
-  container.querySelectorAll('.btn-inc-weight').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const exId = btn.getAttribute('data-ex-id');
-      const setIdx = parseInt(btn.getAttribute('data-set-index'), 10);
-      const inc = parseFloat(btn.getAttribute('data-inc') || '2.5');
-      const ex = currentWorkoutExercises.find(x => x.id === exId);
-      if (ex && ex.sets[setIdx]) {
-        const cur = parseFloat(ex.sets[setIdx].weight) || 0;
-        ex.sets[setIdx].weight = Math.round((cur + inc) * 10) / 10;
-        renderWorkoutExercisesBuilder();
-      }
-    });
+  // Real-time input synchronization (weight & reps) - instantaneous without re-render
+  container.addEventListener('input', (e) => {
+    const input = e.target;
+    if (!input.classList.contains('set-input-num')) return;
+
+    const card = input.closest('.workout-exercise-card');
+    const row = input.closest('.exercise-set-row');
+    if (!card || !row) return;
+
+    const exId = card.getAttribute('data-ex-id');
+    const setIdx = parseInt(row.getAttribute('data-set-index'), 10);
+    const ex = currentWorkoutExercises.find(x => x.id === exId);
+    if (!ex || !ex.sets[setIdx]) return;
+
+    if (input.classList.contains('input-weight')) {
+      ex.sets[setIdx].weight = input.value;
+    } else if (input.classList.contains('input-reps')) {
+      ex.sets[setIdx].reps = input.value;
+    }
   });
 
-  // Quick reps increment button
-  container.querySelectorAll('.btn-inc-reps').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const exId = btn.getAttribute('data-ex-id');
-      const setIdx = parseInt(btn.getAttribute('data-set-index'), 10);
-      const inc = parseInt(btn.getAttribute('data-inc') || '1', 10);
+  // Action clicks (+2.5, +1, + Další série, Delete set, Remove exercise)
+  container.addEventListener('click', (e) => {
+    // Quick weight increment (+2.5 kg)
+    const btnIncWeight = e.target.closest('.btn-inc-weight');
+    if (btnIncWeight) {
+      e.preventDefault();
+      const card = btnIncWeight.closest('.workout-exercise-card');
+      const row = btnIncWeight.closest('.exercise-set-row');
+      if (!card || !row) return;
+      const exId = card.getAttribute('data-ex-id');
+      const setIdx = parseInt(row.getAttribute('data-set-index'), 10);
       const ex = currentWorkoutExercises.find(x => x.id === exId);
-      if (ex && ex.sets[setIdx]) {
-        const cur = parseInt(ex.sets[setIdx].reps, 10) || 0;
-        ex.sets[setIdx].reps = cur + inc;
-        renderWorkoutExercisesBuilder();
-      }
-    });
-  });
+      if (!ex || !ex.sets[setIdx]) return;
 
-  // Weight input sync
-  container.querySelectorAll('.input-weight').forEach(input => {
-    input.addEventListener('input', (e) => {
-      const exId = input.getAttribute('data-ex-id');
-      const setIdx = parseInt(input.getAttribute('data-set-index'), 10);
+      const inc = parseFloat(btnIncWeight.getAttribute('data-inc') || '2.5');
+      const weightInput = row.querySelector('.input-weight');
+      const cur = parseFloat(weightInput ? weightInput.value : ex.sets[setIdx].weight) || 0;
+      const newVal = Math.round((cur + inc) * 10) / 10;
+      if (weightInput) weightInput.value = newVal;
+      ex.sets[setIdx].weight = newVal;
+      return;
+    }
+
+    // Quick reps increment (+1 rep)
+    const btnIncReps = e.target.closest('.btn-inc-reps');
+    if (btnIncReps) {
+      e.preventDefault();
+      const card = btnIncReps.closest('.workout-exercise-card');
+      const row = btnIncReps.closest('.exercise-set-row');
+      if (!card || !row) return;
+      const exId = card.getAttribute('data-ex-id');
+      const setIdx = parseInt(row.getAttribute('data-set-index'), 10);
       const ex = currentWorkoutExercises.find(x => x.id === exId);
-      if (ex && ex.sets[setIdx]) {
-        ex.sets[setIdx].weight = e.target.value;
-      }
-    });
-  });
+      if (!ex || !ex.sets[setIdx]) return;
 
-  // Reps input sync
-  container.querySelectorAll('.input-reps').forEach(input => {
-    input.addEventListener('input', (e) => {
-      const exId = input.getAttribute('data-ex-id');
-      const setIdx = parseInt(input.getAttribute('data-set-index'), 10);
-      const ex = currentWorkoutExercises.find(x => x.id === exId);
-      if (ex && ex.sets[setIdx]) {
-        ex.sets[setIdx].reps = e.target.value;
-      }
-    });
-  });
+      const inc = parseInt(btnIncReps.getAttribute('data-inc') || '1', 10);
+      const repsInput = row.querySelector('.input-reps');
+      const cur = parseInt(repsInput ? repsInput.value : ex.sets[setIdx].reps, 10) || 0;
+      const newVal = cur + inc;
+      if (repsInput) repsInput.value = newVal;
+      ex.sets[setIdx].reps = newVal;
+      return;
+    }
 
-  // Add set button
-  container.querySelectorAll('.btn-add-set').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const exId = btn.getAttribute('data-ex-id');
+    // Add new set to exercise
+    const btnAddSet = e.target.closest('.btn-add-set');
+    if (btnAddSet) {
+      e.preventDefault();
+      const card = btnAddSet.closest('.workout-exercise-card');
+      if (!card) return;
+      const exId = card.getAttribute('data-ex-id');
       const ex = currentWorkoutExercises.find(x => x.id === exId);
       if (!ex) return;
+
       const prevSet = ex.sets[ex.sets.length - 1];
-      ex.sets.push({
-        setNum: ex.sets.length + 1,
+      const newIdx = ex.sets.length;
+      const newSet = {
+        setNum: newIdx + 1,
         weight: prevSet ? prevSet.weight : '',
         reps: prevSet ? prevSet.reps : ''
-      });
-      renderWorkoutExercisesBuilder();
-    });
-  });
+      };
+      ex.sets.push(newSet);
 
-  // Remove set button
-  container.querySelectorAll('.btn-del-set').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const exId = btn.getAttribute('data-ex-id');
-      const setIdx = parseInt(btn.getAttribute('data-set-index'), 10);
+      const rowsContainer = card.querySelector('.exercise-sets-rows-container');
+      if (rowsContainer) {
+        const newRowHtml = generateExerciseSetRowHtml(ex.id, newSet, newIdx, true);
+        rowsContainer.insertAdjacentHTML('beforeend', newRowHtml);
+      }
+
+      // Unhide delete buttons since series count is now > 1
+      card.querySelectorAll('.btn-del-set').forEach(b => {
+        b.style.visibility = 'visible';
+      });
+      return;
+    }
+
+    // Delete single set
+    const btnDelSet = e.target.closest('.btn-del-set');
+    if (btnDelSet) {
+      e.preventDefault();
+      const card = btnDelSet.closest('.workout-exercise-card');
+      const row = btnDelSet.closest('.exercise-set-row');
+      if (!card || !row) return;
+      const exId = card.getAttribute('data-ex-id');
       const ex = currentWorkoutExercises.find(x => x.id === exId);
       if (!ex) return;
-      ex.sets.splice(setIdx, 1);
-      ex.sets.forEach((s, i) => { s.setNum = i + 1; });
-      renderWorkoutExercisesBuilder();
-    });
-  });
 
-  // Remove whole exercise button
-  container.querySelectorAll('.btn-remove-exercise').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const exId = btn.getAttribute('data-ex-id');
+      const setIdx = parseInt(row.getAttribute('data-set-index'), 10);
+      ex.sets.splice(setIdx, 1);
+      row.remove();
+
+      // Re-index remaining rows in this card
+      const remainingRows = card.querySelectorAll('.exercise-set-row');
+      remainingRows.forEach((r, idx) => {
+        r.setAttribute('data-set-index', idx);
+        const badge = r.querySelector('.set-num-badge');
+        if (badge) badge.textContent = `#${idx + 1}`;
+        if (ex.sets[idx]) ex.sets[idx].setNum = idx + 1;
+      });
+
+      if (remainingRows.length <= 1) {
+        card.querySelectorAll('.btn-del-set').forEach(b => {
+          b.style.visibility = 'hidden';
+        });
+      }
+      return;
+    }
+
+    // Remove entire exercise
+    const btnRemoveEx = e.target.closest('.btn-remove-exercise');
+    if (btnRemoveEx) {
+      e.preventDefault();
+      const card = btnRemoveEx.closest('.workout-exercise-card');
+      if (!card) return;
+      const exId = card.getAttribute('data-ex-id');
+      card.remove();
+
       currentWorkoutExercises = currentWorkoutExercises.filter(x => x.id !== exId);
-      renderWorkoutExercisesBuilder();
+
       const typeSelect = document.getElementById('workout-type');
       if (typeSelect) renderWorkoutQuickChips(typeSelect.value);
-    });
+
+      if (currentWorkoutExercises.length === 0) {
+        renderWorkoutExercisesBuilder();
+      }
+      return;
+    }
   });
 }
 
@@ -3355,10 +3472,13 @@ function setupEventListeners() {
   if (btnOpenProj) btnOpenProj.addEventListener('click', () => openProjectModal());
 
   const btnOpenWorkout = document.getElementById('btn-open-workout-modal');
-  if (btnOpenWorkout) btnOpenWorkout.addEventListener('click', openWorkoutModal);
+  if (btnOpenWorkout) btnOpenWorkout.addEventListener('click', () => openWorkoutModal());
 
   const btnQuickWorkout = document.getElementById('btn-quick-workout');
-  if (btnQuickWorkout) btnQuickWorkout.addEventListener('click', openWorkoutModal);
+  if (btnQuickWorkout) btnQuickWorkout.addEventListener('click', () => openWorkoutModal());
+
+  // Setup non-destructive event delegation for workout exercises builder
+  setupWorkoutExercisesDelegation();
 
   const btnManageExercises = document.getElementById('btn-manage-exercises');
   if (btnManageExercises) btnManageExercises.addEventListener('click', openExercisesModal);
@@ -3775,6 +3895,21 @@ function setupEventListeners() {
       const type = document.getElementById('workout-type').value;
       const rating = parseInt(document.getElementById('workout-rating').value, 10) || 4;
       const notes = document.getElementById('workout-notes').value.trim();
+
+      // Sync any active DOM inputs into memory before compiling
+      document.querySelectorAll('#workout-exercises-container .workout-exercise-card').forEach(card => {
+        const exId = card.getAttribute('data-ex-id');
+        const ex = currentWorkoutExercises.find(x => x.id === exId);
+        if (!ex) return;
+        card.querySelectorAll('.exercise-set-row').forEach(row => {
+          const setIdx = parseInt(row.getAttribute('data-set-index'), 10);
+          if (!ex.sets[setIdx]) return;
+          const wInput = row.querySelector('.input-weight');
+          const rInput = row.querySelector('.input-reps');
+          if (wInput && wInput.value !== '') ex.sets[setIdx].weight = wInput.value;
+          if (rInput && rInput.value !== '') ex.sets[setIdx].reps = rInput.value;
+        });
+      });
 
       // Compile exercises string from builder
       let compiledExercises = '';
