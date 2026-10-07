@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dashboard-pwa-v14';
+const CACHE_NAME = 'dashboard-pwa-v15';
 const ASSETS_TO_CACHE = [
   '/',
   '/styles.css',

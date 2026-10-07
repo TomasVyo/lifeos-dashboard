@@ -244,13 +244,107 @@ let currentSchoolFilter = 'pending';
 let activeWorkout = null;
 let activeWorkoutTimerInterval = null;
 
-// Tombstone set for items deleted in current session to prevent race conditions during sync
-const recentlyDeletedIds = new Set();
+// Persistent Tombstone set for explicitly deleted items to prevent sync race conditions
+const DELETED_IDS_KEY = 'lifeos_deleted_ids_v1';
+function loadDeletedIds() {
+  try {
+    const raw = localStorage.getItem(DELETED_IDS_KEY);
+    return raw ? new Set(JSON.parse(raw)) : new Set();
+  } catch (e) {
+    return new Set();
+  }
+}
+const recentlyDeletedIds = loadDeletedIds();
+
 function markAsDeleted(id) {
   if (!id) return;
   recentlyDeletedIds.add(id);
-  // Auto-expire after 10 minutes
-  setTimeout(() => recentlyDeletedIds.delete(id), 10 * 60 * 1000);
+  try {
+    localStorage.setItem(DELETED_IDS_KEY, JSON.stringify(Array.from(recentlyDeletedIds).slice(-300)));
+  } catch (e) {}
+}
+
+function isExplicitlyDeleted(id) {
+  return recentlyDeletedIds.has(id);
+}
+
+// Automatic recovery scanner for lost or unfinalized workouts
+function recoverLostWorkouts(currentLogs = []) {
+  const recovered = [];
+  const knownIds = new Set((currentLogs || []).map(l => l.id));
+
+  try {
+    // 1. Check lifeos_active_workout for workouts with recorded exercises
+    const awRaw = localStorage.getItem('lifeos_active_workout');
+    if (awRaw) {
+      const aw = JSON.parse(awRaw);
+      if (aw && Array.isArray(aw.exercises) && aw.exercises.length > 0) {
+        const hasSets = aw.exercises.some(e => e.sets && e.sets.some(s => (s.weight !== '' && s.weight !== null && s.weight !== undefined) || (s.reps !== '' && s.reps !== null && s.reps !== undefined)));
+        if (hasSets && (!aw.id || !knownIds.has(aw.id)) && (!aw.id || !isExplicitlyDeleted(aw.id))) {
+          const compiled = aw.exercises.map(ex => {
+            const valid = ex.sets.filter(s => (s.weight !== '' && s.weight !== null && s.weight !== undefined) || (s.reps !== '' && s.reps !== null && s.reps !== undefined));
+            const details = (valid.length > 0 ? valid : ex.sets).map(s => {
+              const w = (s.weight !== '' && s.weight !== null && s.weight !== undefined) ? `${s.weight} kg` : '';
+              const r = (s.reps !== '' && s.reps !== null && s.reps !== undefined) ? `${s.reps} reps` : '';
+              if (w && r) return `${s.weight} kg × ${s.reps}`;
+              return w || r || '1 série';
+            }).join(', ');
+            return `• ${ex.name}: ${ex.sets.length} série${details ? ` (${details})` : ''}`;
+          }).join('\n');
+
+          const elapsedMinutes = Math.max(1, Math.round(((Date.now() - (aw.startTime || Date.now() - 3600000))) / 60000));
+          const recLog = {
+            id: aw.id || ('log_rec_' + Date.now()),
+            date: getTodayStr(),
+            duration: elapsedMinutes > 240 ? 60 : elapsedMinutes,
+            type: aw.split || 'Upper A',
+            rating: aw.rating || 4,
+            exercises: compiled + (aw.notes ? `\nPoznámka: ${aw.notes}` : '')
+          };
+          recovered.push(recLog);
+          knownIds.add(recLog.id);
+        }
+      }
+    }
+
+    // 2. Check lifeos_gym_logs_backup_v1
+    const backupRaw = localStorage.getItem('lifeos_gym_logs_backup_v1');
+    if (backupRaw) {
+      const backupLogs = JSON.parse(backupRaw);
+      if (Array.isArray(backupLogs)) {
+        backupLogs.forEach(bLog => {
+          if (bLog && bLog.id && !knownIds.has(bLog.id) && !isExplicitlyDeleted(bLog.id)) {
+            recovered.push(bLog);
+            knownIds.add(bLog.id);
+          }
+        });
+      }
+    }
+
+    // 3. Deep scan all localStorage keys for any saved JSON containing exercises and weights
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (!key || key === DELETED_IDS_KEY || key === 'lifeos_gym_logs_backup_v1') continue;
+      try {
+        const val = localStorage.getItem(key);
+        if (val && typeof val === 'string' && val.includes('kg') && (val.includes('série') || val.includes('Bench') || val.includes('Dřep'))) {
+          const parsedVal = JSON.parse(val);
+          const candidateArray = Array.isArray(parsedVal) ? parsedVal : (parsedVal?.gym?.logs || parsedVal?.logs);
+          if (Array.isArray(candidateArray)) {
+            candidateArray.forEach(cand => {
+              if (cand && cand.id && cand.date && cand.exercises && !knownIds.has(cand.id) && !isExplicitlyDeleted(cand.id)) {
+                recovered.push(cand);
+                knownIds.add(cand.id);
+              }
+            });
+          }
+        }
+      } catch (e) {}
+    }
+  } catch (e) {
+    console.warn('Error during workout recovery scan:', e);
+  }
+  return recovered;
 }
 
 // State Management
@@ -309,8 +403,19 @@ function loadState() {
         exercisesBySplit = JSON.parse(JSON.stringify(DEFAULT_DATA.gym.exercisesBySplit));
       }
 
+      // Gym logs loading & recovery
+      let logs = (parsed.gym && Array.isArray(parsed.gym.logs)) ? parsed.gym.logs : DEFAULT_DATA.gym.logs;
+      
+      // Auto-recover any lost or orphaned workouts from activeWorkout or backups
+      const rescued = recoverLostWorkouts(logs);
+      if (rescued.length > 0) {
+        logs = [...rescued, ...logs];
+      }
+
+      // Filter out any explicitly deleted logs
+      logs = logs.filter(l => l && !isExplicitlyDeleted(l.id));
+
       // Gym logs type migration (Push/Upper -> Upper A, Pull -> Upper B, Legs/Lower -> Lower A)
-      let logs = (parsed.gym && parsed.gym.logs) || DEFAULT_DATA.gym.logs;
       if (Array.isArray(logs) && logs.some(l => l.type === 'Push' || l.type === 'Pull' || l.type === 'Legs' || l.type === 'Upper' || l.type === 'Lower')) {
         logs = logs.map(l => {
           if (l.type === 'Push' || l.type === 'Upper') return { ...l, type: 'Upper A' };
@@ -351,6 +456,16 @@ function loadState() {
 function saveState(skipRemoteSync = false) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    // Maintain persistent safety backups for user data
+    if (state.gym && Array.isArray(state.gym.logs) && state.gym.logs.length > 0) {
+      localStorage.setItem('lifeos_gym_logs_backup_v1', JSON.stringify(state.gym.logs));
+    }
+    if (state.projects && Array.isArray(state.projects) && state.projects.length > 0) {
+      localStorage.setItem('lifeos_projects_backup_v1', JSON.stringify(state.projects));
+    }
+    if (state.school && Array.isArray(state.school) && state.school.length > 0) {
+      localStorage.setItem('lifeos_school_backup_v1', JSON.stringify(state.school));
+    }
   } catch (err) {
     console.error('Failed to save state:', err);
   }
@@ -1473,8 +1588,27 @@ function renderActiveWorkoutBanner() {
 }
 
 function cancelActiveWorkout() {
-  if (!confirm('Opravdu chceš běžící trénink zrušit? Pokud jsi už průběžně uložil série, bude záznam odstraněn.')) return;
-  if (activeWorkout && activeWorkout.id) {
+  if (!activeWorkout) return;
+
+  const existingLog = state.gym.logs.find(l => l.id === activeWorkout.id);
+  const hasExercises = (activeWorkout.exercises && activeWorkout.exercises.some(ex => ex.sets && ex.sets.some(s => s.weight !== '' || s.reps !== ''))) ||
+                       (existingLog && existingLog.exercises && existingLog.exercises.trim().length > 0);
+
+  if (hasExercises) {
+    const keep = confirm('V tomto tréninku máš zaznamenané série.\n\nKlikni "OK" pro UKONČENÍ A ULOŽENÍ do historie tréninků.\nKlikni "Storno" pro zrušení a úplné smazání záznamu.');
+    if (keep) {
+      finishActiveWorkout(false);
+      return;
+    }
+    if (!confirm('Opravdu chceš trénink smazat bez uložení? Tento krok nelze vrátit.')) {
+      return;
+    }
+  } else {
+    if (!confirm('Opravdu chceš běžící trénink zrušit?')) return;
+  }
+
+  if (activeWorkout.id) {
+    markAsDeleted(activeWorkout.id);
     state.gym.logs = state.gym.logs.filter(l => l.id !== activeWorkout.id);
     if (supabaseClient && currentUser) {
       supabaseClient.from('gym_logs').delete().eq('id', activeWorkout.id).eq('user_id', currentUser.id).then(() => {});
@@ -3934,7 +4068,7 @@ function setupEventListeners() {
       }
 
       const editId = document.getElementById('workout-edit-id')?.value;
-      const isCurrentActiveWorkout = activeWorkout && (editId === activeWorkout.id || date === getTodayStr());
+      const isCurrentActiveWorkout = Boolean(activeWorkout && editId && editId === activeWorkout.id);
 
       if (isCurrentActiveWorkout) {
         // Save current sets into activeWorkout state & persistence
@@ -4883,16 +5017,21 @@ async function pushToSupabase(isManual = false) {
         });
         await supabaseClient.from('projects').upsert(projectRows);
 
-        const localProjIds = state.projects.map(p => p.id);
         const { data: dbProjects } = await supabaseClient.from('projects').select('id').eq('user_id', userId);
         if (dbProjects) {
-          const toDelete = dbProjects.filter(r => !localProjIds.includes(r.id)).map(r => r.id);
+          const toDelete = dbProjects.filter(r => isExplicitlyDeleted(r.id)).map(r => r.id);
           if (toDelete.length > 0) {
             await supabaseClient.from('projects').delete().in('id', toDelete).eq('user_id', userId);
           }
         }
       } else {
-        await supabaseClient.from('projects').delete().eq('user_id', userId);
+        const { data: dbProjects } = await supabaseClient.from('projects').select('id').eq('user_id', userId);
+        if (dbProjects) {
+          const toDelete = dbProjects.filter(r => isExplicitlyDeleted(r.id)).map(r => r.id);
+          if (toDelete.length > 0) {
+            await supabaseClient.from('projects').delete().in('id', toDelete).eq('user_id', userId);
+          }
+        }
       }
     }
 
@@ -4968,16 +5107,21 @@ async function pushToSupabase(isManual = false) {
         }));
         await supabaseClient.from('gym_logs').upsert(logRows);
 
-        const localLogIds = state.gym.logs.map(l => l.id);
         const { data: dbLogs } = await supabaseClient.from('gym_logs').select('id').eq('user_id', userId);
         if (dbLogs) {
-          const toDelete = dbLogs.filter(r => !localLogIds.includes(r.id)).map(r => r.id);
+          const toDelete = dbLogs.filter(r => isExplicitlyDeleted(r.id)).map(r => r.id);
           if (toDelete.length > 0) {
             await supabaseClient.from('gym_logs').delete().in('id', toDelete).eq('user_id', userId);
           }
         }
       } else {
-        await supabaseClient.from('gym_logs').delete().eq('user_id', userId);
+        const { data: dbLogs } = await supabaseClient.from('gym_logs').select('id').eq('user_id', userId);
+        if (dbLogs) {
+          const toDelete = dbLogs.filter(r => isExplicitlyDeleted(r.id)).map(r => r.id);
+          if (toDelete.length > 0) {
+            await supabaseClient.from('gym_logs').delete().in('id', toDelete).eq('user_id', userId);
+          }
+        }
       }
     }
 
@@ -4998,16 +5142,21 @@ async function pushToSupabase(isManual = false) {
         }));
         await supabaseClient.from('school_items').upsert(schoolRows);
 
-        const localSchoolIds = state.school.map(s => s.id);
         const { data: dbSchool } = await supabaseClient.from('school_items').select('id').eq('user_id', userId);
         if (dbSchool) {
-          const toDelete = dbSchool.filter(r => !localSchoolIds.includes(r.id)).map(r => r.id);
+          const toDelete = dbSchool.filter(r => isExplicitlyDeleted(r.id)).map(r => r.id);
           if (toDelete.length > 0) {
             await supabaseClient.from('school_items').delete().in('id', toDelete).eq('user_id', userId);
           }
         }
       } else {
-        await supabaseClient.from('school_items').delete().eq('user_id', userId);
+        const { data: dbSchool } = await supabaseClient.from('school_items').select('id').eq('user_id', userId);
+        if (dbSchool) {
+          const toDelete = dbSchool.filter(r => isExplicitlyDeleted(r.id)).map(r => r.id);
+          if (toDelete.length > 0) {
+            await supabaseClient.from('school_items').delete().in('id', toDelete).eq('user_id', userId);
+          }
+        }
       }
     }
 
@@ -5022,16 +5171,21 @@ async function pushToSupabase(isManual = false) {
         }));
         await supabaseClient.from('habits').upsert(habitRows);
 
-        const localHabitIds = state.habits.map(h => h.id);
         const { data: dbHabits } = await supabaseClient.from('habits').select('id').eq('user_id', userId);
         if (dbHabits) {
-          const toDelete = dbHabits.filter(r => !localHabitIds.includes(r.id)).map(r => r.id);
+          const toDelete = dbHabits.filter(r => isExplicitlyDeleted(r.id)).map(r => r.id);
           if (toDelete.length > 0) {
             await supabaseClient.from('habits').delete().in('id', toDelete).eq('user_id', userId);
           }
         }
       } else {
-        await supabaseClient.from('habits').delete().eq('user_id', userId);
+        const { data: dbHabits } = await supabaseClient.from('habits').select('id').eq('user_id', userId);
+        if (dbHabits) {
+          const toDelete = dbHabits.filter(r => isExplicitlyDeleted(r.id)).map(r => r.id);
+          if (toDelete.length > 0) {
+            await supabaseClient.from('habits').delete().in('id', toDelete).eq('user_id', userId);
+          }
+        }
       }
     }
 
@@ -5155,7 +5309,12 @@ async function pullFromSupabase(isRealtime = false, isManual = false) {
           state.projects = JSON.parse(JSON.stringify(DEFAULT_DATA.projects));
           saveState();
         } else if (cloudProjects.length > 0) {
-          state.projects = cloudProjects;
+          const cloudProjMap = new Map(cloudProjects.map(p => [p.id, p]));
+          const localProjectsToKeep = (state.projects || []).filter(p => !isExplicitlyDeleted(p.id) && !cloudProjMap.has(p.id));
+          state.projects = [...cloudProjects, ...localProjectsToKeep];
+          if (localProjectsToKeep.length > 0) {
+            debouncePushToSupabase();
+          }
         }
       }
 
@@ -5203,10 +5362,10 @@ async function pullFromSupabase(isRealtime = false, isManual = false) {
         sanitizeGymSplit();
       }
 
-      // 4. Gym Logs
+      // 4. Gym Logs (Safe Merge - local records are never discarded unless explicitly deleted)
       if (logsRes.data) {
-        state.gym.logs = logsRes.data
-          .filter(l => !recentlyDeletedIds.has(l.id))
+        const cloudLogs = logsRes.data
+          .filter(l => !isExplicitlyDeleted(l.id))
           .map(l => {
             let t = l.type;
             if (t === 'Push' || t === 'Upper') t = 'Upper A';
@@ -5221,12 +5380,23 @@ async function pullFromSupabase(isRealtime = false, isManual = false) {
               exercises: l.exercises || ''
             };
           });
+
+        const cloudLogMap = new Map(cloudLogs.map(l => [l.id, l]));
+        const localLogsToKeep = (state.gym.logs || []).filter(l => !isExplicitlyDeleted(l.id) && !cloudLogMap.has(l.id));
+
+        const mergedLogs = [...cloudLogs, ...localLogsToKeep];
+        mergedLogs.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+        state.gym.logs = mergedLogs;
+
+        if (localLogsToKeep.length > 0) {
+          debouncePushToSupabase();
+        }
       }
 
-      // 5. School Items
+      // 5. School Items (Safe Merge)
       if (schoolRes.data) {
-        state.school = schoolRes.data
-          .filter(s => !recentlyDeletedIds.has(s.id))
+        const cloudSchool = schoolRes.data
+          .filter(s => !isExplicitlyDeleted(s.id))
           .map(s => ({
             id: s.id,
             subject: s.subject,
@@ -5237,16 +5407,32 @@ async function pullFromSupabase(isRealtime = false, isManual = false) {
             status: s.status || 'pending',
             notes: s.notes || ''
           }));
+
+        const cloudSchoolMap = new Map(cloudSchool.map(s => [s.id, s]));
+        const localSchoolToKeep = (state.school || []).filter(s => !isExplicitlyDeleted(s.id) && !cloudSchoolMap.has(s.id));
+        state.school = [...cloudSchool, ...localSchoolToKeep];
+
+        if (localSchoolToKeep.length > 0) {
+          debouncePushToSupabase();
+        }
       }
 
-      // 6. Habits
+      // 6. Habits (Safe Merge)
       if (habitsRes.data && habitsRes.data.length > 0) {
-        state.habits = habitsRes.data
-          .filter(h => !recentlyDeletedIds.has(h.id))
+        const cloudHabits = habitsRes.data
+          .filter(h => !isExplicitlyDeleted(h.id))
           .map(h => ({
             id: h.id,
             text: h.text
           }));
+
+        const cloudHabitMap = new Map(cloudHabits.map(h => [h.id, h]));
+        const localHabitsToKeep = (state.habits || []).filter(h => !isExplicitlyDeleted(h.id) && !cloudHabitMap.has(h.id));
+        state.habits = [...cloudHabits, ...localHabitsToKeep];
+
+        if (localHabitsToKeep.length > 0) {
+          debouncePushToSupabase();
+        }
       }
 
       // 7. Habit Logs
