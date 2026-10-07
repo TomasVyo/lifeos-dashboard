@@ -304,6 +304,54 @@
             </div>
 
           </div>
+
+          <!-- ================= DAILY JOURNAL & REFLECTION WIDGET ================= -->
+          <div class="card journal-widget-card" id="overview-journal-card" style="margin-top: 24px;">
+            <div class="widget-header">
+              <div class="widget-title-wrap">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" class="text-indigo"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path><line x1="8" y1="7" x2="16" y2="7"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
+                <h3>Osobní deník & Myšlenky</h3>
+              </div>
+              <div class="journal-header-actions">
+                <span class="text-xs text-muted" id="journal-autosave-status" style="margin-right: 8px;">Připraveno</span>
+                <button type="button" class="btn btn-sm btn-outline" id="btn-toggle-journal-history">📜 Historie zápisů (<span id="journal-history-count">0</span>)</button>
+              </div>
+            </div>
+
+            <!-- Mood & Energy Pill Selector -->
+            <div class="journal-mood-picker">
+              <span class="text-xs text-muted" style="font-weight: 600;">Dnešní nálada a energie:</span>
+              <div class="journal-mood-pills" id="journal-mood-pills">
+                <button type="button" class="journal-mood-pill active" data-mood="⚡" data-label="Skvělá energie">⚡ Skvělá energie</button>
+                <button type="button" class="journal-mood-pill" data-mood="🎯" data-label="Produktivní">🎯 Produktivní</button>
+                <button type="button" class="journal-mood-pill" data-mood="😊" data-label="Pohoda & Klid">😊 Pohoda & Klid</button>
+                <button type="button" class="journal-mood-pill" data-mood="☕" data-label="Únava">☕ Únava</button>
+                <button type="button" class="journal-mood-pill" data-mood="🌧️" data-label="Náročný den">🌧️ Náročný den</button>
+              </div>
+            </div>
+
+            <!-- Active Journal Entry Editor -->
+            <div class="journal-editor-wrap">
+              <textarea id="journal-today-input" class="form-textarea journal-textarea" rows="3" placeholder="Jaký byl tvůj dnešní den? Napiš si myšlenky, nápady, co se ti povedlo, na co nezapomenout, shrnutí tréninku či práce..."></textarea>
+              <div class="journal-editor-footer">
+                <span class="text-xs text-dim" id="journal-date-indicator">Dnes</span>
+                <button type="button" class="btn btn-primary btn-sm" id="btn-save-journal-entry">
+                  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                  <span>Uložit zápis</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Collapsible History Drawer -->
+            <div class="journal-history-drawer hidden" id="journal-history-drawer">
+              <div class="journal-history-header">
+                <h4 style="font-size: 14px; font-weight: 700; color: var(--text-heading); margin-bottom: 8px;">Předchozí zápisy v deníku</h4>
+              </div>
+              <div class="journal-entries-list" id="journal-entries-list">
+                <!-- Dynamically rendered journal entries -->
+              </div>
+            </div>
+          </div>
         </section>
 
         <!-- ================= TAB: PROJECTS ================= -->
@@ -865,42 +913,65 @@
           </div>
         </div>
 
-        <!-- Interactive Exercise Picker & Sets Builder -->
-        <div class="workout-builder-section">
-          <div class="builder-header">
-            <div>
-              <label class="builder-title">Výběr cviků & Série:</label>
-              <span class="text-xs text-muted" style="display: block;">Vyber cvik ze šablony nebo načti celou sestavu</span>
+        <!-- Mode Switcher: Structured Sets vs Quick Freeform Text -->
+        <div class="workout-mode-switcher">
+          <button type="button" class="workout-mode-btn active" id="btn-mode-structured">
+            🏋️ Přehledné série (Tabulka)
+          </button>
+          <button type="button" class="workout-mode-btn" id="btn-mode-text">
+            ✍️ Rychlý volný zápis (Text)
+          </button>
+        </div>
+
+        <!-- ================= PANEL 1: STRUCTURED SETS BUILDER ================= -->
+        <div class="workout-panel-structured" id="workout-structured-panel">
+          <div class="workout-builder-section">
+            <div class="builder-action-bar">
+              <button type="button" class="btn btn-accent btn-sm" id="btn-load-entire-split" title="Předvyplnit všechny cviky vybraného splitu se zapamatovanými vahami z minulého tréninku">
+                ⚡ Načíst celou šablonu splitu
+              </button>
+              <div class="quick-add-custom-exercise">
+                <input type="text" id="custom-exercise-input" class="form-input form-input-sm" placeholder="+ Přidat cvik (např. Dřep, Shyby...)">
+                <button type="button" class="btn btn-secondary btn-sm" id="btn-add-custom-exercise">Přidat</button>
+              </div>
             </div>
-            <button type="button" class="btn btn-secondary btn-sm" id="btn-load-entire-split" title="Vložit všechny cviky ze šablony splitu se zapamatovanými vahami">
-              ⚡ Načíst celý split
-            </button>
+
+            <!-- Quick chips for exercises of chosen split -->
+            <div class="exercise-chips-container">
+              <span class="text-xs text-muted" style="font-weight: 600;">Doporučené cviky pro tento split:</span>
+              <div class="exercise-chips-wrap" id="workout-exercise-chips" style="margin-top: 6px;">
+                <!-- Populated dynamically based on workout-type -->
+              </div>
+            </div>
+
+            <!-- Dynamic Exercises List Container -->
+            <div class="workout-exercises-container" id="workout-exercises-container">
+              <!-- Dynamic exercise cards with clean sets table -->
+            </div>
           </div>
 
-          <!-- Quick chips for exercises of chosen split -->
-          <div class="exercise-chips-wrap" id="workout-exercise-chips">
-            <!-- Populated dynamically based on workout-type -->
-          </div>
-
-          <!-- Add custom exercise inline -->
-          <div class="quick-add-custom-exercise">
-            <input type="text" id="custom-exercise-input" class="form-input form-input-sm" placeholder="+ Napsat jiný cvik...">
-            <button type="button" class="btn btn-secondary btn-sm" id="btn-add-custom-exercise">Přidat cvik</button>
-          </div>
-
-          <!-- Dynamic Exercises List Container -->
-          <div class="workout-exercises-container" id="workout-exercises-container">
-            <!-- Dynamic exercise cards with sets will appear here -->
+          <!-- Collapsible / Optional Freeform Notes for structured mode -->
+          <div class="form-group" style="margin-top: 14px;">
+            <label for="workout-notes" style="display: flex; justify-content: space-between;">
+              <span>Doplňující poznámky (volitelné)</span>
+              <span class="text-xs text-muted">např. warmup, pocity, kardio</span>
+            </label>
+            <textarea id="workout-notes" class="form-textarea" rows="2" placeholder="Jakékoliv další postřehy nebo poznámka k tréninku..."></textarea>
           </div>
         </div>
 
-        <!-- Collapsible / Optional Freeform Notes -->
-        <div class="form-group" style="margin-top: 14px;">
-          <label for="workout-notes" style="display: flex; justify-content: space-between;">
-            <span>Doplňující poznámky (volitelné)</span>
-            <span class="text-xs text-muted">např. warmup, supersérie, regenerace</span>
-          </label>
-          <textarea id="workout-notes" class="form-textarea" rows="2" placeholder="Jakékoliv další postřehy nebo poznámka k tréninku..."></textarea>
+        <!-- ================= PANEL 2: QUICK FREEFORM TEXT ================= -->
+        <div class="workout-panel-text hidden" id="workout-text-panel">
+          <div class="quick-text-workout-box">
+            <div class="quick-text-toolbar">
+              <span class="text-xs text-muted">Rychle zapiš nebo zkopíruj trénink přesně jak ti vyhovuje:</span>
+              <button type="button" class="btn btn-outline btn-xs" id="btn-insert-template-text" title="Vložit seznam cviků z aktuálního splitu jako textovou osnovu">
+                📋 Vložit osnovu cviků ze splitu
+              </button>
+            </div>
+            <textarea id="workout-freeform-text" class="form-textarea workout-quick-textarea" rows="9" placeholder="• Bench press: 4 série (80 kg × 8, 80 kg × 8, 82.5 kg × 7, 85 kg × 6)&#10;• Přítahy činky v předklonu: 4 série (65 kg × 10, 65 kg × 10, 70 kg × 8)&#10;• Tlaky na ramena: 3 série (24 kg × 10)&#10;• Bicepsový zdvih: 3 série (30 kg × 10)"></textarea>
+            <p class="text-xs text-dim" style="margin-top: 6px;">💡 Můžeš psát volně cvik po cviku s vahami a sériemi. Systém text automaticky uloží do historie.</p>
+          </div>
         </div>
 
         <div class="dialog-actions" id="workout-dialog-actions">

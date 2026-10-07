@@ -208,7 +208,8 @@ const DEFAULT_DATA = {
     { id: 'h_water', text: 'Vypít 2.5 litru čisté vody' },
     { id: 'h_sleep', text: 'Kvalitní spánek 7 - 8 hodin' }
   ],
-  habitLogs: {}
+  habitLogs: {},
+  journal: []
 };
 
 // Helper: relative ISO date YYYY-MM-DD
@@ -438,13 +439,27 @@ function loadState() {
         logs
       };
 
+      // Journal entries loading & recovery
+      let journal = Array.isArray(parsed.journal) ? parsed.journal : [];
+      if (journal.length === 0) {
+        try {
+          const jBackup = localStorage.getItem('lifeos_journal_backup_v1');
+          if (jBackup) {
+            const parsedBackup = JSON.parse(jBackup);
+            if (Array.isArray(parsedBackup)) journal = parsedBackup;
+          }
+        } catch (e) {}
+      }
+      journal = journal.filter(j => j && j.id && !isExplicitlyDeleted(j.id));
+
       return {
         ...DEFAULT_DATA,
         ...parsed,
         projects,
         user: { ...DEFAULT_DATA.user, ...(parsed.user || {}) },
         gym: gymData,
-        habitLogs: parsed.habitLogs || {}
+        habitLogs: parsed.habitLogs || {},
+        journal
       };
     }
   } catch (err) {
@@ -465,6 +480,9 @@ function saveState(skipRemoteSync = false) {
     }
     if (state.school && Array.isArray(state.school) && state.school.length > 0) {
       localStorage.setItem('lifeos_school_backup_v1', JSON.stringify(state.school));
+    }
+    if (state.journal && Array.isArray(state.journal) && state.journal.length > 0) {
+      localStorage.setItem('lifeos_journal_backup_v1', JSON.stringify(state.journal));
     }
   } catch (err) {
     console.error('Failed to save state:', err);
@@ -748,6 +766,7 @@ function renderOverview() {
   renderHabitsWidget();
   renderOverviewDeadlines();
   renderOverviewProjects();
+  renderJournalWidget();
 }
 
 function renderTodayGymWidget() {
@@ -894,6 +913,238 @@ function renderOverviewProjects() {
       </div>
     `;
   }).join('');
+}
+
+// ==========================================================================
+// DAILY JOURNAL & REFLECTION WIDGET
+// ==========================================================================
+let journalAutosaveTimer = null;
+
+function renderJournalWidget() {
+  const card = document.getElementById('overview-journal-card');
+  if (!card) return;
+
+  const todayStr = getTodayStr();
+  const dateIndicator = document.getElementById('journal-date-indicator');
+  if (dateIndicator) {
+    const now = new Date();
+    const days = ['Neděle', 'Pondělí', 'Úterý', 'Středa', 'Čtvrtek', 'Pátek', 'Sobota'];
+    const months = ['ledna', 'února', 'března', 'dubna', 'května', 'června', 'července', 'srpna', 'září', 'října', 'listopadu', 'prosince'];
+    dateIndicator.textContent = `Dnes • ${days[now.getDay()]}, ${now.getDate()}. ${months[now.getMonth()]}`;
+  }
+
+  const todayEntry = (state.journal || []).find(j => j.date === todayStr);
+  const input = document.getElementById('journal-today-input');
+  const statusEl = document.getElementById('journal-autosave-status');
+
+  if (input && document.activeElement !== input) {
+    if (todayEntry) {
+      input.value = todayEntry.text || '';
+      if (statusEl) statusEl.textContent = 'Dnešní zápis uložen ✓';
+    } else {
+      input.value = '';
+      if (statusEl) statusEl.textContent = 'Připraveno';
+    }
+  }
+
+  const activeMood = todayEntry?.mood || '⚡';
+  const pills = document.querySelectorAll('#journal-mood-pills .journal-mood-pill');
+  pills.forEach(pill => {
+    if (pill.getAttribute('data-mood') === activeMood) {
+      pill.classList.add('active');
+    } else {
+      pill.classList.remove('active');
+    }
+  });
+
+  const countEl = document.getElementById('journal-history-count');
+  if (countEl) countEl.textContent = (state.journal || []).length;
+
+  const drawer = document.getElementById('journal-history-drawer');
+  if (drawer && !drawer.classList.contains('hidden')) {
+    renderJournalHistoryList();
+  }
+}
+
+function renderJournalHistoryList() {
+  const listEl = document.getElementById('journal-entries-list');
+  if (!listEl) return;
+
+  const entries = (state.journal || []).filter(j => j && !isExplicitlyDeleted(j.id));
+  if (entries.length === 0) {
+    listEl.innerHTML = '<p class="text-xs text-muted" style="text-align: center; padding: 12px 0;">Zatím žádné dřívější zápisy v deníku. Tvůj první zápis se zobrazí zde.</p>';
+    return;
+  }
+
+  const sorted = [...entries].sort((a, b) => {
+    const timeA = a.date + ' ' + (a.time || '00:00');
+    const timeB = b.date + ' ' + (b.time || '00:00');
+    return timeB.localeCompare(timeA);
+  });
+
+  listEl.innerHTML = sorted.map(entry => {
+    const dParts = (entry.date || '').split('-');
+    let dateStr = entry.date;
+    if (dParts.length === 3) {
+      const dObj = new Date(parseInt(dParts[0], 10), parseInt(dParts[1], 10) - 1, parseInt(dParts[2], 10));
+      const days = ['Neděle', 'Pondělí', 'Úterý', 'Středa', 'Čtvrtek', 'Pátek', 'Sobota'];
+      const months = ['ledna', 'února', 'března', 'dubna', 'května', 'června', 'července', 'srpna', 'září', 'října', 'listopadu', 'prosince'];
+      dateStr = `${days[dObj.getDay()]}, ${dObj.getDate()}. ${months[dObj.getMonth()]}`;
+    }
+
+    return `
+      <div class="journal-entry-card" data-journal-id="${escapeHtml(entry.id)}">
+        <div class="journal-entry-header">
+          <div class="journal-entry-meta">
+            <span class="journal-entry-mood">${escapeHtml(entry.mood || '📝')}</span>
+            <span class="journal-entry-date">${escapeHtml(dateStr)}${entry.time ? ` • ${escapeHtml(entry.time)}` : ''}</span>
+            ${entry.moodLabel ? `<span class="journal-entry-mood-label">${escapeHtml(entry.moodLabel)}</span>` : ''}
+          </div>
+          <button type="button" class="btn-del-journal-entry" data-journal-id="${escapeHtml(entry.id)}" title="Smazat zápis">&times;</button>
+        </div>
+        <div class="journal-entry-text">${escapeHtml(entry.text || '').replace(/\n/g, '<br>')}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function saveTodayJournalEntry(isAutosave = false) {
+  const input = document.getElementById('journal-today-input');
+  const statusEl = document.getElementById('journal-autosave-status');
+  if (!input) return;
+
+  const text = input.value.trim();
+  if (!text) {
+    if (isAutosave) {
+      if (statusEl) statusEl.textContent = 'Připraveno';
+      return;
+    }
+    showToast('Napiš nejdřív myšlenku nebo poznámku k uložení.');
+    return;
+  }
+
+  const activePill = document.querySelector('#journal-mood-pills .journal-mood-pill.active');
+  const mood = activePill ? activePill.getAttribute('data-mood') : '⚡';
+  const moodLabel = activePill ? activePill.getAttribute('data-label') : 'Skvělá energie';
+
+  const todayStr = getTodayStr();
+  const timeStr = new Date().toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
+
+  if (!state.journal) state.journal = [];
+
+  let entry = state.journal.find(j => j.date === todayStr);
+  if (entry) {
+    entry.text = text;
+    entry.mood = mood;
+    entry.moodLabel = moodLabel;
+    entry.time = timeStr;
+  } else {
+    entry = {
+      id: 'journal_' + Date.now(),
+      date: todayStr,
+      time: timeStr,
+      mood,
+      moodLabel,
+      text
+    };
+    state.journal.unshift(entry);
+  }
+
+  saveState();
+
+  if (statusEl) {
+    statusEl.textContent = isAutosave ? 'Uloženo automaticky ✓' : 'Uloženo ✓';
+  }
+
+  const countEl = document.getElementById('journal-history-count');
+  if (countEl) countEl.textContent = state.journal.length;
+
+  const drawer = document.getElementById('journal-history-drawer');
+  if (drawer && !drawer.classList.contains('hidden')) {
+    renderJournalHistoryList();
+  }
+
+  if (!isAutosave) {
+    showToast('Zápis do deníku byl úspěšně uložen! 📝');
+  }
+}
+
+function deleteJournalEntry(id) {
+  if (!id) return;
+  markAsDeleted(id);
+  state.journal = (state.journal || []).filter(j => j.id !== id);
+  saveState();
+  renderJournalWidget();
+  showToast('Zápis byl z deníku odstraněn 🗑️');
+}
+
+function setupJournalListeners() {
+  const input = document.getElementById('journal-today-input');
+  const btnSave = document.getElementById('btn-save-journal-entry');
+  const btnToggleHistory = document.getElementById('btn-toggle-journal-history');
+  const drawer = document.getElementById('journal-history-drawer');
+  const statusEl = document.getElementById('journal-autosave-status');
+  const pillsContainer = document.getElementById('journal-mood-pills');
+  const historyList = document.getElementById('journal-entries-list');
+
+  // Mood pills click
+  if (pillsContainer) {
+    pillsContainer.addEventListener('click', (e) => {
+      const pill = e.target.closest('.journal-mood-pill');
+      if (!pill) return;
+      pillsContainer.querySelectorAll('.journal-mood-pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      if (input && input.value.trim()) {
+        saveTodayJournalEntry(true);
+      }
+    });
+  }
+
+  // Textarea input autosave (600ms debounce)
+  if (input) {
+    input.addEventListener('input', () => {
+      if (statusEl) statusEl.textContent = 'Ukládání...';
+      if (journalAutosaveTimer) clearTimeout(journalAutosaveTimer);
+      journalAutosaveTimer = setTimeout(() => {
+        saveTodayJournalEntry(true);
+      }, 600);
+    });
+  }
+
+  // Save button
+  if (btnSave) {
+    btnSave.addEventListener('click', () => {
+      if (journalAutosaveTimer) clearTimeout(journalAutosaveTimer);
+      saveTodayJournalEntry(false);
+    });
+  }
+
+  // Toggle History Drawer
+  if (btnToggleHistory && drawer) {
+    btnToggleHistory.addEventListener('click', () => {
+      const isHidden = drawer.classList.contains('hidden');
+      if (isHidden) {
+        drawer.classList.remove('hidden');
+        renderJournalHistoryList();
+        btnToggleHistory.innerHTML = `❌ Skrýt historii (<span id="journal-history-count">${(state.journal || []).length}</span>)`;
+      } else {
+        drawer.classList.add('hidden');
+        btnToggleHistory.innerHTML = `📜 Historie zápisů (<span id="journal-history-count">${(state.journal || []).length}</span>)`;
+      }
+    });
+  }
+
+  // Delete entry delegation
+  if (historyList) {
+    historyList.addEventListener('click', (e) => {
+      const btnDel = e.target.closest('.btn-del-journal-entry');
+      if (!btnDel) return;
+      const id = btnDel.getAttribute('data-journal-id');
+      if (id && confirm('Opravdu chceš smazat tento zápis z deníku?')) {
+        deleteJournalEntry(id);
+      }
+    });
+  }
 }
 
 // ==========================================================================
@@ -1639,24 +1890,36 @@ function finishActiveWorkout(isFromModal = false) {
   let splitType = activeWorkout.split;
 
   if (isFromModal) {
-    const exercisesArr = [];
-    currentWorkoutExercises.forEach(ex => {
-      const validSets = ex.sets.filter(s => s.weight !== '' || s.reps !== '');
-      if (validSets.length > 0) {
-        const setsSummary = validSets.map(s => {
-          const w = s.weight ? `${s.weight} kg` : 'vlastní váha';
-          const r = s.reps ? `${s.reps}` : 'max';
-          return `${w} × ${r}`;
-        }).join(', ');
-        exercisesArr.push(`• ${ex.name}: ${validSets.length} série (${setsSummary})`);
-      }
-    });
+    const isTextMode = document.getElementById('btn-mode-text')?.classList.contains('active');
+    const freeformTextarea = document.getElementById('workout-freeform-text');
     const notes = document.getElementById('workout-notes')?.value.trim();
-    if (exercisesArr.length > 0) {
-      compiledExercises = exercisesArr.join('\n');
-      if (notes) compiledExercises += `\nPoznámka: ${notes}`;
+
+    if (isTextMode && freeformTextarea && freeformTextarea.value.trim()) {
+      compiledExercises = freeformTextarea.value.trim();
+      if (notes && !compiledExercises.includes(notes)) {
+        compiledExercises += `\nPoznámka: ${notes}`;
+      }
     } else {
-      compiledExercises = notes;
+      const exercisesArr = [];
+      currentWorkoutExercises.forEach(ex => {
+        const validSets = ex.sets.filter(s => s.weight !== '' || s.reps !== '');
+        if (validSets.length > 0) {
+          const setsSummary = validSets.map(s => {
+            const w = s.weight ? `${s.weight} kg` : 'vlastní váha';
+            const r = s.reps ? `${s.reps}` : 'max';
+            return `${w} × ${r}`;
+          }).join(', ');
+          exercisesArr.push(`• ${ex.name}: ${validSets.length} série (${setsSummary})`);
+        }
+      });
+      if (exercisesArr.length > 0) {
+        compiledExercises = exercisesArr.join('\n');
+        if (notes) compiledExercises += `\nPoznámka: ${notes}`;
+      } else if (freeformTextarea && freeformTextarea.value.trim()) {
+        compiledExercises = freeformTextarea.value.trim();
+      } else {
+        compiledExercises = notes;
+      }
     }
     rating = parseInt(document.getElementById('workout-rating')?.value || '4', 10);
     splitType = document.getElementById('workout-type')?.value || activeWorkout.split;
@@ -2811,8 +3074,133 @@ function openWorkoutModal(forcedSplit = null, forcedDuration = null) {
     renderWorkoutExercisesBuilder();
   }
 
+  // Update mode switcher based on saved preference
+  const savedMode = localStorage.getItem('lifeos_workout_mode') || 'structured';
+  const btnStructured = document.getElementById('btn-mode-structured');
+  const btnText = document.getElementById('btn-mode-text');
+  const panelStructured = document.getElementById('workout-structured-panel');
+  const panelText = document.getElementById('workout-text-panel');
+  const freeformTextarea = document.getElementById('workout-freeform-text');
+
+  if (savedMode === 'text') {
+    if (btnText) btnText.classList.add('active');
+    if (btnStructured) btnStructured.classList.remove('active');
+    if (panelText) panelText.classList.remove('hidden');
+    if (panelStructured) panelStructured.classList.add('hidden');
+  } else {
+    if (btnStructured) btnStructured.classList.add('active');
+    if (btnText) btnText.classList.remove('active');
+    if (panelStructured) panelStructured.classList.remove('hidden');
+    if (panelText) panelText.classList.add('hidden');
+  }
+
+  const currentSplit = (typeSelect && typeSelect.value) ? typeSelect.value : (activeWorkout ? activeWorkout.split : 'Upper A');
+  const btnLoadEntire = document.getElementById('btn-load-entire-split');
+  if (btnLoadEntire) {
+    btnLoadEntire.textContent = `⚡ Načíst šablonu (${currentSplit})`;
+  }
+
+  if (freeformTextarea) {
+    if (activeWorkout) {
+      freeformTextarea.value = compileWorkoutFromBuilder();
+    } else {
+      freeformTextarea.value = '';
+    }
+  }
+
   modal.showModal();
   markModalInitialState(modal);
+}
+
+function compileWorkoutFromBuilder() {
+  if (!currentWorkoutExercises || currentWorkoutExercises.length === 0) return '';
+  return currentWorkoutExercises.map(ex => {
+    const validSets = (ex.sets || []).filter(s => (s.weight !== '' && s.weight !== null && s.weight !== undefined) || (s.reps !== '' && s.reps !== null && s.reps !== undefined));
+    const setsDetails = (validSets.length > 0 ? validSets : ex.sets).map(s => {
+      const w = (s.weight !== '' && s.weight !== null && s.weight !== undefined) ? `${s.weight} kg` : '';
+      const r = (s.reps !== '' && s.reps !== null && s.reps !== undefined) ? `${s.reps} reps` : '';
+      if (w && r) return `${s.weight} kg × ${s.reps}`;
+      return w || r || '1 série';
+    }).join(', ');
+    return `• ${ex.name}: ${ex.sets.length} série${setsDetails ? ` (${setsDetails})` : ''}`;
+  }).join('\n');
+}
+
+function setupWorkoutLoggerModes() {
+  const btnStructured = document.getElementById('btn-mode-structured');
+  const btnText = document.getElementById('btn-mode-text');
+  const panelStructured = document.getElementById('workout-structured-panel');
+  const panelText = document.getElementById('workout-text-panel');
+  const btnInsertTemplate = document.getElementById('btn-insert-template-text');
+  const freeformTextarea = document.getElementById('workout-freeform-text');
+
+  if (!btnStructured || !btnText || !panelStructured || !panelText) return;
+
+  function switchMode(mode) {
+    if (mode === 'text') {
+      btnText.classList.add('active');
+      btnStructured.classList.remove('active');
+      panelText.classList.remove('hidden');
+      panelStructured.classList.add('hidden');
+      try { localStorage.setItem('lifeos_workout_mode', 'text'); } catch (e) {}
+
+      // If text is empty and user has structured exercises, auto-fill text representation
+      if (freeformTextarea && !freeformTextarea.value.trim() && currentWorkoutExercises.length > 0) {
+        document.querySelectorAll('#workout-exercises-container .workout-exercise-card').forEach(card => {
+          const exId = card.getAttribute('data-ex-id');
+          const ex = currentWorkoutExercises.find(x => x.id === exId);
+          if (!ex) return;
+          card.querySelectorAll('.exercise-set-row').forEach(row => {
+            const setIdx = parseInt(row.getAttribute('data-set-index'), 10);
+            if (!ex.sets[setIdx]) return;
+            const wIn = row.querySelector('.input-weight');
+            const rIn = row.querySelector('.input-reps');
+            if (wIn && wIn.value !== '') ex.sets[setIdx].weight = wIn.value;
+            if (rIn && rIn.value !== '') ex.sets[setIdx].reps = rIn.value;
+          });
+        });
+        freeformTextarea.value = compileWorkoutFromBuilder();
+      }
+    } else {
+      btnStructured.classList.add('active');
+      btnText.classList.remove('active');
+      panelStructured.classList.remove('hidden');
+      panelText.classList.add('hidden');
+      try { localStorage.setItem('lifeos_workout_mode', 'structured'); } catch (e) {}
+    }
+  }
+
+  btnStructured.addEventListener('click', () => switchMode('structured'));
+  btnText.addEventListener('click', () => switchMode('text'));
+
+  if (btnInsertTemplate && freeformTextarea) {
+    btnInsertTemplate.addEventListener('click', () => {
+      const typeSelect = document.getElementById('workout-type');
+      const split = typeSelect ? typeSelect.value : 'Upper A';
+      const exercises = (state.gym.exercisesBySplit && state.gym.exercisesBySplit[split]) || [];
+      if (exercises.length === 0) {
+        showToast(`Pro ${split} nejsou žádné cviky v šabloně`);
+        return;
+      }
+
+      const templateLines = exercises.map(name => {
+        const perf = getLastExercisePerformance(name);
+        if (perf && perf.rawSetsSummary) {
+          return `• ${name}: 3-4 série (${perf.rawSetsSummary})`;
+        }
+        return `• ${name}: 3 série ( kg × )`;
+      });
+
+      const currentVal = freeformTextarea.value.trim();
+      if (currentVal) {
+        freeformTextarea.value = currentVal + '\n' + templateLines.join('\n');
+      } else {
+        freeformTextarea.value = templateLines.join('\n');
+      }
+      freeformTextarea.focus();
+      showToast(`📋 Vložena osnova cviků pro ${split}!`);
+    });
+  }
 }
 
 function openEditWorkoutModal(logId) {
@@ -2920,6 +3308,36 @@ function openEditWorkoutModal(logId) {
   renderWorkoutQuickChips(typeSelect ? typeSelect.value : log.type);
   renderWorkoutExercisesBuilder();
 
+  // Update mode switcher based on saved preference
+  const savedMode = localStorage.getItem('lifeos_workout_mode') || 'structured';
+  const btnStructured = document.getElementById('btn-mode-structured');
+  const btnText = document.getElementById('btn-mode-text');
+  const panelStructured = document.getElementById('workout-structured-panel');
+  const panelText = document.getElementById('workout-text-panel');
+  const freeformTextarea = document.getElementById('workout-freeform-text');
+
+  if (savedMode === 'text') {
+    if (btnText) btnText.classList.add('active');
+    if (btnStructured) btnStructured.classList.remove('active');
+    if (panelText) panelText.classList.remove('hidden');
+    if (panelStructured) panelStructured.classList.add('hidden');
+  } else {
+    if (btnStructured) btnStructured.classList.add('active');
+    if (btnText) btnText.classList.remove('active');
+    if (panelStructured) panelStructured.classList.remove('hidden');
+    if (panelText) panelText.classList.add('hidden');
+  }
+
+  const currentSplit = typeSelect ? typeSelect.value : log.type;
+  const btnLoadEntire = document.getElementById('btn-load-entire-split');
+  if (btnLoadEntire) {
+    btnLoadEntire.textContent = `⚡ Načíst šablonu (${currentSplit})`;
+  }
+
+  if (freeformTextarea) {
+    freeformTextarea.value = log.exercises || '';
+  }
+
   modal.showModal();
   markModalInitialState(modal);
 }
@@ -2954,6 +3372,12 @@ function loadEntireSplitIntoWorkout() {
 
   renderWorkoutExercisesBuilder();
   renderWorkoutQuickChips(split);
+
+  const freeformTextarea = document.getElementById('workout-freeform-text');
+  if (freeformTextarea && (!freeformTextarea.value.trim() || document.getElementById('btn-mode-text')?.classList.contains('active'))) {
+    freeformTextarea.value = compileWorkoutFromBuilder();
+  }
+
   showToast(`⚡ Načteno všech ${exercises.length} cviků pro ${split}!`);
 }
 
@@ -3216,6 +3640,16 @@ function setupWorkoutExercisesDelegation() {
       const ex = currentWorkoutExercises.find(x => x.id === exId);
       if (!ex) return;
 
+      // Sync the last row's DOM inputs before adding new set so user input isn't lost
+      const lastRowIdx = ex.sets.length - 1;
+      const lastRow = card.querySelector(`.exercise-set-row[data-set-index="${lastRowIdx}"]`);
+      if (lastRow) {
+        const wIn = lastRow.querySelector('.input-weight');
+        const rIn = lastRow.querySelector('.input-reps');
+        if (wIn && wIn.value !== '') ex.sets[lastRowIdx].weight = wIn.value;
+        if (rIn && rIn.value !== '') ex.sets[lastRowIdx].reps = rIn.value;
+      }
+
       const prevSet = ex.sets[ex.sets.length - 1];
       const newIdx = ex.sets.length;
       const newSet = {
@@ -3229,6 +3663,11 @@ function setupWorkoutExercisesDelegation() {
       if (rowsContainer) {
         const newRowHtml = generateExerciseSetRowHtml(ex.id, newSet, newIdx, true);
         rowsContainer.insertAdjacentHTML('beforeend', newRowHtml);
+        const newRow = rowsContainer.querySelector(`.exercise-set-row[data-set-index="${newIdx}"]`);
+        if (newRow) {
+          const repsInput = newRow.querySelector('.input-reps');
+          if (repsInput) repsInput.focus();
+        }
       }
 
       // Unhide delete buttons since series count is now > 1
@@ -3613,6 +4052,8 @@ function setupEventListeners() {
 
   // Setup non-destructive event delegation for workout exercises builder
   setupWorkoutExercisesDelegation();
+  setupWorkoutLoggerModes();
+  setupJournalListeners();
 
   const btnManageExercises = document.getElementById('btn-manage-exercises');
   if (btnManageExercises) btnManageExercises.addEventListener('click', openExercisesModal);
@@ -3736,6 +4177,10 @@ function setupEventListeners() {
   if (workoutTypeSelect) {
     workoutTypeSelect.addEventListener('change', () => {
       renderWorkoutQuickChips(workoutTypeSelect.value);
+      const btnLoadEntire = document.getElementById('btn-load-entire-split');
+      if (btnLoadEntire) {
+        btnLoadEntire.textContent = `⚡ Načíst šablonu (${workoutTypeSelect.value})`;
+      }
     });
   }
 
@@ -4045,26 +4490,30 @@ function setupEventListeners() {
         });
       });
 
-      // Compile exercises string from builder
+      // Compile exercises string from builder or quick freeform text
       let compiledExercises = '';
-      if (currentWorkoutExercises.length > 0) {
-        compiledExercises = currentWorkoutExercises.map(ex => {
-          const validSets = ex.sets.filter(s => (s.weight !== '' && s.weight !== null && s.weight !== undefined) || (s.reps !== '' && s.reps !== null && s.reps !== undefined));
-          const setsDetails = (validSets.length > 0 ? validSets : ex.sets).map(s => {
-            const w = (s.weight !== '' && s.weight !== null && s.weight !== undefined) ? `${s.weight} kg` : '';
-            const r = (s.reps !== '' && s.reps !== null && s.reps !== undefined) ? `${s.reps} reps` : '';
-            if (w && r) return `${s.weight} kg × ${s.reps}`;
-            return w || r || '1 série';
-          }).join(', ');
+      const isTextMode = document.getElementById('btn-mode-text')?.classList.contains('active');
+      const freeformTextarea = document.getElementById('workout-freeform-text');
 
-          return `• ${ex.name}: ${ex.sets.length} série${setsDetails ? ` (${setsDetails})` : ''}`;
-        }).join('\n');
-
-        if (notes) {
+      if (isTextMode && freeformTextarea && freeformTextarea.value.trim()) {
+        compiledExercises = freeformTextarea.value.trim();
+        if (notes && !compiledExercises.includes(notes)) {
           compiledExercises += `\nPoznámka: ${notes}`;
         }
       } else {
-        compiledExercises = notes;
+        if (currentWorkoutExercises.length > 0) {
+          compiledExercises = compileWorkoutFromBuilder();
+          if (notes) {
+            compiledExercises += `\nPoznámka: ${notes}`;
+          }
+        } else if (freeformTextarea && freeformTextarea.value.trim()) {
+          compiledExercises = freeformTextarea.value.trim();
+          if (notes && !compiledExercises.includes(notes)) {
+            compiledExercises += `\nPoznámka: ${notes}`;
+          }
+        } else {
+          compiledExercises = notes;
+        }
       }
 
       const editId = document.getElementById('workout-edit-id')?.value;
@@ -4072,7 +4521,9 @@ function setupEventListeners() {
 
       if (isCurrentActiveWorkout) {
         // Save current sets into activeWorkout state & persistence
-        activeWorkout.exercises = JSON.parse(JSON.stringify(currentWorkoutExercises));
+        if (!isTextMode && currentWorkoutExercises.length > 0) {
+          activeWorkout.exercises = JSON.parse(JSON.stringify(currentWorkoutExercises));
+        }
         activeWorkout.split = type;
         activeWorkout.rating = rating;
         activeWorkout.notes = notes;
@@ -5079,6 +5530,19 @@ async function pushToSupabase(isManual = false) {
         });
       }
 
+      // Virtual row for journal entries
+      if (state.journal && Array.isArray(state.journal)) {
+        splitRows.push({
+          id: `split_${userId}_journal`,
+          user_id: userId,
+          day: 997,
+          day_name: '__JOURNAL__',
+          focus: JSON.stringify(state.journal),
+          rest: false,
+          updated_at: nowIso
+        });
+      }
+
       await supabaseClient.from('gym_split').upsert(splitRows);
 
       // Clean up any rogue rows in Supabase gym_split
@@ -5262,7 +5726,8 @@ async function pullFromSupabase(isRealtime = false, isManual = false) {
     // Check if cloud has data
     const hasCloudData = (projectsRes.data && projectsRes.data.length > 0) ||
                          (logsRes.data && logsRes.data.length > 0) ||
-                         (schoolRes.data && schoolRes.data.length > 0);
+                         (schoolRes.data && schoolRes.data.length > 0) ||
+                         (splitRes.data && splitRes.data.length > 0);
 
     if (hasCloudData) {
       // 1. Settings
@@ -5341,6 +5806,26 @@ async function pullFromSupabase(isRealtime = false, isManual = false) {
             }
           } catch (e) {
             console.warn('Error parsing PR exercises from cloud:', e);
+          }
+        }
+
+        const journalRow = splitRes.data.find(s => s.day === 997 || s.day_name === '__JOURNAL__');
+        if (journalRow && journalRow.focus) {
+          try {
+            const parsedJournal = JSON.parse(journalRow.focus);
+            if (Array.isArray(parsedJournal)) {
+              const cloudJournalMap = new Map(parsedJournal.map(j => [j.id, j]));
+              const localJournalToKeep = (state.journal || []).filter(j => !isExplicitlyDeleted(j.id) && !cloudJournalMap.has(j.id));
+              const mergedJournal = [...parsedJournal.filter(j => !isExplicitlyDeleted(j.id)), ...localJournalToKeep];
+              mergedJournal.sort((a, b) => {
+                const timeA = a.date + ' ' + (a.time || '00:00');
+                const timeB = b.date + ' ' + (b.time || '00:00');
+                return timeB.localeCompare(timeA);
+              });
+              state.journal = mergedJournal;
+            }
+          } catch (e) {
+            console.warn('Error parsing journal from cloud:', e);
           }
         }
 

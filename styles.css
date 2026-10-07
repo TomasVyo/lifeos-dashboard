@@ -3490,3 +3490,237 @@ a {
     grid-template-columns: 1fr;
   }
 }
+
+/* ==========================================================================
+   DAILY JOURNAL & REFLECTION WIDGET
+   ========================================================================== */
+.journal-widget-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: linear-gradient(180deg, var(--bg-card), rgba(99, 102, 241, 0.04));
+  border: 1px solid var(--border-color);
+  position: relative;
+  overflow: hidden;
+}
+
+.journal-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.journal-mood-picker {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.journal-mood-pills {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.journal-mood-pill {
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 600;
+  background-color: var(--bg-card-subtle);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  user-select: none;
+}
+
+.journal-mood-pill:hover {
+  border-color: var(--primary);
+  color: var(--text-main);
+}
+
+.journal-mood-pill.active {
+  background-color: rgba(99, 102, 241, 0.2);
+  border-color: var(--primary);
+  color: #c7d2fe;
+  box-shadow: 0 0 10px rgba(99, 102, 241, 0.25);
+}
+
+[data-theme="light"] .journal-mood-pill.active {
+  background-color: #ede9fe;
+  border-color: #6366f1;
+  color: #4338ca;
+}
+
+.journal-editor-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.journal-textarea {
+  min-height: 90px;
+  line-height: 1.5;
+  font-size: 14px;
+  resize: vertical;
+}
+
+.journal-editor-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.journal-history-drawer {
+  border-top: 1px dashed var(--border-color);
+  padding-top: 14px;
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.journal-entry-card {
+  background-color: var(--bg-card-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: all var(--transition-fast);
+}
+
+.journal-entry-card:hover {
+  border-color: var(--border-color);
+}
+
+.journal-entry-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.journal-entry-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.journal-entry-date {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-heading);
+}
+
+.journal-entry-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  background: rgba(99, 102, 241, 0.15);
+  color: #a5b4fc;
+}
+
+.journal-entry-text {
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--text-main);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.btn-del-journal-entry {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  transition: all var(--transition-fast);
+}
+
+.btn-del-journal-entry:hover {
+  color: var(--accent-rose);
+  background: rgba(244, 63, 94, 0.12);
+}
+
+/* ==========================================================================
+   WORKOUT LOGGER ENHANCEMENTS & MODE SWITCHER
+   ========================================================================== */
+.workout-mode-switcher {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  background-color: var(--bg-card-subtle);
+  padding: 4px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  margin-bottom: 16px;
+}
+
+.workout-mode-btn {
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.workout-mode-btn:hover {
+  color: var(--text-main);
+}
+
+.workout-mode-btn.active {
+  background-color: var(--primary);
+  color: #ffffff;
+  box-shadow: 0 2px 8px var(--primary-glow);
+}
+
+.builder-action-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.exercise-chips-container {
+  margin-bottom: 14px;
+}
+
+.quick-text-workout-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.quick-text-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.workout-quick-textarea {
+  font-family: inherit;
+  font-size: 13.5px;
+  line-height: 1.5;
+  min-height: 180px;
+}
