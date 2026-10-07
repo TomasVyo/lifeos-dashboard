@@ -193,48 +193,7 @@ const DEFAULT_DATA = {
       ]
     }
   ],
-  school: [
-    {
-      id: 'sch_1',
-      subject: 'Databázové systémy',
-      title: 'Odevzdání konceptuálního modelu (ERD)',
-      type: 'Semestrálka',
-      deadline: getRelativeDateStr(3),
-      priority: 'high',
-      status: 'in_progress',
-      notes: 'Zkontrolovat kardinality a normalizaci do 3NF. Odevzdat PDF do školního systému.'
-    },
-    {
-      id: 'sch_2',
-      subject: 'Matematická analýza',
-      title: 'První zápočtový test (Derivace a integrály)',
-      type: 'Zápočet',
-      deadline: getRelativeDateStr(6),
-      priority: 'high',
-      status: 'pending',
-      notes: 'Procvičit substituce a per-partes. Potřeba získat min. 15 bodů ze 20.'
-    },
-    {
-      id: 'sch_3',
-      subject: 'Softwarové inženýrství',
-      title: 'Prezentace architektury projektu',
-      type: 'Prezentace',
-      deadline: getRelativeDateStr(11),
-      priority: 'medium',
-      status: 'pending',
-      notes: 'Připravit 10 slidů s UML diagramy komponent.'
-    },
-    {
-      id: 'sch_4',
-      subject: 'Anglický jazyk B2',
-      title: 'Esej: Tech trends in 2026',
-      type: 'Domácí úkol',
-      deadline: getRelativeDateStr(-3),
-      priority: 'low',
-      status: 'done',
-      notes: 'Splněno v minulém týdnu.'
-    }
-  ],
+  school: [],
   habits: [
     { id: 'h_gym', text: 'Trénink ve fitku / sport' },
     { id: 'h_study', text: 'Učení do školy (min. 45 min)' },
@@ -253,17 +212,8 @@ const DEFAULT_DATA = {
     { id: 'ql_6', title: 'Moodle / E-learning', url: 'https://moodle.osu.cz', category: 'Škola', desc: 'Studijní materiály a odevzdávárny úkolů', icon: '📚' }
   ],
   finance: {
-    recurring: [
-      { id: 'rec_1', name: 'Nájem & Energie', amount: 8500, category: 'Bydlení & Energie', dueDay: 15, paid: false, type: 'expense' },
-      { id: 'rec_2', name: 'Permanentka Fitko', amount: 950, category: 'Fitko & Zdraví', dueDay: 1, paid: true, type: 'expense' },
-      { id: 'rec_3', name: 'MHD Lítačka / Šalinkarta', amount: 550, category: 'Doprava', dueDay: 5, paid: true, type: 'expense' },
-      { id: 'rec_4', name: 'Spotify / YouTube Premium', amount: 199, category: 'Předplatné & IT', dueDay: 10, paid: true, type: 'expense' }
-    ],
-    transactions: [
-      { id: 'tx_1', title: 'Odměna za odběr plazmy', amount: 900, type: 'income', category: 'Plazma (odměna)', date: getRelativeDateStr(-2), note: 'Pravidelný odběr' },
-      { id: 'tx_2', title: 'Nákup potravin (Albert)', amount: 620, type: 'expense', category: 'Jídlo & Potraviny', date: getRelativeDateStr(-1), note: 'Týdenní nákup' },
-      { id: 'tx_3', title: 'Obědové meníčko', amount: 185, type: 'expense', category: 'Jídlo & Potraviny', date: getRelativeDateStr(0), note: 'V restauraci' }
-    ]
+    recurring: [],
+    transactions: []
   }
 };
 
@@ -288,20 +238,6 @@ function formatDateTimeStr(date = new Date()) {
   return `${day}.${month}.${year} ${hours}:${mins}`;
 }
 
-// App State
-let state = loadState();
-try {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-} catch (e) {}
-let deferredPrompt = null;
-let currentProjectFilter = 'all';
-let currentProjectViewMode = 'grid'; // 'grid' | 'kanban'
-let currentSchoolFilter = 'pending';
-let activeWorkout = null;
-let activeWorkoutTimerInterval = null;
-let activeProjectTimer = null;
-let projectTimerInterval = null;
-
 // Persistent Tombstone set for explicitly deleted items to prevent sync race conditions
 const DELETED_IDS_KEY = 'lifeos_deleted_ids_v1';
 function loadDeletedIds() {
@@ -325,6 +261,20 @@ function markAsDeleted(id) {
 function isExplicitlyDeleted(id) {
   return recentlyDeletedIds.has(id);
 }
+
+// App State
+let state = loadState();
+try {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+} catch (e) {}
+let deferredPrompt = null;
+let currentProjectFilter = 'all';
+let currentProjectViewMode = 'grid'; // 'grid' | 'kanban'
+let currentSchoolFilter = 'pending';
+let activeWorkout = null;
+let activeWorkoutTimerInterval = null;
+let activeProjectTimer = null;
+let projectTimerInterval = null;
 
 // Automatic recovery scanner for lost or unfinalized workouts
 function recoverLostWorkouts(currentLogs = []) {
@@ -547,15 +497,41 @@ function loadState() {
       if (!finance) {
         finance = JSON.parse(JSON.stringify(DEFAULT_DATA.finance));
       }
-      if (!Array.isArray(finance.recurring)) finance.recurring = JSON.parse(JSON.stringify(DEFAULT_DATA.finance.recurring));
-      if (!Array.isArray(finance.transactions)) finance.transactions = JSON.parse(JSON.stringify(DEFAULT_DATA.finance.transactions));
-      finance.recurring = finance.recurring.filter(r => r && r.id && !isExplicitlyDeleted(r.id));
-      finance.transactions = finance.transactions.filter(t => t && t.id && !isExplicitlyDeleted(t.id));
+      // School tasks loading & strict purge of any legacy demo tasks
+      let school = Array.isArray(parsed.school) ? parsed.school : [];
+      ['sch_1', 'sch_2', 'sch_3', 'sch_4'].forEach(id => {
+        markAsDeleted(id);
+      });
+      school = school.filter(s => s && s.id && !isExplicitlyDeleted(s.id) && !['sch_1', 'sch_2', 'sch_3', 'sch_4'].includes(s.id));
+
+      // Clean up backup of school tasks if it contained demo items
+      try {
+        const rawBack = localStorage.getItem('lifeos_school_backup_v1');
+        if (rawBack) {
+          const parsedBack = JSON.parse(rawBack);
+          if (Array.isArray(parsedBack)) {
+            const cleanBack = parsedBack.filter(s => s && s.id && !['sch_1', 'sch_2', 'sch_3', 'sch_4'].includes(s.id));
+            localStorage.setItem('lifeos_school_backup_v1', JSON.stringify(cleanBack));
+          }
+        }
+      } catch (e) {}
+
+      // Strict purge of legacy demo finance items
+      ['rec_1', 'rec_2', 'rec_3', 'rec_4', 'tx_1', 'tx_2', 'tx_3'].forEach(id => {
+        markAsDeleted(id);
+      });
+      if (finance && Array.isArray(finance.recurring)) {
+        finance.recurring = finance.recurring.filter(r => r && r.id && !isExplicitlyDeleted(r.id) && !['rec_1', 'rec_2', 'rec_3', 'rec_4'].includes(r.id));
+      }
+      if (finance && Array.isArray(finance.transactions)) {
+        finance.transactions = finance.transactions.filter(t => t && t.id && !isExplicitlyDeleted(t.id) && !['tx_1', 'tx_2', 'tx_3'].includes(t.id));
+      }
 
       return {
         ...DEFAULT_DATA,
         ...parsed,
         projects,
+        school,
         user: { ...DEFAULT_DATA.user, ...(parsed.user || {}) },
         gym: gymData,
         habitLogs: parsed.habitLogs || {},
@@ -6666,7 +6642,7 @@ async function pushToSupabase(isManual = false) {
 
         const { data: dbSchool } = await supabaseClient.from('school_items').select('id').eq('user_id', userId);
         if (dbSchool) {
-          const toDelete = dbSchool.filter(r => isExplicitlyDeleted(r.id)).map(r => r.id);
+          const toDelete = dbSchool.filter(r => isExplicitlyDeleted(r.id) || ['sch_1', 'sch_2', 'sch_3', 'sch_4'].includes(r.id)).map(r => r.id);
           if (toDelete.length > 0) {
             await supabaseClient.from('school_items').delete().in('id', toDelete).eq('user_id', userId);
           }
@@ -6674,7 +6650,7 @@ async function pushToSupabase(isManual = false) {
       } else {
         const { data: dbSchool } = await supabaseClient.from('school_items').select('id').eq('user_id', userId);
         if (dbSchool) {
-          const toDelete = dbSchool.filter(r => isExplicitlyDeleted(r.id)).map(r => r.id);
+          const toDelete = dbSchool.filter(r => isExplicitlyDeleted(r.id) || ['sch_1', 'sch_2', 'sch_3', 'sch_4'].includes(r.id)).map(r => r.id);
           if (toDelete.length > 0) {
             await supabaseClient.from('school_items').delete().in('id', toDelete).eq('user_id', userId);
           }
@@ -6996,7 +6972,7 @@ async function pullFromSupabase(isRealtime = false, isManual = false) {
       // 5. School Items (Safe Merge)
       if (schoolRes.data) {
         const cloudSchool = schoolRes.data
-          .filter(s => !isExplicitlyDeleted(s.id))
+          .filter(s => !isExplicitlyDeleted(s.id) && !['sch_1', 'sch_2', 'sch_3', 'sch_4'].includes(s.id))
           .map(s => ({
             id: s.id,
             subject: s.subject,
