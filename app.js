@@ -2976,6 +2976,7 @@ function openWorkoutModal(forcedSplit = null, forcedDuration = null) {
   const editIdInput = document.getElementById('workout-edit-id');
   const submitBtn = document.getElementById('btn-submit-workout');
   const btnModalFinish = document.getElementById('btn-modal-finish-workout');
+  const typeSelect = document.getElementById('workout-type');
   if (!modal || !form) return;
 
   const validForcedSplit = (typeof forcedSplit === 'string' && forcedSplit) ? forcedSplit : null;
@@ -3003,7 +3004,6 @@ function openWorkoutModal(forcedSplit = null, forcedDuration = null) {
     const notesField = document.getElementById('workout-notes');
     if (notesField) notesField.value = activeWorkout.notes || '';
 
-    const typeSelect = document.getElementById('workout-type');
     if (typeSelect) {
       typeSelect.value = activeWorkout.split || 'Upper A';
     }
@@ -3055,7 +3055,6 @@ function openWorkoutModal(forcedSplit = null, forcedDuration = null) {
     const notesField = document.getElementById('workout-notes');
     if (notesField) notesField.value = '';
 
-    const typeSelect = document.getElementById('workout-type');
     if (typeSelect) {
       const targetFocus = validForcedSplit || getTodaySplitFocus() || 'Upper A';
       const foundOption = Array.from(typeSelect.options).find(o =>
