@@ -67,6 +67,15 @@
           <span>Škola & Zkoušky</span>
           <span class="badge badge-warning" id="sidebar-school-count">0</span>
         </button>
+        <button class="nav-item" data-tab="quicklinks">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+          <span>Rychlé odkazy</span>
+          <span class="badge" id="sidebar-links-count">0</span>
+        </button>
+        <button class="nav-item" data-tab="finance">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+          <span>Finance & Rozpočet</span>
+        </button>
         <button class="nav-item" data-tab="settings">
           <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
           <span>Nastavení & Data</span>
@@ -483,7 +492,15 @@
                 <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" class="text-rose"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
                 <h3>Týdenní plán (Split)</h3>
               </div>
-              <div class="gym-stats-badges">
+              <div class="gym-stats-badges" style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <div class="split-profile-toggle-wrap" id="split-profile-toggle-wrap">
+                  <button type="button" class="split-profile-pill active" id="btn-profile-classic" data-profile="classic" title="Standardní týdenní rozložení splitu">
+                    🏋️ Klasický týden
+                  </button>
+                  <button type="button" class="split-profile-pill" id="btn-profile-plasma" data-profile="plasma" title="Týden s odběrem krevní plazmy (přizpůsobená regenerace paží)">
+                    🩸 Týden s plazmou
+                  </button>
+                </div>
                 <span class="badge badge-accent" id="gym-weekly-progress-badge">Tento týden: 0 / 4</span>
               </div>
             </div>
@@ -595,6 +612,135 @@
           <!-- School Items List -->
           <div class="school-items-grid" id="school-items-grid">
             <!-- Dynamic School Cards -->
+          </div>
+        </section>
+
+        <!-- ================= TAB: QUICK LINKS ================= -->
+        <section class="tab-content" id="view-quicklinks">
+          <div class="section-header">
+            <div>
+              <h2 class="section-title">Rychlé odkazy & Nástroje</h2>
+              <p class="section-desc">Všechny důležité weby pro školu, projekty a každodenní práci na 1 klik</p>
+            </div>
+            <button class="btn btn-primary" id="btn-add-quicklink">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              <span>+ Přidat odkaz</span>
+            </button>
+          </div>
+
+          <!-- Quicklinks Toolbar -->
+          <div class="toolbar quicklinks-toolbar">
+            <div class="search-input-wrap">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              <input type="text" id="quicklinks-search-input" placeholder="Hledat odkaz, popis nebo kategorii..." class="search-input">
+            </div>
+            <div class="filter-pills" id="quicklinks-category-pills">
+              <button class="filter-pill active" data-cat="all">Vše (<span id="count-ql-all">0</span>)</button>
+              <button class="filter-pill" data-cat="Škola">Škola (<span id="count-ql-school">0</span>)</button>
+              <button class="filter-pill" data-cat="Projekty & Dev">Projekty & Dev (<span id="count-ql-dev">0</span>)</button>
+              <button class="filter-pill" data-cat="AI & Nástroje">AI & Nástroje (<span id="count-ql-ai">0</span>)</button>
+              <button class="filter-pill" data-cat="Osobní">Osobní (<span id="count-ql-personal">0</span>)</button>
+            </div>
+          </div>
+
+          <!-- Quicklinks Grid -->
+          <div class="quicklinks-grid" id="quicklinks-grid">
+            <!-- Dynamic cards generated by JS -->
+          </div>
+        </section>
+
+        <!-- ================= TAB: FINANCE ================= -->
+        <section class="tab-content" id="view-finance">
+          <div class="section-header">
+            <div>
+              <h2 class="section-title">Finance & Měsíční rozpočet</h2>
+              <p class="section-desc">100% bezpečný a soukromý přehled výdajů, příjmů a pravidelných plateb</p>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn btn-secondary" id="btn-add-income">
+                <span>+ Příjem</span>
+              </button>
+              <button class="btn btn-primary" id="btn-add-expense">
+                <span>+ Zapsat výdaj</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Finance KPI Grid -->
+          <div class="finance-kpi-grid">
+            <div class="card finance-kpi-card income-card">
+              <div class="finance-kpi-icon">💰</div>
+              <div class="finance-kpi-info">
+                <span class="text-xs text-muted">Příjmy tento měsíc</span>
+                <span class="finance-kpi-val text-green" id="finance-total-income">+0 Kč</span>
+              </div>
+            </div>
+            <div class="card finance-kpi-card expense-card">
+              <div class="finance-kpi-icon">💸</div>
+              <div class="finance-kpi-info">
+                <span class="text-xs text-muted">Výdaje tento měsíc</span>
+                <span class="finance-kpi-val text-rose" id="finance-total-expense">-0 Kč</span>
+              </div>
+            </div>
+            <div class="card finance-kpi-card balance-card">
+              <div class="finance-kpi-icon">📊</div>
+              <div class="finance-kpi-info">
+                <span class="text-xs text-muted">Čistá bilance / Zůstatek</span>
+                <span class="finance-kpi-val text-indigo" id="finance-net-balance">0 Kč</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dual Section: Recurring Fixed Costs & Category Breakdown -->
+          <div class="overview-dual-grid" style="margin-top: 16px;">
+            <!-- Left: Recurring Expenses Checklist -->
+            <div class="card finance-recurring-card">
+              <div class="widget-header">
+                <div class="widget-title-wrap">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" class="text-indigo"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                  <h3>Pravidelné měsíční platby</h3>
+                </div>
+                <button type="button" class="btn btn-xs btn-outline" id="btn-add-recurring">+ Přidat fixní</button>
+              </div>
+              <p class="text-xs text-muted" style="margin-bottom: 12px;">Hlídej si, co už máš tento měsíc zaplaceno (nájem, fitko, předplatné, lítačka):</p>
+              <div class="finance-recurring-list" id="finance-recurring-list">
+                <!-- Checklist of fixed monthly costs generated by JS -->
+              </div>
+            </div>
+
+            <!-- Right: Expenses by Category Breakdown -->
+            <div class="card finance-categories-card">
+              <div class="widget-header">
+                <div class="widget-title-wrap">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" class="text-indigo"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg>
+                  <h3>Rozpad výdajů podle kategorií</h3>
+                </div>
+                <span class="text-xs text-muted" id="finance-month-label">Tento měsíc</span>
+              </div>
+              <div class="finance-categories-breakdown" id="finance-categories-breakdown">
+                <!-- Category progress bars generated by JS -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Transactions History Card -->
+          <div class="card finance-transactions-card" style="margin-top: 20px;">
+            <div class="widget-header">
+              <div class="widget-title-wrap">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" class="text-indigo"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                <h3>Historie pohybů & Zápisů</h3>
+              </div>
+              <div class="finance-history-filter">
+                <select id="finance-tx-filter" class="form-select form-select-sm">
+                  <option value="all">Všechny pohyby</option>
+                  <option value="expense">Pouze výdaje</option>
+                  <option value="income">Pouze příjmy</option>
+                </select>
+              </div>
+            </div>
+            <div class="finance-transactions-list" id="finance-transactions-list">
+              <!-- Transactions rows generated by JS -->
+            </div>
           </div>
         </section>
 
@@ -756,6 +902,14 @@
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
           <span>Škola</span>
         </button>
+        <button class="bottom-nav-item" data-tab="quicklinks">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+          <span>Odkazy</span>
+        </button>
+        <button class="bottom-nav-item" data-tab="finance">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+          <span>Finance</span>
+        </button>
         <button class="bottom-nav-item" data-tab="settings">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
           <span>Nastavení</span>
@@ -861,6 +1015,14 @@
       </div>
 
       <div class="project-dev-notes-list" id="project-dev-notes-list">
+        <!-- Rendered by JS -->
+      </div>
+
+      <div class="sub-header" style="margin-top: 18px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+        <h4 style="font-size: 14px; font-weight: 600;">⏱️ Odpracovaný čas na projektu</h4>
+        <button type="button" class="btn btn-outline btn-xs" id="btn-notes-add-time">+ Zapsat čas</button>
+      </div>
+      <div class="project-time-logs-list" id="project-notes-time-list">
         <!-- Rendered by JS -->
       </div>
 
@@ -1087,9 +1249,21 @@
       </div>
 
       <div class="split-presets-wrapper" style="margin-bottom: 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
+          <span class="text-xs text-muted" style="font-weight: 700;">Upravovaný profil splitu:</span>
+          <div class="split-profile-toggle-wrap" id="modal-split-profile-toggle-wrap">
+            <button type="button" class="split-profile-pill active" id="modal-btn-profile-classic" data-profile="classic">
+              🏋️ Klasický týden
+            </button>
+            <button type="button" class="split-profile-pill" id="modal-btn-profile-plasma" data-profile="plasma">
+              🩸 Týden s plazmou
+            </button>
+          </div>
+        </div>
         <span class="text-xs text-muted" style="font-weight: 700; display: block; margin-bottom: 6px;">⚡ Rychlé šablony (1 klik):</span>
         <div class="split-presets-bar" id="split-presets-bar">
           <button type="button" class="btn-preset-pill" data-preset="upper-lower-4">Upper / Lower (4 dny)</button>
+          <button type="button" class="btn-preset-pill" data-preset="plasma-split">🩸 Plazma týden (Středa klid)</button>
           <button type="button" class="btn-preset-pill" data-preset="upper-lower-3">Upper / Lower (3 dny)</button>
           <button type="button" class="btn-preset-pill" data-preset="ppl">Push / Pull / Legs</button>
           <button type="button" class="btn-preset-pill" data-preset="fullbody">Full Body (3 dny)</button>
@@ -1249,6 +1423,204 @@
         </form>
       </div>
 
+    </div>
+  </dialog>
+
+  <!-- ================= DIALOG: QUICKLINK MODAL ================= -->
+  <dialog id="modal-quicklink" class="custom-dialog">
+    <div class="dialog-content">
+      <div class="dialog-header">
+        <h3 id="modal-quicklink-title">Přidat rychlý odkaz</h3>
+        <button class="btn-close" id="modal-quicklink-close" aria-label="Zavřít">&times;</button>
+      </div>
+      <form id="form-quicklink">
+        <input type="hidden" id="quicklink-id">
+        <div class="form-group">
+          <label for="quicklink-title">Název odkazu *</label>
+          <input type="text" id="quicklink-title" class="form-input" required placeholder="Např. Školní portál STAG, GitHub, ChatGPT...">
+        </div>
+        <div class="form-group">
+          <label for="quicklink-url">URL adresa *</label>
+          <input type="url" id="quicklink-url" class="form-input" required placeholder="https://...">
+        </div>
+        <div class="form-row">
+          <div class="form-group col-half">
+            <label for="quicklink-category">Kategorie</label>
+            <select id="quicklink-category" class="form-select">
+              <option value="Škola">Škola</option>
+              <option value="Projekty & Dev">Projekty & Dev</option>
+              <option value="AI & Nástroje">AI & Nástroje</option>
+              <option value="Osobní">Osobní</option>
+              <option value="Jiné">Jiné</option>
+            </select>
+          </div>
+          <div class="form-group col-half">
+            <label for="quicklink-icon">Ikona / Emoji (volitelné)</label>
+            <input type="text" id="quicklink-icon" class="form-input" placeholder="např. 🎓, 💻, 🤖, 🌐">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="quicklink-desc">Stručný popis (volitelné)</label>
+          <input type="text" id="quicklink-desc" class="form-input" placeholder="K čemu stránka slouží, login info...">
+        </div>
+        <div class="dialog-actions">
+          <button type="button" class="btn btn-secondary" id="modal-quicklink-cancel">Zrušit</button>
+          <button type="submit" class="btn btn-primary" id="btn-save-quicklink">Uložit odkaz</button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+
+  <!-- ================= DIALOG: FINANCE TRANSACTION MODAL ================= -->
+  <dialog id="modal-finance-tx" class="custom-dialog">
+    <div class="dialog-content">
+      <div class="dialog-header">
+        <h3 id="modal-finance-tx-title">Zapsat pohyb peněz</h3>
+        <button class="btn-close" id="modal-finance-tx-close" aria-label="Zavřít">&times;</button>
+      </div>
+      <form id="form-finance-tx">
+        <input type="hidden" id="finance-tx-id">
+        <div class="form-row">
+          <div class="form-group col-half">
+            <label for="finance-tx-type">Typ pohybu</label>
+            <select id="finance-tx-type" class="form-select">
+              <option value="expense">💸 Výdaj</option>
+              <option value="income">💰 Příjem</option>
+            </select>
+          </div>
+          <div class="form-group col-half">
+            <label for="finance-tx-amount">Částka (Kč) *</label>
+            <input type="number" id="finance-tx-amount" class="form-input" min="1" step="any" required placeholder="Např. 450">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="finance-tx-title">Popis / Za co to bylo *</label>
+          <input type="text" id="finance-tx-title" class="form-input" required placeholder="Např. Nákup Albert, Odměna za odběr plazmy, Nájem...">
+        </div>
+        <div class="form-row">
+          <div class="form-group col-half">
+            <label for="finance-tx-category">Kategorie</label>
+            <select id="finance-tx-category" class="form-select">
+              <option value="Jídlo & Potraviny">🛒 Jídlo & Potraviny</option>
+              <option value="Bydlení & Energie">🏠 Bydlení & Energie</option>
+              <option value="Doprava">🚗 Doprava & Lítačka</option>
+              <option value="Plazma (odměna)">🩸 Plazma (odměna)</option>
+              <option value="Mzda & Brigáda">💼 Mzda & Brigáda</option>
+              <option value="Fitko & Zdraví">🏋️ Fitko & Zdraví</option>
+              <option value="Předplatné & IT">💻 Předplatné & IT</option>
+              <option value="Zábava & Relax">🎉 Zábava & Relax</option>
+              <option value="Škola">🎓 Škola</option>
+              <option value="Jiné">📦 Jiné</option>
+            </select>
+          </div>
+          <div class="form-group col-half">
+            <label for="finance-tx-date">Datum *</label>
+            <input type="date" id="finance-tx-date" class="form-input" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="finance-tx-note">Poznámka (volitelné)</label>
+          <input type="text" id="finance-tx-note" class="form-input" placeholder="Doplňující info...">
+        </div>
+        <div class="dialog-actions">
+          <button type="button" class="btn btn-secondary" id="modal-finance-tx-cancel">Zrušit</button>
+          <button type="submit" class="btn btn-primary" id="btn-save-finance-tx">Uložit záznam</button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+
+  <!-- ================= DIALOG: FINANCE RECURRING MODAL ================= -->
+  <dialog id="modal-finance-recurring" class="custom-dialog">
+    <div class="dialog-content">
+      <div class="dialog-header">
+        <h3 id="modal-recurring-title">Přidat fixní měsíční platbu</h3>
+        <button class="btn-close" id="modal-recurring-close" aria-label="Zavřít">&times;</button>
+      </div>
+      <form id="form-finance-recurring">
+        <input type="hidden" id="recurring-id">
+        <div class="form-group">
+          <label for="recurring-name">Název platby *</label>
+          <input type="text" id="recurring-name" class="form-input" required placeholder="Např. Nájem, Permanentka do fitka, Lítačka, Spotify...">
+        </div>
+        <div class="form-row">
+          <div class="form-group col-half">
+            <label for="recurring-amount">Částka (Kč) *</label>
+            <input type="number" id="recurring-amount" class="form-input" min="1" step="any" required placeholder="Např. 8500">
+          </div>
+          <div class="form-group col-half">
+            <label for="recurring-category">Kategorie</label>
+            <select id="recurring-category" class="form-select">
+              <option value="Bydlení & Energie">🏠 Bydlení & Energie</option>
+              <option value="Fitko & Zdraví">🏋️ Fitko & Zdraví</option>
+              <option value="Doprava">🚗 Doprava & Lítačka</option>
+              <option value="Předplatné & IT">💻 Předplatné & IT</option>
+              <option value="Jídlo & Potraviny">🛒 Jídlo & Potraviny</option>
+              <option value="Jiné">📦 Jiné</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group col-half">
+            <label for="recurring-due-day">Den v měsíci splatnosti (1-31)</label>
+            <input type="number" id="recurring-due-day" class="form-input" min="1" max="31" placeholder="Např. 15">
+          </div>
+          <div class="form-group col-half">
+            <label for="recurring-type">Druh</label>
+            <select id="recurring-type" class="form-select">
+              <option value="expense">Fixní výdaj</option>
+              <option value="income">Fixní příjem (např. stipendium / kapesné)</option>
+            </select>
+          </div>
+        </div>
+        <div class="dialog-actions">
+          <button type="button" class="btn btn-secondary" id="modal-recurring-cancel">Zrušit</button>
+          <button type="submit" class="btn btn-primary" id="btn-save-recurring">Uložit platbu</button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+
+  <!-- ================= DIALOG: MANUAL PROJECT TIME MODAL ================= -->
+  <dialog id="modal-manual-time" class="custom-dialog">
+    <div class="dialog-content">
+      <div class="dialog-header">
+        <h3 id="modal-manual-time-title">Zapsat čas k projektu</h3>
+        <button class="btn-close" id="modal-manual-time-close" aria-label="Zavřít">&times;</button>
+      </div>
+      <form id="form-manual-time">
+        <input type="hidden" id="time-proj-id">
+        <div class="form-group">
+          <label for="time-proj-select">Projekt *</label>
+          <select id="time-proj-select" class="form-select" required>
+            <!-- Populated dynamically -->
+          </select>
+        </div>
+        <div class="form-row">
+          <div class="form-group col-half">
+            <label for="time-hours">Hodiny</label>
+            <input type="number" id="time-hours" class="form-input" min="0" max="24" value="1">
+          </div>
+          <div class="form-group col-half">
+            <label for="time-minutes">Minuty</label>
+            <input type="number" id="time-minutes" class="form-input" min="0" max="59" step="5" value="30">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group col-half">
+            <label for="time-date">Datum *</label>
+            <input type="date" id="time-date" class="form-input" required>
+          </div>
+          <div class="form-group col-half">
+            <label for="time-activity">Aktivita / Popis</label>
+            <input type="text" id="time-activity" class="form-input" placeholder="Např. Kódování UI, bugfix, studium dokumentace">
+          </div>
+        </div>
+        <div class="dialog-actions">
+          <button type="button" class="btn btn-secondary" id="modal-manual-time-cancel">Zrušit</button>
+          <button type="submit" class="btn btn-primary" id="btn-save-manual-time">Zapsat čas</button>
+        </div>
+      </form>
     </div>
   </dialog>
 

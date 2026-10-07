@@ -14,6 +14,27 @@ const DEFAULT_DATA = {
     theme: 'dark'
   },
   gym: {
+    activeProfile: 'classic',
+    splitProfiles: {
+      classic: [
+        { day: 1, dayName: 'Pondělí', focus: 'Upper A', rest: false },
+        { day: 2, dayName: 'Úterý', focus: 'Lower A', rest: false },
+        { day: 3, dayName: 'Středa', focus: 'Odpočinek / Regenerace', rest: true },
+        { day: 4, dayName: 'Čtvrtek', focus: 'Upper B', rest: false },
+        { day: 5, dayName: 'Pátek', focus: 'Lower B', rest: false },
+        { day: 6, dayName: 'Sobota', focus: 'Kardio & Mobilita', rest: true },
+        { day: 0, dayName: 'Neděle', focus: 'Odpočinek & Příprava', rest: true }
+      ],
+      plasma: [
+        { day: 1, dayName: 'Pondělí', focus: 'Upper A', rest: false },
+        { day: 2, dayName: 'Úterý', focus: 'Lower A', rest: false },
+        { day: 3, dayName: 'Středa', focus: '🩸 Darování plazmy (Klid na ruce)', rest: true },
+        { day: 4, dayName: 'Čtvrtek', focus: 'Lower B (Nohy / Šetřit paže)', rest: false },
+        { day: 5, dayName: 'Pátek', focus: 'Upper B (Lehčí / Odpočaté paže)', rest: false },
+        { day: 6, dayName: 'Sobota', focus: 'Kardio & Mobilita', rest: true },
+        { day: 0, dayName: 'Neděle', focus: 'Odpočinek & Regenerace', rest: true }
+      ]
+    },
     split: [
       { day: 1, dayName: 'Pondělí', focus: 'Upper A', rest: false },
       { day: 2, dayName: 'Úterý', focus: 'Lower A', rest: false },
@@ -105,6 +126,11 @@ const DEFAULT_DATA = {
       url: 'https://github.com/TomasVyo',
       liveUrl: 'https://pubmate.app',
       techStack: ['React', 'Vite', 'PWA / Offline', 'Leaflet Maps', 'Supabase'],
+      totalTimeMinutes: 195,
+      timeLogs: [
+        { id: 'tl_pm1', date: getRelativeDateStr(-2), minutes: 120, note: 'Tvorba UI a offline synchronizace' },
+        { id: 'tl_pm2', date: getRelativeDateStr(-1), minutes: 75, note: 'Optimalizace ukládání a zobrazení mapy' }
+      ],
       devNotes: [
         { id: 'dn_pm1', date: '01.10.2026 14:30', text: 'Vytvořen základní prototyp a offline sync pivních záznamů a hodnocení.' },
         { id: 'dn_pm2', date: '03.10.2026 11:15', text: 'Plánování integrace geolokačního vyhledávání a interaktivní mapy podniků.' }
@@ -127,6 +153,10 @@ const DEFAULT_DATA = {
       url: 'https://github.com/TomasVyo',
       liveUrl: '',
       techStack: ['Node.js', 'Express', 'Docker API', 'WebSockets', 'Tailwind'],
+      totalTimeMinutes: 110,
+      timeLogs: [
+        { id: 'tl_dm1', date: getRelativeDateStr(-3), minutes: 110, note: 'Napojení Docker Engine socketu a stream metrik' }
+      ],
       devNotes: [
         { id: 'dn_dm1', date: '28.09.2026 19:40', text: 'Napojen Docker Engine UNIX socket pro streamování metrik využití paměti a CPU.' }
       ],
@@ -148,6 +178,10 @@ const DEFAULT_DATA = {
       url: '',
       liveUrl: '',
       techStack: ['Three.js', 'TypeScript', 'PostgreSQL', '3D Sklad', 'SaaS'],
+      totalTimeMinutes: 45,
+      timeLogs: [
+        { id: 'tl_ls1', date: getRelativeDateStr(-4), minutes: 45, note: 'Analýza a návrh 3D buněk regálového systému' }
+      ],
       devNotes: [
         { id: 'dn_ls1', date: '25.09.2026 16:20', text: 'Architektonický rozbor regálového systému a 3D zobrazení skladových buněk.' }
       ],
@@ -209,7 +243,28 @@ const DEFAULT_DATA = {
     { id: 'h_sleep', text: 'Kvalitní spánek 7 - 8 hodin' }
   ],
   habitLogs: {},
-  journal: []
+  journal: [],
+  quickLinks: [
+    { id: 'ql_1', title: 'Portál STAG / Univerzita', url: 'https://portal.osu.cz', category: 'Škola', desc: 'Rozvrh hodin, zkoušky a zápis předmětů', icon: '🎓' },
+    { id: 'ql_2', title: 'GitHub', url: 'https://github.com/TomasVyo', category: 'Projekty & Dev', desc: 'Repozitáře, commits a projekty', icon: '💻' },
+    { id: 'ql_3', title: 'ChatGPT', url: 'https://chatgpt.com', category: 'AI & Nástroje', desc: 'AI asistent pro kódování a rešerše', icon: '🤖' },
+    { id: 'ql_4', title: 'Claude', url: 'https://claude.ai', category: 'AI & Nástroje', desc: 'Anthropic AI model pro analýzu kódu', icon: '🧠' },
+    { id: 'ql_5', title: 'Supabase Dashboard', url: 'https://supabase.com/dashboard', category: 'Projekty & Dev', desc: 'Správa PostgreSQL databází a backendu', icon: '⚡' },
+    { id: 'ql_6', title: 'Moodle / E-learning', url: 'https://moodle.osu.cz', category: 'Škola', desc: 'Studijní materiály a odevzdávárny úkolů', icon: '📚' }
+  ],
+  finance: {
+    recurring: [
+      { id: 'rec_1', name: 'Nájem & Energie', amount: 8500, category: 'Bydlení & Energie', dueDay: 15, paid: false, type: 'expense' },
+      { id: 'rec_2', name: 'Permanentka Fitko', amount: 950, category: 'Fitko & Zdraví', dueDay: 1, paid: true, type: 'expense' },
+      { id: 'rec_3', name: 'MHD Lítačka / Šalinkarta', amount: 550, category: 'Doprava', dueDay: 5, paid: true, type: 'expense' },
+      { id: 'rec_4', name: 'Spotify / YouTube Premium', amount: 199, category: 'Předplatné & IT', dueDay: 10, paid: true, type: 'expense' }
+    ],
+    transactions: [
+      { id: 'tx_1', title: 'Odměna za odběr plazmy', amount: 900, type: 'income', category: 'Plazma (odměna)', date: getRelativeDateStr(-2), note: 'Pravidelný odběr' },
+      { id: 'tx_2', title: 'Nákup potravin (Albert)', amount: 620, type: 'expense', category: 'Jídlo & Potraviny', date: getRelativeDateStr(-1), note: 'Týdenní nákup' },
+      { id: 'tx_3', title: 'Obědové meníčko', amount: 185, type: 'expense', category: 'Jídlo & Potraviny', date: getRelativeDateStr(0), note: 'V restauraci' }
+    ]
+  }
 };
 
 // Helper: relative ISO date YYYY-MM-DD
@@ -244,6 +299,8 @@ let currentProjectViewMode = 'grid'; // 'grid' | 'kanban'
 let currentSchoolFilter = 'pending';
 let activeWorkout = null;
 let activeWorkoutTimerInterval = null;
+let activeProjectTimer = null;
+let projectTimerInterval = null;
 
 // Persistent Tombstone set for explicitly deleted items to prevent sync race conditions
 const DELETED_IDS_KEY = 'lifeos_deleted_ids_v1';
@@ -371,7 +428,9 @@ function loadState() {
             ...p,
             techStack: Array.isArray(p.techStack) && p.techStack.length > 0 ? p.techStack : (defaultMatch ? defaultMatch.techStack : []),
             devNotes: Array.isArray(p.devNotes) && p.devNotes.length > 0 ? p.devNotes : (defaultMatch ? defaultMatch.devNotes : []),
-            liveUrl: p.liveUrl !== undefined ? p.liveUrl : (defaultMatch ? defaultMatch.liveUrl : '')
+            liveUrl: p.liveUrl !== undefined ? p.liveUrl : (defaultMatch ? defaultMatch.liveUrl : ''),
+            totalTimeMinutes: typeof p.totalTimeMinutes === 'number' ? p.totalTimeMinutes : (defaultMatch?.totalTimeMinutes || 0),
+            timeLogs: Array.isArray(p.timeLogs) ? p.timeLogs : (defaultMatch?.timeLogs || [])
           };
         });
       }
@@ -430,9 +489,16 @@ function loadState() {
         ? parsed.gym.prExercises
         : JSON.parse(JSON.stringify(DEFAULT_DATA.gym.prExercises));
 
+      const splitProfiles = (parsed.gym && parsed.gym.splitProfiles) || JSON.parse(JSON.stringify(DEFAULT_DATA.gym.splitProfiles));
+      const activeProfile = (parsed.gym && parsed.gym.activeProfile) || 'classic';
+      if (!splitProfiles.classic) splitProfiles.classic = JSON.parse(JSON.stringify(DEFAULT_DATA.gym.splitProfiles.classic));
+      if (!splitProfiles.plasma) splitProfiles.plasma = JSON.parse(JSON.stringify(DEFAULT_DATA.gym.splitProfiles.plasma));
+
       const gymData = {
         ...DEFAULT_DATA.gym,
         ...(parsed.gym || {}),
+        activeProfile,
+        splitProfiles,
         split,
         exercisesBySplit,
         prExercises,
@@ -452,6 +518,40 @@ function loadState() {
       }
       journal = journal.filter(j => j && j.id && !isExplicitlyDeleted(j.id));
 
+      // Quick links loading & recovery
+      let quickLinks = Array.isArray(parsed.quickLinks) ? parsed.quickLinks : [];
+      if (quickLinks.length === 0) {
+        try {
+          const qBackup = localStorage.getItem('lifeos_quicklinks_backup_v1');
+          if (qBackup) {
+            const parsedBackup = JSON.parse(qBackup);
+            if (Array.isArray(parsedBackup)) quickLinks = parsedBackup;
+          }
+        } catch (e) {}
+      }
+      if (quickLinks.length === 0) {
+        quickLinks = JSON.parse(JSON.stringify(DEFAULT_DATA.quickLinks));
+      }
+      quickLinks = quickLinks.filter(q => q && q.id && !isExplicitlyDeleted(q.id));
+
+      // Finance loading & recovery
+      let finance = parsed.finance || null;
+      if (!finance || !Array.isArray(finance.transactions)) {
+        try {
+          const fBackup = localStorage.getItem('lifeos_finance_backup_v1');
+          if (fBackup) {
+            finance = JSON.parse(fBackup);
+          }
+        } catch (e) {}
+      }
+      if (!finance) {
+        finance = JSON.parse(JSON.stringify(DEFAULT_DATA.finance));
+      }
+      if (!Array.isArray(finance.recurring)) finance.recurring = JSON.parse(JSON.stringify(DEFAULT_DATA.finance.recurring));
+      if (!Array.isArray(finance.transactions)) finance.transactions = JSON.parse(JSON.stringify(DEFAULT_DATA.finance.transactions));
+      finance.recurring = finance.recurring.filter(r => r && r.id && !isExplicitlyDeleted(r.id));
+      finance.transactions = finance.transactions.filter(t => t && t.id && !isExplicitlyDeleted(t.id));
+
       return {
         ...DEFAULT_DATA,
         ...parsed,
@@ -459,7 +559,9 @@ function loadState() {
         user: { ...DEFAULT_DATA.user, ...(parsed.user || {}) },
         gym: gymData,
         habitLogs: parsed.habitLogs || {},
-        journal
+        journal,
+        quickLinks,
+        finance
       };
     }
   } catch (err) {
@@ -484,6 +586,12 @@ function saveState(skipRemoteSync = false) {
     if (state.journal && Array.isArray(state.journal) && state.journal.length > 0) {
       localStorage.setItem('lifeos_journal_backup_v1', JSON.stringify(state.journal));
     }
+    if (state.quickLinks && Array.isArray(state.quickLinks) && state.quickLinks.length > 0) {
+      localStorage.setItem('lifeos_quicklinks_backup_v1', JSON.stringify(state.quickLinks));
+    }
+    if (state.finance && typeof state.finance === 'object') {
+      localStorage.setItem('lifeos_finance_backup_v1', JSON.stringify(state.finance));
+    }
   } catch (err) {
     console.error('Failed to save state:', err);
   }
@@ -502,6 +610,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initPWA();
   initHabitsToday();
   initActiveWorkout();
+  initProjectTimers();
   renderAllViews();
   setupEventListeners();
   initSupabase();
@@ -680,6 +789,8 @@ function renderAllViews() {
   renderProjects();
   renderGym();
   renderSchool();
+  renderQuickLinks();
+  renderFinance();
   renderSettings();
   updateMetrics();
   updateSidebarBadges();
@@ -1148,8 +1259,182 @@ function setupJournalListeners() {
 }
 
 // ==========================================================================
-// 2. PROJECTS RENDERING
+// 2. PROJECTS & TIME TRACKING
 // ==========================================================================
+
+function formatTimeMinutes(totalMinutes) {
+  if (!totalMinutes || totalMinutes <= 0) return '0 min';
+  const hours = Math.floor(totalMinutes / 60);
+  const mins = totalMinutes % 60;
+  if (hours > 0 && mins > 0) return `${hours}h ${mins}m`;
+  if (hours > 0) return `${hours}h`;
+  return `${mins}m`;
+}
+
+function initProjectTimers() {
+  try {
+    const raw = localStorage.getItem('lifeos_active_project_timer');
+    if (raw) {
+      activeProjectTimer = JSON.parse(raw);
+      startProjectTimerInterval();
+    }
+  } catch (e) {
+    activeProjectTimer = null;
+  }
+}
+
+function startProjectTimerInterval() {
+  if (projectTimerInterval) clearInterval(projectTimerInterval);
+  updateLiveProjectTimerUI();
+  projectTimerInterval = setInterval(updateLiveProjectTimerUI, 1000);
+}
+
+function updateLiveProjectTimerUI() {
+  if (!activeProjectTimer) {
+    if (projectTimerInterval) clearInterval(projectTimerInterval);
+    return;
+  }
+  const timerValEls = document.querySelectorAll('.project-live-timer-val');
+  const elapsedSec = Math.floor((Date.now() - activeProjectTimer.startTime) / 1000);
+  const hrs = Math.floor(elapsedSec / 3600);
+  const mins = Math.floor((elapsedSec % 3600) / 60);
+  const secs = elapsedSec % 60;
+  const formatted = hrs > 0
+    ? `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
+    : `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+
+  timerValEls.forEach(el => {
+    el.textContent = formatted;
+  });
+}
+
+function toggleProjectTimer(projId) {
+  const proj = state.projects.find(p => p.id === projId);
+  if (!proj) return;
+
+  if (activeProjectTimer && activeProjectTimer.projectId === projId) {
+    // Stop active timer & save time
+    const elapsedMs = Date.now() - activeProjectTimer.startTime;
+    const elapsedMinutes = Math.max(1, Math.round(elapsedMs / 60000));
+    proj.totalTimeMinutes = (proj.totalTimeMinutes || 0) + elapsedMinutes;
+    if (!Array.isArray(proj.timeLogs)) proj.timeLogs = [];
+    proj.timeLogs.push({
+      id: 'tl_' + Date.now(),
+      date: getTodayStr(),
+      minutes: elapsedMinutes,
+      note: 'Měření stopkami'
+    });
+
+    localStorage.removeItem('lifeos_active_project_timer');
+    activeProjectTimer = null;
+    if (projectTimerInterval) clearInterval(projectTimerInterval);
+
+    saveState();
+    renderProjects();
+    if (currentNotesProjectId === projId) renderProjectNotesTimeLogs(projId);
+    showToast(`⏱️ Čas zastaven a uložen (+${elapsedMinutes} min) k „${proj.title}“!`);
+  } else {
+    // If another timer was running, auto-save and stop it first
+    if (activeProjectTimer) {
+      const prevProj = state.projects.find(p => p.id === activeProjectTimer.projectId);
+      if (prevProj) {
+        const prevElapsed = Math.max(1, Math.round((Date.now() - activeProjectTimer.startTime) / 60000));
+        prevProj.totalTimeMinutes = (prevProj.totalTimeMinutes || 0) + prevElapsed;
+        if (!Array.isArray(prevProj.timeLogs)) prevProj.timeLogs = [];
+        prevProj.timeLogs.push({
+          id: 'tl_' + Date.now(),
+          date: getTodayStr(),
+          minutes: prevElapsed,
+          note: 'Měření stopkami (automaticky uloženo)'
+        });
+      }
+    }
+
+    activeProjectTimer = {
+      projectId: projId,
+      startTime: Date.now()
+    };
+    localStorage.setItem('lifeos_active_project_timer', JSON.stringify(activeProjectTimer));
+    startProjectTimerInterval();
+    saveState();
+    renderProjects();
+    showToast(`▶️ Stopky spuštěny pro projekt „${proj.title}“!`);
+  }
+}
+
+function openManualTimeModal(projId = null) {
+  const modal = document.getElementById('modal-manual-time');
+  const select = document.getElementById('time-proj-select');
+  const idInput = document.getElementById('time-proj-id');
+  const dateInput = document.getElementById('time-date');
+  const hoursInput = document.getElementById('time-hours');
+  const minsInput = document.getElementById('time-minutes');
+  const actInput = document.getElementById('time-activity');
+  if (!modal || !select) return;
+
+  select.innerHTML = state.projects.map(p => `
+    <option value="${p.id}" ${p.id === projId ? 'selected' : ''}>${escapeHtml(p.title)}</option>
+  `).join('');
+
+  if (idInput) idInput.value = projId || (state.projects[0]?.id || '');
+  if (dateInput) dateInput.value = getTodayStr();
+  if (hoursInput) hoursInput.value = '1';
+  if (minsInput) minsInput.value = '30';
+  if (actInput) actInput.value = '';
+
+  modal.showModal();
+  markModalInitialState(modal);
+}
+
+function renderProjectNotesTimeLogs(projId) {
+  const container = document.getElementById('project-notes-time-list');
+  const proj = state.projects.find(p => p.id === projId);
+  if (!container || !proj) return;
+
+  const logs = Array.isArray(proj.timeLogs) ? [...proj.timeLogs] : [];
+  if (logs.length === 0) {
+    container.innerHTML = '<p class="text-xs text-muted" style="text-align: center; padding: 12px;">Zatím žádné záznamy odpracovaného času.</p>';
+    return;
+  }
+
+  const reversed = [...logs].reverse();
+  container.innerHTML = reversed.map(log => `
+    <div class="project-time-log-item" data-id="${log.id}">
+      <div>
+        <strong>${formatTimeMinutes(log.minutes)}</strong>
+        <span class="text-muted" style="margin-left: 6px;">(${escapeHtml(log.note || 'Práce na projektu')})</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span class="text-xs text-dim">🗓️ ${log.date}</span>
+        <button type="button" class="btn-del-time-log" data-proj-id="${proj.id}" data-log-id="${log.id}" style="background:none;border:none;color:var(--text-dim);cursor:pointer;" title="Smazat záznam">&times;</button>
+      </div>
+    </div>
+  `).join('');
+
+  container.querySelectorAll('.btn-del-time-log').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const pId = btn.getAttribute('data-proj-id');
+      const lId = btn.getAttribute('data-log-id');
+      deleteProjectTimeLog(pId, lId);
+    });
+  });
+}
+
+function deleteProjectTimeLog(projId, logId) {
+  const proj = state.projects.find(p => p.id === projId);
+  if (!proj || !proj.timeLogs) return;
+
+  const log = proj.timeLogs.find(l => l.id === logId);
+  if (log) {
+    proj.totalTimeMinutes = Math.max(0, (proj.totalTimeMinutes || 0) - (log.minutes || 0));
+  }
+  proj.timeLogs = proj.timeLogs.filter(l => l.id !== logId);
+  saveState();
+  renderProjects();
+  renderProjectNotesTimeLogs(projId);
+  showToast('Záznam času smazán');
+}
+
 function renderProjects() {
   const grid = document.getElementById('projects-grid');
   const searchInput = document.getElementById('project-search-input');
@@ -1193,6 +1478,7 @@ function renderProjects() {
   grid.innerHTML = filtered.map(proj => {
     const tasks = proj.tasks || [];
     const doneTasksCount = tasks.filter(t => t.done).length;
+    const isActiveTimer = activeProjectTimer && activeProjectTimer.projectId === proj.id;
 
     let statusBadge = '<span class="badge badge-indigo">V řešení</span>';
     if (proj.status === 'completed') statusBadge = '<span class="badge badge-success">Dokončeno</span>';
@@ -1273,6 +1559,20 @@ function renderProjects() {
           </form>
         </div>
 
+        <!-- Project Time Tracker Bar -->
+        <div class="project-timetracker-bar">
+          <div class="project-time-display">
+            <span class="project-time-label">⏱️ Odpracováno:</span>
+            <span class="project-time-value" id="project-time-val-${proj.id}">${formatTimeMinutes(proj.totalTimeMinutes || 0)}</span>
+          </div>
+          <div class="project-timer-actions">
+            <button type="button" class="project-timer-btn ${isActiveTimer ? 'running' : ''}" data-project-id="${proj.id}" title="${isActiveTimer ? 'Zastavit stopky a uložit čas' : 'Spustit měření času'}">
+              ${isActiveTimer ? '<span class="project-timer-pulse-dot"></span> ⏹️ Stop (<span class="project-live-timer-val">00:00</span>)' : '▶️ Měřit čas'}
+            </button>
+            <button type="button" class="btn btn-xs btn-outline btn-manual-time" data-project-id="${proj.id}" title="Zadat čas ručně">+ Čas</button>
+          </div>
+        </div>
+
         <div class="project-footer">
           <div class="project-deadline-meta">
             ${proj.deadline ? `<span>📅 ${proj.deadline}</span>` : '<span>Bez termínu</span>'}
@@ -1319,6 +1619,22 @@ function renderProjects() {
         addProjectSubtask(projId, input.value.trim());
         input.value = '';
       }
+    });
+  });
+
+  grid.querySelectorAll('.project-timer-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const projId = btn.getAttribute('data-project-id');
+      toggleProjectTimer(projId);
+    });
+  });
+
+  grid.querySelectorAll('.btn-manual-time').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const projId = btn.getAttribute('data-project-id');
+      openManualTimeModal(projId);
     });
   });
 
@@ -1385,6 +1701,8 @@ function renderProjectsKanban(searchTerm = '') {
       ? `<div class="project-tech-stack">${proj.techStack.map(t => `<span class="tech-chip">${escapeHtml(t)}</span>`).join('')}</div>`
       : '';
 
+    const isActiveTimer = activeProjectTimer && activeProjectTimer.projectId === proj.id;
+
     // Action buttons depending on status
     let moveButtons = '';
     if (proj.status === 'planned') {
@@ -1417,6 +1735,18 @@ function renderProjectsKanban(searchTerm = '') {
         <div class="kanban-card-meta">
           <span>📋 ${doneTasksCount}/${tasks.length} úkolů (${proj.progress || 0}%)</span>
           ${proj.deadline ? `<span>📅 ${proj.deadline}</span>` : ''}
+        </div>
+
+        <div class="project-timetracker-bar" style="margin-top: 8px; padding: 6px 10px;">
+          <div class="project-time-display">
+            <span class="project-time-label">⏱️</span>
+            <span class="project-time-value" style="font-size: 12px;">${formatTimeMinutes(proj.totalTimeMinutes || 0)}</span>
+          </div>
+          <div class="project-timer-actions">
+            <button type="button" class="project-timer-btn ${isActiveTimer ? 'running' : ''}" data-project-id="${proj.id}" style="padding: 3px 8px; font-size: 11px;">
+              ${isActiveTimer ? '<span class="project-timer-pulse-dot"></span> ⏹️ (<span class="project-live-timer-val">00:00</span>)' : '▶️ Měřit'}
+            </button>
+          </div>
         </div>
 
         <div class="kanban-card-actions">
@@ -1456,6 +1786,14 @@ function renderProjectsKanban(searchTerm = '') {
         const projId = btn.getAttribute('data-id');
         const targetStatus = btn.getAttribute('data-target-status');
         moveProjectStatus(projId, targetStatus);
+      });
+    });
+
+    board.querySelectorAll('.project-timer-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const projId = btn.getAttribute('data-project-id');
+        toggleProjectTimer(projId);
       });
     });
 
@@ -1568,6 +1906,7 @@ function openProjectNotesModal(projId) {
   }
 
   renderProjectDevNotesList(projId);
+  renderProjectNotesTimeLogs(projId);
   modal.showModal();
   markModalInitialState(modal);
 }
@@ -2508,6 +2847,12 @@ function renderWeeklySplitGrid() {
     badge.textContent = `Tento týden: ${workoutsCount} / ${goal} tréninků`;
   }
 
+  const activeProfile = state.gym.activeProfile || 'classic';
+  const btnClassic = document.getElementById('btn-profile-classic');
+  const btnPlasma = document.getElementById('btn-profile-plasma');
+  if (btnClassic) btnClassic.classList.toggle('active', activeProfile === 'classic');
+  if (btnPlasma) btnPlasma.classList.toggle('active', activeProfile === 'plasma');
+
   // Strictly filter only genuine 7 days (day 0..6, no __ prefix, no JSON string in focus)
   const validDays = state.gym.split.filter(s =>
     s &&
@@ -2832,7 +3177,366 @@ function deleteSchoolItem(id) {
 }
 
 // ==========================================================================
-// 5. SETTINGS & HABITS RENDERING
+// 5. QUICK LINKS RENDERING
+// ==========================================================================
+let currentQuickLinkCategory = 'all';
+
+function renderQuickLinks() {
+  const grid = document.getElementById('quicklinks-grid');
+  const searchInput = document.getElementById('quicklinks-search-input');
+  const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
+
+  if (!Array.isArray(state.quickLinks)) {
+    state.quickLinks = JSON.parse(JSON.stringify(DEFAULT_DATA.quickLinks));
+  }
+
+  // Update category counts
+  const allLinks = state.quickLinks;
+  const countAll = document.getElementById('count-ql-all');
+  const countSchool = document.getElementById('count-ql-school');
+  const countDev = document.getElementById('count-ql-dev');
+  const countAi = document.getElementById('count-ql-ai');
+  const countPersonal = document.getElementById('count-ql-personal');
+
+  if (countAll) countAll.textContent = allLinks.length;
+  if (countSchool) countSchool.textContent = allLinks.filter(l => l.category === 'Škola').length;
+  if (countDev) countDev.textContent = allLinks.filter(l => l.category === 'Projekty & Dev').length;
+  if (countAi) countAi.textContent = allLinks.filter(l => l.category === 'AI & Nástroje').length;
+  if (countPersonal) countPersonal.textContent = allLinks.filter(l => l.category === 'Osobní').length;
+
+  if (!grid) return;
+
+  let filtered = allLinks;
+  if (currentQuickLinkCategory !== 'all') {
+    filtered = filtered.filter(l => l.category === currentQuickLinkCategory);
+  }
+
+  if (searchTerm) {
+    filtered = filtered.filter(l =>
+      (l.title && l.title.toLowerCase().includes(searchTerm)) ||
+      (l.desc && l.desc.toLowerCase().includes(searchTerm)) ||
+      (l.category && l.category.toLowerCase().includes(searchTerm)) ||
+      (l.url && l.url.toLowerCase().includes(searchTerm))
+    );
+  }
+
+  if (filtered.length === 0) {
+    grid.innerHTML = '<div class="card" style="grid-column: 1/-1; text-align: center; padding: 40px;"><p class="text-muted">Žádné rychlé odkazy neodpovídají filtru.</p></div>';
+    return;
+  }
+
+  grid.innerHTML = filtered.map(item => {
+    let domain = '';
+    try {
+      domain = new URL(item.url).hostname;
+    } catch (e) {
+      domain = item.url || '';
+    }
+    const faviconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+    const fallbackEmoji = item.icon || (item.category === 'Škola' ? '🎓' : item.category === 'Projekty & Dev' ? '💻' : item.category === 'AI & Nástroje' ? '🤖' : '🌐');
+
+    return `
+      <div class="quicklink-card" data-id="${item.id}">
+        <div class="quicklink-header">
+          <div class="quicklink-favicon-wrap">
+            <img src="${faviconUrl}" alt="${escapeHtml(item.title)}" class="quicklink-favicon" onerror="this.onerror=null; this.replaceWith('${fallbackEmoji}')">
+          </div>
+          <div class="quicklink-info">
+            <div class="quicklink-title-row">
+              <span class="quicklink-title" title="${escapeHtml(item.title)}">${escapeHtml(item.title)}</span>
+              <span class="quicklink-badge">${escapeHtml(item.category || 'Odkaz')}</span>
+            </div>
+            ${item.desc ? `<p class="quicklink-desc">${escapeHtml(item.desc)}</p>` : ''}
+            <div class="quicklink-url-text">${escapeHtml(domain)}</div>
+          </div>
+        </div>
+        <div class="quicklink-footer">
+          <a href="${escapeHtml(item.url)}" target="_blank" rel="noopener" class="quicklink-open-btn">
+            <span>Otevřít</span>
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+          </a>
+          <div class="quicklink-actions">
+            <button type="button" class="btn btn-xs btn-secondary btn-edit-quicklink" data-id="${item.id}" title="Upravit">✏️</button>
+            <button type="button" class="btn btn-xs btn-danger btn-del-quicklink" data-id="${item.id}" title="Smazat">&times;</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  grid.querySelectorAll('.btn-edit-quicklink').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.getAttribute('data-id');
+      openQuickLinkModal(id);
+    });
+  });
+
+  grid.querySelectorAll('.btn-del-quicklink').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.getAttribute('data-id');
+      deleteQuickLink(id);
+    });
+  });
+}
+
+function openQuickLinkModal(id = null) {
+  const modal = document.getElementById('modal-quicklink');
+  const form = document.getElementById('form-quicklink');
+  const titleEl = document.getElementById('modal-quicklink-title');
+  if (!modal || !form) return;
+
+  form.reset();
+  if (id) {
+    const item = state.quickLinks.find(q => q.id === id);
+    if (!item) return;
+    titleEl.textContent = 'Upravit rychlý odkaz';
+    document.getElementById('quicklink-id').value = item.id;
+    document.getElementById('quicklink-title').value = item.title;
+    document.getElementById('quicklink-url').value = item.url;
+    document.getElementById('quicklink-category').value = item.category || 'Škola';
+    document.getElementById('quicklink-icon').value = item.icon || '';
+    document.getElementById('quicklink-desc').value = item.desc || '';
+  } else {
+    titleEl.textContent = 'Přidat rychlý odkaz';
+    document.getElementById('quicklink-id').value = '';
+    document.getElementById('quicklink-category').value = currentQuickLinkCategory !== 'all' ? currentQuickLinkCategory : 'Škola';
+  }
+
+  modal.showModal();
+  markModalInitialState(modal);
+}
+
+function deleteQuickLink(id) {
+  if (!confirm('Opravdu chceš smazat tento odkaz?')) return;
+  markAsDeleted(id);
+  state.quickLinks = state.quickLinks.filter(q => q.id !== id);
+  saveState();
+  renderQuickLinks();
+  showToast('Odkaz smazán');
+}
+
+// ==========================================================================
+// 6. FINANCE & BUDGET RENDERING
+// ==========================================================================
+let currentFinanceFilter = 'all';
+
+function renderFinance() {
+  if (!state.finance) {
+    state.finance = JSON.parse(JSON.stringify(DEFAULT_DATA.finance));
+  }
+  if (!Array.isArray(state.finance.recurring)) state.finance.recurring = [];
+  if (!Array.isArray(state.finance.transactions)) state.finance.transactions = [];
+
+  const now = new Date();
+  const currentMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
+  // Filter transactions for current month
+  const monthTransactions = state.finance.transactions.filter(t => t.date && t.date.startsWith(currentMonthStr));
+
+  // Compute income & expense
+  const totalIncome = monthTransactions
+    .filter(t => t.type === 'income')
+    .reduce((sum, t) => sum + (parseFloat(t.amount) || 0), 0);
+
+  const totalExpense = monthTransactions
+    .filter(t => t.type === 'expense')
+    .reduce((sum, t) => sum + (parseFloat(t.amount) || 0), 0);
+
+  const netBalance = totalIncome - totalExpense;
+
+  const totalIncomeEl = document.getElementById('finance-total-income');
+  const totalExpenseEl = document.getElementById('finance-total-expense');
+  const netBalanceEl = document.getElementById('finance-net-balance');
+
+  if (totalIncomeEl) totalIncomeEl.textContent = `+${Math.round(totalIncome).toLocaleString('cs-CZ')} Kč`;
+  if (totalExpenseEl) totalExpenseEl.textContent = `-${Math.round(totalExpense).toLocaleString('cs-CZ')} Kč`;
+  if (netBalanceEl) {
+    const sign = netBalance > 0 ? '+' : '';
+    netBalanceEl.textContent = `${sign}${Math.round(netBalance).toLocaleString('cs-CZ')} Kč`;
+    netBalanceEl.className = `finance-kpi-val ${netBalance >= 0 ? 'text-green' : 'text-rose'}`;
+  }
+
+  renderFinanceRecurring();
+  renderFinanceCategoriesBreakdown(monthTransactions, totalExpense);
+  renderFinanceTransactions();
+}
+
+function renderFinanceRecurring() {
+  const container = document.getElementById('finance-recurring-list');
+  if (!container) return;
+
+  const items = state.finance.recurring || [];
+  if (items.length === 0) {
+    container.innerHTML = '<p class="text-xs text-muted" style="text-align: center; padding: 16px;">Žádné fixní platby. Přidej např. Nájem, Lítačku nebo Fitko výše.</p>';
+    return;
+  }
+
+  container.innerHTML = items.map(item => `
+    <div class="finance-recurring-item ${item.paid ? 'paid' : ''}" data-id="${item.id}">
+      <div class="finance-recurring-left">
+        <input type="checkbox" class="finance-recurring-check" data-id="${item.id}" ${item.paid ? 'checked' : ''} title="Označit jako zaplaceno v tomto měsíci">
+        <div>
+          <div class="finance-recurring-name" style="${item.paid ? 'text-decoration: line-through; opacity: 0.8;' : ''}">${escapeHtml(item.name)}</div>
+          <div class="finance-recurring-meta">${escapeHtml(item.category || 'Fixní')} ${item.dueDay ? `• splatnost ${item.dueDay}. v měsíci` : ''}</div>
+        </div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <span class="finance-recurring-amount">${(item.amount || 0).toLocaleString('cs-CZ')} Kč</span>
+        <button type="button" class="btn-del-recurring" data-id="${item.id}" style="background:none;border:none;color:var(--text-dim);cursor:pointer;" title="Smazat fixní platbu">&times;</button>
+      </div>
+    </div>
+  `).join('');
+
+  container.querySelectorAll('.finance-recurring-check').forEach(cb => {
+    cb.addEventListener('change', () => {
+      const id = cb.getAttribute('data-id');
+      const item = state.finance.recurring.find(r => r.id === id);
+      if (item) {
+        item.paid = cb.checked;
+        saveState();
+        renderFinance();
+        showToast(item.paid ? `Platba „${item.name}“ označena jako zaplacená ✓` : `Platba „${item.name}“ vrácena`);
+      }
+    });
+  });
+
+  container.querySelectorAll('.btn-del-recurring').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.getAttribute('data-id');
+      if (!confirm('Opravdu smazat tuto pravidelnou platbu?')) return;
+      markAsDeleted(id);
+      state.finance.recurring = state.finance.recurring.filter(r => r.id !== id);
+      saveState();
+      renderFinance();
+      showToast('Pravidelná platba smazána');
+    });
+  });
+}
+
+function renderFinanceCategoriesBreakdown(monthTransactions, totalExpense) {
+  const container = document.getElementById('finance-categories-breakdown');
+  if (!container) return;
+
+  const expenses = monthTransactions.filter(t => t.type === 'expense');
+  if (expenses.length === 0 || totalExpense <= 0) {
+    container.innerHTML = '<p class="text-xs text-muted" style="text-align: center; padding: 16px;">Zatím žádné výdaje v tomto měsíci.</p>';
+    return;
+  }
+
+  // Sum by category
+  const byCategory = {};
+  expenses.forEach(t => {
+    const cat = t.category || 'Jiné';
+    byCategory[cat] = (byCategory[cat] || 0) + (parseFloat(t.amount) || 0);
+  });
+
+  const sortedCategories = Object.entries(byCategory).sort((a, b) => b[1] - a[1]);
+
+  container.innerHTML = sortedCategories.map(([cat, amt]) => {
+    const pct = Math.round((amt / totalExpense) * 100);
+    return `
+      <div class="finance-cat-row">
+        <div class="finance-cat-header">
+          <span>${escapeHtml(cat)}</span>
+          <span><strong>${Math.round(amt).toLocaleString('cs-CZ')} Kč</strong> <span class="text-dim">(${pct}%)</span></span>
+        </div>
+        <div class="finance-cat-track">
+          <div class="finance-cat-fill" style="width: ${pct}%"></div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderFinanceTransactions() {
+  const container = document.getElementById('finance-transactions-list');
+  if (!container) return;
+
+  let list = [...(state.finance.transactions || [])];
+
+  if (currentFinanceFilter === 'expense') {
+    list = list.filter(t => t.type === 'expense');
+  } else if (currentFinanceFilter === 'income') {
+    list = list.filter(t => t.type === 'income');
+  }
+
+  // Sort date descending
+  list.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  if (list.length === 0) {
+    container.innerHTML = '<p class="text-xs text-muted" style="text-align: center; padding: 24px;">Žádné pohyby neodpovídají filtru.</p>';
+    return;
+  }
+
+  container.innerHTML = list.map(item => {
+    const isIncome = item.type === 'income';
+    const sign = isIncome ? '+' : '-';
+    const icon = isIncome ? '💰' : '💸';
+
+    return `
+      <div class="finance-tx-row" data-id="${item.id}">
+        <div class="finance-tx-left">
+          <div class="finance-tx-icon-wrap">${icon}</div>
+          <div>
+            <div class="finance-tx-title">${escapeHtml(item.title)}</div>
+            <div class="finance-tx-sub">
+              <span>${escapeHtml(item.category || 'Pohyb')}</span>
+              <span>•</span>
+              <span>🗓️ ${item.date}</span>
+              ${item.note ? `<span>• <em>${escapeHtml(item.note)}</em></span>` : ''}
+            </div>
+          </div>
+        </div>
+        <div class="finance-tx-right">
+          <span class="finance-tx-amount ${isIncome ? 'income' : 'expense'}">${sign}${Math.round(item.amount).toLocaleString('cs-CZ')} Kč</span>
+          <button type="button" class="btn-del-finance-tx" data-id="${item.id}" style="background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:16px;" title="Smazat záznam">&times;</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  container.querySelectorAll('.btn-del-finance-tx').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.getAttribute('data-id');
+      if (!confirm('Opravdu smazat tento finanční záznam?')) return;
+      markAsDeleted(id);
+      state.finance.transactions = state.finance.transactions.filter(t => t.id !== id);
+      saveState();
+      renderFinance();
+      showToast('Záznam smazán');
+    });
+  });
+}
+
+function openFinanceTxModal(type = 'expense') {
+  const modal = document.getElementById('modal-finance-tx');
+  const form = document.getElementById('form-finance-tx');
+  const titleEl = document.getElementById('modal-finance-tx-title');
+  const typeSelect = document.getElementById('finance-tx-type');
+  const dateInput = document.getElementById('finance-tx-date');
+  if (!modal || !form) return;
+
+  form.reset();
+  if (titleEl) titleEl.textContent = type === 'income' ? 'Zapsat příjem' : 'Zapsat výdaj';
+  if (typeSelect) typeSelect.value = type;
+  if (dateInput) dateInput.value = getTodayStr();
+
+  modal.showModal();
+  markModalInitialState(modal);
+}
+
+function openFinanceRecurringModal() {
+  const modal = document.getElementById('modal-finance-recurring');
+  const form = document.getElementById('form-finance-recurring');
+  if (!modal || !form) return;
+
+  form.reset();
+  modal.showModal();
+  markModalInitialState(modal);
+}
+
+// ==========================================================================
+// 7. SETTINGS & HABITS RENDERING
 // ==========================================================================
 function renderSettings() {
   const nameInput = document.getElementById('setting-user-name');
@@ -3814,12 +4518,49 @@ function openSchoolModal(schoolId = null) {
   markModalInitialState(modal);
 }
 
+function switchSplitProfile(profileKey) {
+  if (!state.gym) state.gym = {};
+  if (!state.gym.splitProfiles) {
+    state.gym.splitProfiles = JSON.parse(JSON.stringify(DEFAULT_DATA.gym.splitProfiles));
+  }
+  const currentProfile = state.gym.activeProfile || 'classic';
+  state.gym.splitProfiles[currentProfile] = JSON.parse(JSON.stringify(state.gym.split));
+
+  state.gym.activeProfile = profileKey;
+  if (!state.gym.splitProfiles[profileKey]) {
+    state.gym.splitProfiles[profileKey] = JSON.parse(JSON.stringify(DEFAULT_DATA.gym.splitProfiles[profileKey] || DEFAULT_DATA.gym.splitProfiles.classic));
+  }
+  state.gym.split = JSON.parse(JSON.stringify(state.gym.splitProfiles[profileKey]));
+  sanitizeGymSplit();
+  saveState();
+
+  const modalBtnClassic = document.getElementById('modal-btn-profile-classic');
+  const modalBtnPlasma = document.getElementById('modal-btn-profile-plasma');
+  if (modalBtnClassic) modalBtnClassic.classList.toggle('active', profileKey === 'classic');
+  if (modalBtnPlasma) modalBtnPlasma.classList.toggle('active', profileKey === 'plasma');
+
+  const modalSplit = document.getElementById('modal-split');
+  if (modalSplit && modalSplit.open) {
+    openSplitModal();
+  }
+
+  renderGym();
+  renderOverview();
+  showToast(`Profil splitu přepnut: ${profileKey === 'plasma' ? '🩸 Týden s plazmou' : '🏋️ Klasický týden'}`);
+}
+
 function openSplitModal(targetDay = null) {
   const modal = document.getElementById('modal-split');
   const listContainer = document.getElementById('split-edit-list');
   if (!modal || !listContainer) return;
 
   sanitizeGymSplit();
+
+  const activeProfile = state.gym.activeProfile || 'classic';
+  const modalBtnClassic = document.getElementById('modal-btn-profile-classic');
+  const modalBtnPlasma = document.getElementById('modal-btn-profile-plasma');
+  if (modalBtnClassic) modalBtnClassic.classList.toggle('active', activeProfile === 'classic');
+  if (modalBtnPlasma) modalBtnPlasma.classList.toggle('active', activeProfile === 'plasma');
 
   const validDays = state.gym.split.filter(s =>
     s &&
@@ -3961,6 +4702,15 @@ function applySplitPreset(presetKey) {
       5: { focus: 'Lower B', rest: false },
       6: { focus: 'Odpočinek / Regenerace', rest: true },
       0: { focus: 'Odpočinek / Regenerace', rest: true }
+    },
+    'plasma-split': {
+      1: { focus: 'Upper A', rest: false },
+      2: { focus: 'Lower A', rest: false },
+      3: { focus: '🩸 Darování plazmy (Klid na ruce)', rest: true },
+      4: { focus: 'Lower B (Nohy / Šetřit paže)', rest: false },
+      5: { focus: 'Upper B (Lehčí / Odpočaté paže)', rest: false },
+      6: { focus: 'Kardio & Mobilita', rest: true },
+      0: { focus: 'Odpočinek & Regenerace', rest: true }
     },
     'upper-lower-3': {
       1: { focus: 'Upper A', rest: false },
@@ -4155,6 +4905,10 @@ function setupEventListeners() {
   setupModalClose('modal-pr-exercises', 'modal-pr-exercises-close', 'modal-pr-exercises-cancel');
   setupModalClose('modal-school', 'modal-school-close', 'modal-school-cancel');
   setupModalClose('modal-split', 'modal-split-close', 'modal-split-cancel');
+  setupModalClose('modal-quicklink', 'modal-quicklink-close', 'modal-quicklink-cancel');
+  setupModalClose('modal-finance-tx', 'modal-finance-tx-close', 'modal-finance-tx-cancel');
+  setupModalClose('modal-finance-recurring', 'modal-recurring-close', 'modal-recurring-cancel');
+  setupModalClose('modal-manual-time', 'modal-manual-time-close', 'modal-manual-time-cancel');
 
   // --- Project View Mode Toggle (Grid vs. Kanban) ---
   const btnViewGrid = document.getElementById('btn-project-view-grid');
@@ -4693,6 +5447,9 @@ function setupEventListeners() {
       });
 
       sanitizeGymSplit();
+      const currentProf = state.gym.activeProfile || 'classic';
+      if (!state.gym.splitProfiles) state.gym.splitProfiles = {};
+      state.gym.splitProfiles[currentProf] = JSON.parse(JSON.stringify(state.gym.split));
       saveState();
       const modalSplit = document.getElementById('modal-split');
       if (modalSplit) {
@@ -4811,6 +5568,264 @@ function setupEventListeners() {
         renderAllViews();
         showToast('Data byla vymazána');
       }
+    });
+  }
+
+  // --- Gym Split Profiles Switchers ---
+  const btnProfClassic = document.getElementById('btn-profile-classic');
+  const btnProfPlasma = document.getElementById('btn-profile-plasma');
+  if (btnProfClassic) btnProfClassic.addEventListener('click', () => switchSplitProfile('classic'));
+  if (btnProfPlasma) btnProfPlasma.addEventListener('click', () => switchSplitProfile('plasma'));
+
+  const modalProfClassic = document.getElementById('modal-btn-profile-classic');
+  const modalProfPlasma = document.getElementById('modal-btn-profile-plasma');
+  if (modalProfClassic) modalProfClassic.addEventListener('click', () => switchSplitProfile('classic'));
+  if (modalProfPlasma) modalProfPlasma.addEventListener('click', () => switchSplitProfile('plasma'));
+
+  // --- Project Time Tracking ---
+  const btnNotesAddTime = document.getElementById('btn-notes-add-time');
+  if (btnNotesAddTime) {
+    btnNotesAddTime.addEventListener('click', () => {
+      const projId = document.getElementById('project-note-proj-id')?.value || currentNotesProjectId;
+      openManualTimeModal(projId);
+    });
+  }
+
+  const timeProjSelect = document.getElementById('time-proj-select');
+  if (timeProjSelect) {
+    timeProjSelect.addEventListener('change', (e) => {
+      const idInput = document.getElementById('time-proj-id');
+      if (idInput) idInput.value = e.target.value;
+    });
+  }
+
+  const formManualTime = document.getElementById('form-manual-time');
+  if (formManualTime) {
+    formManualTime.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const projId = document.getElementById('time-proj-id')?.value || document.getElementById('time-proj-select')?.value;
+      const hours = parseInt(document.getElementById('time-hours')?.value || '0', 10);
+      const mins = parseInt(document.getElementById('time-minutes')?.value || '0', 10);
+      const date = document.getElementById('time-date')?.value || getTodayStr();
+      const note = document.getElementById('time-activity')?.value.trim() || 'Práce na projektu';
+
+      const totalMins = (hours * 60) + mins;
+      if (totalMins <= 0) {
+        showToast('Zadej prosím platný čas větší než 0 minut.');
+        return;
+      }
+
+      const proj = state.projects.find(p => p.id === projId);
+      if (proj) {
+        if (!Array.isArray(proj.timeLogs)) proj.timeLogs = [];
+        proj.timeLogs.push({
+          id: 'tl_' + Date.now(),
+          minutes: totalMins,
+          date,
+          note
+        });
+        proj.totalTimeMinutes = (proj.totalTimeMinutes || 0) + totalMins;
+        saveState();
+        renderProjects();
+        renderProjectNotesTimeLogs(projId);
+        showToast(`Zaznamenáno +${formatTimeMinutes(totalMins)} na projektu ${proj.title}`);
+      }
+
+      const modalManualTime = document.getElementById('modal-manual-time');
+      if (modalManualTime) {
+        modalManualTime._initialValues = null;
+        modalManualTime.close();
+      }
+    });
+  }
+
+  // --- Quick Links ---
+  const btnAddQuickLink = document.getElementById('btn-add-quicklink');
+  if (btnAddQuickLink) btnAddQuickLink.addEventListener('click', () => openQuickLinkModal());
+
+  const qlSearch = document.getElementById('quicklinks-search-input');
+  if (qlSearch) qlSearch.addEventListener('input', renderQuickLinks);
+
+  const qlPills = document.querySelectorAll('#quicklinks-category-pills .filter-pill');
+  qlPills.forEach(pill => {
+    pill.addEventListener('click', () => {
+      qlPills.forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      currentQuickLinkCategory = pill.getAttribute('data-cat') || 'all';
+      renderQuickLinks();
+    });
+  });
+
+  const formQuickLink = document.getElementById('form-quicklink');
+  if (formQuickLink) {
+    formQuickLink.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const id = document.getElementById('quicklink-id')?.value;
+      const title = document.getElementById('quicklink-title')?.value.trim();
+      let url = document.getElementById('quicklink-url')?.value.trim();
+      const category = document.getElementById('quicklink-category')?.value || 'Škola';
+      const icon = document.getElementById('quicklink-icon')?.value.trim();
+      const desc = document.getElementById('quicklink-desc')?.value.trim();
+
+      if (!title || !url) return;
+      if (!/^https?:\/\//i.test(url)) {
+        url = 'https://' + url;
+      }
+
+      if (!Array.isArray(state.quickLinks)) state.quickLinks = [];
+
+      if (id) {
+        const item = state.quickLinks.find(q => q.id === id);
+        if (item) {
+          item.title = title;
+          item.url = url;
+          item.category = category;
+          item.icon = icon;
+          item.desc = desc;
+        }
+      } else {
+        state.quickLinks.push({
+          id: 'ql_' + Date.now(),
+          title,
+          url,
+          category,
+          icon,
+          desc
+        });
+      }
+
+      saveState();
+      const modalQuickLink = document.getElementById('modal-quicklink');
+      if (modalQuickLink) {
+        modalQuickLink._initialValues = null;
+        modalQuickLink.close();
+      }
+      renderQuickLinks();
+      showToast('Rychlý odkaz byl uložen 🔗');
+    });
+  }
+
+  // --- Finance Tracker ---
+  const btnAddIncome = document.getElementById('btn-add-income');
+  if (btnAddIncome) btnAddIncome.addEventListener('click', () => openFinanceTxModal('income'));
+
+  const btnAddExpense = document.getElementById('btn-add-expense');
+  if (btnAddExpense) btnAddExpense.addEventListener('click', () => openFinanceTxModal('expense'));
+
+  const btnAddRecurring = document.getElementById('btn-add-recurring');
+  if (btnAddRecurring) btnAddRecurring.addEventListener('click', () => openFinanceRecurringModal());
+
+  const financeFilterPills = document.querySelectorAll('#finance-tx-filter .filter-pill');
+  financeFilterPills.forEach(pill => {
+    pill.addEventListener('click', () => {
+      financeFilterPills.forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      currentFinanceFilter = pill.getAttribute('data-filter') || 'all';
+      renderFinanceTransactions();
+    });
+  });
+
+  const formFinanceTx = document.getElementById('form-finance-tx');
+  if (formFinanceTx) {
+    formFinanceTx.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const id = document.getElementById('finance-tx-id')?.value;
+      const type = document.getElementById('finance-tx-type')?.value || 'expense';
+      const amount = parseFloat(document.getElementById('finance-tx-amount')?.value || '0');
+      const title = document.getElementById('finance-tx-title')?.value.trim();
+      const category = document.getElementById('finance-tx-category')?.value || 'Jiné';
+      const date = document.getElementById('finance-tx-date')?.value || getTodayStr();
+      const note = document.getElementById('finance-tx-note')?.value.trim();
+
+      if (!title || isNaN(amount) || amount <= 0) {
+        showToast('Zadej platnou částku a popis.');
+        return;
+      }
+
+      if (!state.finance) state.finance = { recurring: [], transactions: [] };
+      if (!Array.isArray(state.finance.transactions)) state.finance.transactions = [];
+
+      if (id) {
+        const item = state.finance.transactions.find(t => t.id === id);
+        if (item) {
+          item.type = type;
+          item.amount = amount;
+          item.title = title;
+          item.category = category;
+          item.date = date;
+          item.note = note;
+        }
+      } else {
+        state.finance.transactions.unshift({
+          id: 'tx_' + Date.now(),
+          type,
+          amount,
+          title,
+          category,
+          date,
+          note
+        });
+      }
+
+      saveState();
+      const modalTx = document.getElementById('modal-finance-tx');
+      if (modalTx) {
+        modalTx._initialValues = null;
+        modalTx.close();
+      }
+      renderFinance();
+      showToast(type === 'income' ? `Příjem +${amount.toLocaleString('cs-CZ')} Kč uložen 💰` : `Výdaj -${amount.toLocaleString('cs-CZ')} Kč uložen 💸`);
+    });
+  }
+
+  const formFinanceRecurring = document.getElementById('form-finance-recurring');
+  if (formFinanceRecurring) {
+    formFinanceRecurring.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const id = document.getElementById('recurring-id')?.value;
+      const name = document.getElementById('recurring-name')?.value.trim();
+      const amount = parseFloat(document.getElementById('recurring-amount')?.value || '0');
+      const category = document.getElementById('recurring-category')?.value || 'Jiné';
+      const dueDay = parseInt(document.getElementById('recurring-due-day')?.value || '1', 10);
+      const type = document.getElementById('recurring-type')?.value || 'expense';
+
+      if (!name || isNaN(amount) || amount <= 0) {
+        showToast('Zadej platný název a částku.');
+        return;
+      }
+
+      if (!state.finance) state.finance = { recurring: [], transactions: [] };
+      if (!Array.isArray(state.finance.recurring)) state.finance.recurring = [];
+
+      if (id) {
+        const item = state.finance.recurring.find(r => r.id === id);
+        if (item) {
+          item.name = name;
+          item.amount = amount;
+          item.category = category;
+          item.dueDay = dueDay;
+          item.type = type;
+        }
+      } else {
+        state.finance.recurring.push({
+          id: 'rec_' + Date.now(),
+          name,
+          amount,
+          category,
+          dueDay,
+          type,
+          paid: false
+        });
+      }
+
+      saveState();
+      const modalRec = document.getElementById('modal-finance-recurring');
+      if (modalRec) {
+        modalRec._initialValues = null;
+        modalRec.close();
+      }
+      renderFinance();
+      showToast(`Pravidelná platba „${name}“ uložena ✓`);
     });
   }
 }
@@ -5449,7 +6464,9 @@ async function pushToSupabase(isManual = false) {
             id: '__meta__',
             techStack: p.techStack || [],
             devNotes: p.devNotes || [],
-            liveUrl: p.liveUrl || ''
+            liveUrl: p.liveUrl || '',
+            totalTimeMinutes: p.totalTimeMinutes || 0,
+            timeLogs: p.timeLogs || []
           };
           return {
             id: p.id,
@@ -5537,6 +6554,48 @@ async function pushToSupabase(isManual = false) {
           day: 997,
           day_name: '__JOURNAL__',
           focus: JSON.stringify(state.journal),
+          rest: false,
+          updated_at: nowIso
+        });
+      }
+
+      // Virtual row for split profiles (classic vs. plasma)
+      if (state.gym.splitProfiles) {
+        splitRows.push({
+          id: `split_${userId}_profiles`,
+          user_id: userId,
+          day: 996,
+          day_name: '__SPLIT_PROFILES__',
+          focus: JSON.stringify({
+            activeProfile: state.gym.activeProfile || 'classic',
+            splitProfiles: state.gym.splitProfiles
+          }),
+          rest: false,
+          updated_at: nowIso
+        });
+      }
+
+      // Virtual row for quick links
+      if (state.quickLinks && Array.isArray(state.quickLinks)) {
+        splitRows.push({
+          id: `split_${userId}_quicklinks`,
+          user_id: userId,
+          day: 995,
+          day_name: '__QUICKLINKS__',
+          focus: JSON.stringify(state.quickLinks),
+          rest: false,
+          updated_at: nowIso
+        });
+      }
+
+      // Virtual row for safe finance tracker
+      if (state.finance) {
+        splitRows.push({
+          id: `split_${userId}_finance`,
+          user_id: userId,
+          day: 994,
+          day_name: '__FINANCE__',
+          focus: JSON.stringify(state.finance),
           rest: false,
           updated_at: nowIso
         });
@@ -5761,7 +6820,9 @@ async function pullFromSupabase(isRealtime = false, isManual = false) {
               tasks: realTasks,
               techStack: (metaItem && Array.isArray(metaItem.techStack)) ? metaItem.techStack : (existingLocal?.techStack || []),
               devNotes: (metaItem && Array.isArray(metaItem.devNotes)) ? metaItem.devNotes : (existingLocal?.devNotes || []),
-              liveUrl: (metaItem && metaItem.liveUrl !== undefined) ? metaItem.liveUrl : (existingLocal?.liveUrl || '')
+              liveUrl: (metaItem && metaItem.liveUrl !== undefined) ? metaItem.liveUrl : (existingLocal?.liveUrl || ''),
+              totalTimeMinutes: (metaItem && typeof metaItem.totalTimeMinutes === 'number') ? metaItem.totalTimeMinutes : (existingLocal?.totalTimeMinutes || 0),
+              timeLogs: (metaItem && Array.isArray(metaItem.timeLogs)) ? metaItem.timeLogs : (existingLocal?.timeLogs || [])
             };
           });
 
@@ -5825,6 +6886,61 @@ async function pullFromSupabase(isRealtime = false, isManual = false) {
             }
           } catch (e) {
             console.warn('Error parsing journal from cloud:', e);
+          }
+        }
+
+        const profilesRow = splitRes.data.find(s => s.day === 996 || s.day_name === '__SPLIT_PROFILES__');
+        if (profilesRow && profilesRow.focus) {
+          try {
+            const parsed = JSON.parse(profilesRow.focus);
+            if (parsed && parsed.splitProfiles) {
+              state.gym.splitProfiles = parsed.splitProfiles;
+              if (parsed.activeProfile) {
+                state.gym.activeProfile = parsed.activeProfile;
+              }
+            }
+          } catch (e) {
+            console.warn('Error parsing split profiles from cloud:', e);
+          }
+        }
+
+        const qlRow = splitRes.data.find(s => s.day === 995 || s.day_name === '__QUICKLINKS__');
+        if (qlRow && qlRow.focus) {
+          try {
+            const parsed = JSON.parse(qlRow.focus);
+            if (Array.isArray(parsed)) {
+              const cloudMap = new Map(parsed.map(q => [q.id, q]));
+              const localToKeep = (state.quickLinks || []).filter(q => !isExplicitlyDeleted(q.id) && !cloudMap.has(q.id));
+              state.quickLinks = [...parsed.filter(q => !isExplicitlyDeleted(q.id)), ...localToKeep];
+            }
+          } catch (e) {
+            console.warn('Error parsing quick links from cloud:', e);
+          }
+        }
+
+        const finRow = splitRes.data.find(s => s.day === 994 || s.day_name === '__FINANCE__');
+        if (finRow && finRow.focus) {
+          try {
+            const parsed = JSON.parse(finRow.focus);
+            if (parsed && typeof parsed === 'object') {
+              if (Array.isArray(parsed.recurring)) {
+                const cloudRecMap = new Map(parsed.recurring.map(r => [r.id, r]));
+                const localRecToKeep = (state.finance?.recurring || []).filter(r => !isExplicitlyDeleted(r.id) && !cloudRecMap.has(r.id));
+                const mergedRec = [...parsed.recurring.filter(r => !isExplicitlyDeleted(r.id)), ...localRecToKeep];
+                if (!state.finance) state.finance = { recurring: [], transactions: [] };
+                state.finance.recurring = mergedRec;
+              }
+              if (Array.isArray(parsed.transactions)) {
+                const cloudTxMap = new Map(parsed.transactions.map(t => [t.id, t]));
+                const localTxToKeep = (state.finance?.transactions || []).filter(t => !isExplicitlyDeleted(t.id) && !cloudTxMap.has(t.id));
+                const mergedTx = [...parsed.transactions.filter(t => !isExplicitlyDeleted(t.id)), ...localTxToKeep];
+                mergedTx.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+                if (!state.finance) state.finance = { recurring: [], transactions: [] };
+                state.finance.transactions = mergedTx;
+              }
+            }
+          } catch (e) {
+            console.warn('Error parsing finance from cloud:', e);
           }
         }
 
