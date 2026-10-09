@@ -115,7 +115,7 @@
         <div class="header-actions">
           <!-- Cloud Sync Status Button -->
           <button id="cloud-sync-status-btn" class="btn btn-sm btn-secondary" title="Supabase Cloud Realtime synchronizace">
-            <span id="cloud-sync-icon">☁️</span>
+            <span id="cloud-sync-icon"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg></span>
             <span class="btn-text-responsive" id="cloud-sync-label">Lokální</span>
           </button>
 
@@ -141,7 +141,7 @@
           <!-- Hero Greeting -->
           <div class="hero-greeting">
             <div class="greeting-content">
-              <h1 class="greeting-title" id="greeting-title">Vítej zpět! 👋</h1>
+              <h1 class="greeting-title" id="greeting-title">Vítej zpět!</h1>
               <p class="greeting-subtitle" id="greeting-quote">Všechny projekty, tréninky a školní termíny na jednom místě.</p>
             </div>
             <div class="hero-actions">
@@ -323,7 +323,10 @@
               </div>
               <div class="journal-header-actions">
                 <span class="text-xs text-muted" id="journal-autosave-status" style="margin-right: 8px;">Připraveno</span>
-                <button type="button" class="btn btn-sm btn-outline" id="btn-toggle-journal-history">📜 Historie zápisů (<span id="journal-history-count">0</span>)</button>
+                <button type="button" class="btn btn-sm btn-outline" id="btn-toggle-journal-history">
+                  <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                  <span>Historie zápisů</span> (<span id="journal-history-count">0</span>)
+                </button>
               </div>
             </div>
 
@@ -331,11 +334,26 @@
             <div class="journal-mood-picker">
               <span class="text-xs text-muted" style="font-weight: 600;">Dnešní nálada a energie:</span>
               <div class="journal-mood-pills" id="journal-mood-pills">
-                <button type="button" class="journal-mood-pill active" data-mood="⚡" data-label="Skvělá energie">⚡ Skvělá energie</button>
-                <button type="button" class="journal-mood-pill" data-mood="🎯" data-label="Produktivní">🎯 Produktivní</button>
-                <button type="button" class="journal-mood-pill" data-mood="😊" data-label="Pohoda & Klid">😊 Pohoda & Klid</button>
-                <button type="button" class="journal-mood-pill" data-mood="☕" data-label="Únava">☕ Únava</button>
-                <button type="button" class="journal-mood-pill" data-mood="🌧️" data-label="Náročný den">🌧️ Náročný den</button>
+                <button type="button" class="journal-mood-pill active" data-mood="⚡" data-label="Skvělá energie">
+                  <svg class="icon-svg text-amber" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                  <span>Skvělá energie</span>
+                </button>
+                <button type="button" class="journal-mood-pill" data-mood="🎯" data-label="Produktivní">
+                  <svg class="icon-svg text-indigo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>
+                  <span>Produktivní</span>
+                </button>
+                <button type="button" class="journal-mood-pill" data-mood="😊" data-label="Pohoda & Klid">
+                  <svg class="icon-svg text-emerald" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>
+                  <span>Pohoda & Klid</span>
+                </button>
+                <button type="button" class="journal-mood-pill" data-mood="☕" data-label="Únava">
+                  <svg class="icon-svg text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>
+                  <span>Únava</span>
+                </button>
+                <button type="button" class="journal-mood-pill" data-mood="🌧️" data-label="Náročný den">
+                  <svg class="icon-svg text-sky" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="16" y1="13" x2="16" y2="21"></line><line x1="8" y1="13" x2="8" y2="21"></line><line x1="12" y1="15" x2="12" y2="23"></line><path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"></path></svg>
+                  <span>Náročný den</span>
+                </button>
               </div>
             </div>
 
@@ -372,7 +390,8 @@
             </div>
             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
               <button type="button" class="btn btn-outline" id="btn-open-projects-time-overview" title="Otevřít přehled a statistiku odpracovaného času">
-                ⏱️ <span>Přehled času</span>
+                <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                <span>Přehled času</span>
               </button>
               <button class="btn btn-primary" id="btn-open-project-modal">
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
@@ -479,13 +498,25 @@
             <div class="active-workout-info">
               <span class="active-workout-pulse"></span>
               <div>
-                <div class="active-workout-badge">🔥 Probíhá trénink: <strong id="active-workout-split-name">Upper A</strong></div>
-                <div class="active-workout-timer-display">⏱️ <span id="active-workout-timer">00:00:00</span></div>
+                <div class="active-workout-badge">
+                  <svg class="icon-svg text-rose" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 17c1.38 0 2.5-1.12 2.5-2.5 0-1.63-1.07-2.71-2.12-3.77A14.6 14.6 0 0 1 8.5 14.5z"></path><path d="M15.5 10c0-4.42-3.5-8-3.5-8s-.5 1.5-.5 3.5a5 5 0 0 1-5 5c0 4.42 3.58 8 8 8s8-3.58 8-8c0-3.5-2-5.5-7-7z"></path></svg>
+                  <span>Probíhá trénink:</span> <strong id="active-workout-split-name">Upper A</strong>
+                </div>
+                <div class="active-workout-timer-display">
+                  <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                  <span id="active-workout-timer">00:00:00</span>
+                </div>
               </div>
             </div>
             <div class="active-workout-controls">
-              <button type="button" class="btn btn-sm btn-primary" id="btn-active-workout-log">📝 Otevřít a zapsat</button>
-              <button type="button" class="btn btn-sm btn-accent" id="btn-active-workout-finish">⏹️ Dokončit trénink</button>
+              <button type="button" class="btn btn-sm btn-primary" id="btn-active-workout-log">
+                <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                <span>Otevřít a zapsat</span>
+              </button>
+              <button type="button" class="btn btn-sm btn-accent" id="btn-active-workout-finish">
+                <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="6" width="12" height="12" rx="2"></rect></svg>
+                <span>Dokončit trénink</span>
+              </button>
               <button type="button" class="btn btn-sm btn-secondary" id="btn-active-workout-cancel" title="Zrušit trénink bez uložení">Zrušit</button>
             </div>
           </div>
@@ -500,10 +531,12 @@
               <div class="gym-stats-badges" style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                 <div class="split-profile-toggle-wrap" id="split-profile-toggle-wrap">
                   <button type="button" class="split-profile-pill active" id="btn-profile-classic" data-profile="classic" title="Standardní týdenní rozložení splitu">
-                    🏋️ Klasický týden
+                    <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 5v14M18 5v14M2 9v6M22 9v6M6 12h12"></path></svg>
+                    <span>Klasický týden</span>
                   </button>
                   <button type="button" class="split-profile-pill" id="btn-profile-plasma" data-profile="plasma" title="Týden s odběrem krevní plazmy (přizpůsobená regenerace paží)">
-                    🩸 Týden s plazmou
+                    <svg class="icon-svg text-rose" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>
+                    <span>Týden s plazmou</span>
                   </button>
                 </div>
                 <span class="badge badge-accent" id="gym-weekly-progress-badge">Tento týden: 0 / 4</span>
@@ -546,9 +579,13 @@
             <!-- Key PR Highlights -->
             <div class="pr-cards-section">
               <div class="pr-cards-header">
-                <h4 class="pr-section-subtitle">🏆 Klíčové osobní rekordy (PR)</h4>
+                <h4 class="pr-section-subtitle">
+                  <svg class="icon-svg text-amber" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h2"></path><path d="M18 9h2a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-2"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.45 1-1 1H7v4h10v-4h-2c-.55 0-1-.45-1-1v-2.34"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"></path></svg>
+                  <span>Klíčové osobní rekordy (PR)</span>
+                </h4>
                 <button type="button" class="btn btn-outline btn-xs" id="btn-configure-pr-exercises" title="Vybrat, které cviky chceš mít mezi hlavními PR kartami">
-                  ⚙️ Vybrat cviky (<span id="pr-exercises-count">4</span>)
+                  <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                  <span>Vybrat cviky</span> (<span id="pr-exercises-count">4</span>)
                 </button>
               </div>
               <div class="pr-cards-grid" id="pr-cards-grid">
@@ -559,13 +596,17 @@
             <!-- Interactive Exercise Progress Explorer -->
             <div class="exercise-explorer-box">
               <div class="explorer-header">
-                <label for="pr-exercise-select" class="explorer-label">🔍 Detailní historie & Progres cviku:</label>
+                <label for="pr-exercise-select" class="explorer-label">
+                  <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                  <span>Detailní historie & Progres cviku:</span>
+                </label>
                 <div class="explorer-header-actions">
                   <select id="pr-exercise-select" class="form-select form-select-sm" style="max-width: 260px;">
                     <!-- Dynamic list of all exercises -->
                   </select>
                   <button type="button" class="btn btn-secondary btn-xs" id="btn-toggle-explorer-pr" title="Připnout nebo odepnout tento cvik mezi hlavní PR karty">
-                    ⭐ Sledovat v PR
+                    <svg class="icon-svg text-amber" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                    <span>Sledovat v PR</span>
                   </button>
                 </div>
               </div>
@@ -641,7 +682,10 @@
             </div>
             <div class="filter-pills" id="quicklinks-category-pills">
               <button class="filter-pill active" data-cat="all">Vše (<span id="count-ql-all">0</span>)</button>
-              <button class="filter-pill" data-cat="Aplikace">🚀 Aplikace (<span id="count-ql-app">0</span>)</button>
+              <button class="filter-pill" data-cat="Aplikace">
+                <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"></rect><path d="M10 4v4"></path><path d="M2 8h20"></path><circle cx="6" cy="6" r="1"></circle></svg>
+                <span>Aplikace</span> (<span id="count-ql-app">0</span>)
+              </button>
               <button class="filter-pill" data-cat="Škola">Škola (<span id="count-ql-school">0</span>)</button>
               <button class="filter-pill" data-cat="Projekty & Dev">Projekty & Dev (<span id="count-ql-dev">0</span>)</button>
               <button class="filter-pill" data-cat="AI & Nástroje">AI & Nástroje (<span id="count-ql-ai">0</span>)</button>
@@ -675,21 +719,27 @@
           <!-- Finance KPI Grid -->
           <div class="finance-kpi-grid">
             <div class="card finance-kpi-card income-card">
-              <div class="finance-kpi-icon">💰</div>
+              <div class="finance-kpi-icon">
+                <svg class="icon-svg-lg text-emerald" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path><path d="M18 12a2 2 0 0 0 0 4h4v-4z"></path></svg>
+              </div>
               <div class="finance-kpi-info">
                 <span class="text-xs text-muted">Příjmy tento měsíc</span>
                 <span class="finance-kpi-val text-green" id="finance-total-income">+0 Kč</span>
               </div>
             </div>
             <div class="card finance-kpi-card expense-card">
-              <div class="finance-kpi-icon">💸</div>
+              <div class="finance-kpi-icon">
+                <svg class="icon-svg-lg text-rose" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"></polyline><polyline points="17 18 23 18 23 12"></polyline></svg>
+              </div>
               <div class="finance-kpi-info">
                 <span class="text-xs text-muted">Výdaje tento měsíc</span>
                 <span class="finance-kpi-val text-rose" id="finance-total-expense">-0 Kč</span>
               </div>
             </div>
             <div class="card finance-kpi-card balance-card">
-              <div class="finance-kpi-icon">📊</div>
+              <div class="finance-kpi-icon">
+                <svg class="icon-svg-lg text-indigo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+              </div>
               <div class="finance-kpi-info">
                 <span class="text-xs text-muted">Čistá bilance / Zůstatek</span>
                 <span class="finance-kpi-val text-indigo" id="finance-net-balance">0 Kč</span>
@@ -816,10 +866,12 @@
                 </button>
                 <div style="display: flex; gap: 8px;">
                   <button class="btn btn-secondary btn-sm" id="btn-force-sync" style="flex: 1;">
-                    <span>🔄 Synchronizovat</span>
+                    <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+                    <span>Synchronizovat</span>
                   </button>
                   <button class="btn btn-outline btn-sm" id="btn-upload-local-to-cloud" style="flex: 1;" title="Nahraje lokální data do Supabase cloudu">
-                    <span>☁️ Nahrát lokální</span>
+                    <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 16l-4-4-4 4M12 12v9"></path><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"></path></svg>
+                    <span>Nahrát lokální</span>
                   </button>
                 </div>
               </div>
@@ -880,8 +932,11 @@
                 </li>
               </ul>
               <div class="pwa-help-box">
-                <p class="text-sm">💡 <strong>Jak nainstalovat jako aplikaci?</strong><br>
-                V Chrome nebo Edge klikni na ikonku instalace v adresním řádku nebo v menu vyber <em>„Nainstalovat aplikaci...“</em>. Na mobilu zvol <em>„Přidat na plochu“</em>.</p>
+                <p class="text-sm">
+                  <svg class="icon-svg text-amber" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                  <strong>Jak nainstalovat jako aplikaci?</strong><br>
+                  V Chrome nebo Edge klikni na ikonku instalace v adresním řádku nebo v menu vyber <em>„Nainstalovat aplikaci...“</em>. Na mobilu zvol <em>„Přidat na plochu“</em>.
+                </p>
               </div>
             </div>
 
@@ -1025,7 +1080,10 @@
       </div>
 
       <div class="sub-header" style="margin-top: 18px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
-        <h4 style="font-size: 14px; font-weight: 600;">⏱️ Odpracovaný čas na projektu</h4>
+        <h4 style="font-size: 14px; font-weight: 600;">
+          <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          <span>Odpracovaný čas na projektu</span>
+        </h4>
         <button type="button" class="btn btn-outline btn-xs" id="btn-notes-add-time">+ Zapsat čas</button>
       </div>
       <div class="project-time-logs-list" id="project-notes-time-list">
@@ -1072,11 +1130,11 @@
           <div class="form-group col-half">
             <label for="workout-rating">Hodnocení pocitu</label>
             <select id="workout-rating" class="form-select">
-              <option value="5">⭐⭐⭐⭐⭐ Skvělý výkon</option>
-              <option value="4" selected>⭐⭐⭐⭐ Dobrý trénink</option>
-              <option value="3">⭐⭐⭐ Průměr</option>
-              <option value="2">⭐⭐ Těžký den</option>
-              <option value="1">⭐ Špatná energie</option>
+              <option value="5">Skvělý výkon (5/5)</option>
+              <option value="4" selected>Dobrý trénink (4/5)</option>
+              <option value="3">Průměr (3/5)</option>
+              <option value="2">Těžký den (2/5)</option>
+              <option value="1">Špatná energie (1/5)</option>
             </select>
           </div>
         </div>
@@ -1084,10 +1142,12 @@
         <!-- Mode Switcher: Structured Sets vs Quick Freeform Text -->
         <div class="workout-mode-switcher">
           <button type="button" class="workout-mode-btn active" id="btn-mode-structured">
-            🏋️ Přehledné série (Tabulka)
+            <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+            <span>Přehledné série (Tabulka)</span>
           </button>
           <button type="button" class="workout-mode-btn" id="btn-mode-text">
-            ✍️ Rychlý volný zápis (Text)
+            <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+            <span>Rychlý volný zápis (Text)</span>
           </button>
         </div>
 
@@ -1096,7 +1156,8 @@
           <div class="workout-builder-section">
             <div class="builder-action-bar">
               <button type="button" class="btn btn-accent btn-sm" id="btn-load-entire-split" title="Předvyplnit všechny cviky vybraného splitu se zapamatovanými vahami z minulého tréninku">
-                ⚡ Načíst celou šablonu splitu
+                <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                <span>Načíst celou šablonu splitu</span>
               </button>
               <div class="quick-add-custom-exercise">
                 <input type="text" id="custom-exercise-input" class="form-input form-input-sm" placeholder="+ Přidat cvik (např. Dřep, Shyby...)">
@@ -1134,17 +1195,24 @@
             <div class="quick-text-toolbar">
               <span class="text-xs text-muted">Rychle zapiš nebo zkopíruj trénink přesně jak ti vyhovuje:</span>
               <button type="button" class="btn btn-outline btn-xs" id="btn-insert-template-text" title="Vložit seznam cviků z aktuálního splitu jako textovou osnovu">
-                📋 Vložit osnovu cviků ze splitu
+                <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
+                <span>Vložit osnovu cviků ze splitu</span>
               </button>
             </div>
             <textarea id="workout-freeform-text" class="form-textarea workout-quick-textarea" rows="9" placeholder="• Bench press: 4 série (80 kg × 8, 80 kg × 8, 82.5 kg × 7, 85 kg × 6)&#10;• Přítahy činky v předklonu: 4 série (65 kg × 10, 65 kg × 10, 70 kg × 8)&#10;• Tlaky na ramena: 3 série (24 kg × 10)&#10;• Bicepsový zdvih: 3 série (30 kg × 10)"></textarea>
-            <p class="text-xs text-dim" style="margin-top: 6px;">💡 Můžeš psát volně cvik po cviku s vahami a sériemi. Systém text automaticky uloží do historie.</p>
+            <p class="text-xs text-dim" style="margin-top: 6px;">
+              <svg class="icon-svg text-amber" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+              <span>Můžeš psát volně cvik po cviku s vahami a sériemi. Systém text automaticky uloží do historie.</span>
+            </p>
           </div>
         </div>
 
         <div class="dialog-actions" id="workout-dialog-actions">
           <button type="button" class="btn btn-secondary" id="modal-workout-cancel">Zrušit</button>
-          <button type="button" class="btn btn-accent hidden" id="btn-modal-finish-workout">⏹️ Dokončit trénink</button>
+          <button type="button" class="btn btn-accent hidden" id="btn-modal-finish-workout">
+            <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="6" width="12" height="12" rx="2"></rect></svg>
+            <span>Dokončit trénink</span>
+          </button>
           <button type="submit" class="btn btn-primary" id="btn-submit-workout">Uložit trénink</button>
         </div>
       </form>
@@ -1259,17 +1327,25 @@
           <span class="text-xs text-muted" style="font-weight: 700;">Upravovaný profil splitu:</span>
           <div class="split-profile-toggle-wrap" id="modal-split-profile-toggle-wrap">
             <button type="button" class="split-profile-pill active" id="modal-btn-profile-classic" data-profile="classic">
-              🏋️ Klasický týden
+              <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 5v14M18 5v14M2 9v6M22 9v6M6 12h12"></path></svg>
+              <span>Klasický týden</span>
             </button>
             <button type="button" class="split-profile-pill" id="modal-btn-profile-plasma" data-profile="plasma">
-              🩸 Týden s plazmou
+              <svg class="icon-svg text-rose" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>
+              <span>Týden s plazmou</span>
             </button>
           </div>
         </div>
-        <span class="text-xs text-muted" style="font-weight: 700; display: block; margin-bottom: 6px;">⚡ Rychlé šablony (1 klik):</span>
+        <span class="text-xs text-muted" style="font-weight: 700; display: block; margin-bottom: 6px;">
+          <svg class="icon-svg text-amber" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+          <span>Rychlé šablony (1 klik):</span>
+        </span>
         <div class="split-presets-bar" id="split-presets-bar">
           <button type="button" class="btn-preset-pill" data-preset="upper-lower-4">Upper / Lower (4 dny)</button>
-          <button type="button" class="btn-preset-pill" data-preset="plasma-split">🩸 Plazma týden (Středa klid)</button>
+          <button type="button" class="btn-preset-pill" data-preset="plasma-split">
+            <svg class="icon-svg text-rose" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>
+            <span>Plazma týden (Středa klid)</span>
+          </button>
           <button type="button" class="btn-preset-pill" data-preset="upper-lower-3">Upper / Lower (3 dny)</button>
           <button type="button" class="btn-preset-pill" data-preset="ppl">Push / Pull / Legs</button>
           <button type="button" class="btn-preset-pill" data-preset="fullbody">Full Body (3 dny)</button>
@@ -1327,9 +1403,9 @@
           <div class="form-group col-half">
             <label for="school-priority">Priorita</label>
             <select id="school-priority" class="form-select">
-              <option value="high">🔴 Vysoká priorita</option>
-              <option value="medium" selected>🟡 Střední priorita</option>
-              <option value="low">🟢 Nízká priorita</option>
+              <option value="high">Vysoká priorita</option>
+              <option value="medium" selected>Střední priorita</option>
+              <option value="low">Nízká priorita</option>
             </select>
           </div>
         </div>
@@ -1377,10 +1453,12 @@
 
         <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
           <button type="button" class="btn btn-primary" id="btn-sb-sync-now">
-            <span>🔄 Synchronizovat data ihned</span>
+            <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+            <span>Synchronizovat data ihned</span>
           </button>
           <button type="button" class="btn btn-outline" id="btn-sb-push-local">
-            <span>☁️ Přepsat cloud mými aktuálními lokálními daty</span>
+            <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 16l-4-4-4 4M12 12v9"></path><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"></path></svg>
+            <span>Přepsat cloud mými aktuálními lokálními daty</span>
           </button>
         </div>
 
@@ -1424,7 +1502,8 @@
           </div>
 
           <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border-color);" class="text-sm text-muted">
-            💡 <strong>První nastavení:</strong> Zkopíruj a spusť připravený soubor <code>supabase-schema.sql</code> v Supabase SQL Editoru (vytvoří všechny tabulky a zabezpečení jedním klikem).
+            <svg class="icon-svg text-amber" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+            <strong>První nastavení:</strong> Zkopíruj a spusť připravený soubor <code>supabase-schema.sql</code> v Supabase SQL Editoru (vytvoří všechny tabulky a zabezpečení jedním klikem).
           </div>
         </form>
       </div>
@@ -1447,8 +1526,14 @@
         <div class="form-group" style="margin-bottom: 14px;">
           <label style="margin-bottom: 6px; font-weight: 600;">Typ položky</label>
           <div class="time-mode-pills-row" id="quicklink-type-pills">
-            <button type="button" class="time-mode-pill active" id="btn-ql-type-web">🌐 Webový odkaz</button>
-            <button type="button" class="time-mode-pill" id="btn-ql-type-app">🚀 Desktopová Aplikace</button>
+            <button type="button" class="time-mode-pill active" id="btn-ql-type-web">
+              <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+              <span>Webový odkaz</span>
+            </button>
+            <button type="button" class="time-mode-pill" id="btn-ql-type-app">
+              <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"></rect><path d="M10 4v4"></path><path d="M2 8h20"></path><circle cx="6" cy="6" r="1"></circle></svg>
+              <span>Desktopová Aplikace</span>
+            </button>
           </div>
         </div>
 
@@ -1456,17 +1541,50 @@
         <div class="form-group" id="quicklink-app-presets-group" style="margin-bottom: 14px;">
           <label style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 5px; display: block;">Rychlé předvolby populárních aplikací (kliknutím předvyplníš):</label>
           <div class="split-suggestions-chips" id="quicklink-app-presets-chips" style="display: flex; flex-wrap: wrap; gap: 6px;">
-            <button type="button" class="split-sug-chip ql-preset-chip" data-title="VS Code" data-url="vscode://" data-cat="Aplikace" data-icon="💻" data-desc="Editor kódu Visual Studio Code">💻 VS Code</button>
-            <button type="button" class="split-sug-chip ql-preset-chip" data-title="Spotify" data-url="spotify:" data-cat="Aplikace" data-icon="🎧" data-desc="Hudební přehrávač Spotify">🎧 Spotify</button>
-            <button type="button" class="split-sug-chip ql-preset-chip" data-title="Discord" data-url="discord://" data-cat="Aplikace" data-icon="💬" data-desc="Komunikační server a chat Discord">💬 Discord</button>
-            <button type="button" class="split-sug-chip ql-preset-chip" data-title="Obsidian" data-url="obsidian://" data-cat="Aplikace" data-icon="📝" data-desc="Poznámkový systém Obsidian">📝 Obsidian</button>
-            <button type="button" class="split-sug-chip ql-preset-chip" data-title="Notion" data-url="notion://" data-cat="Aplikace" data-icon="📓" data-desc="Workspace a dokumentace Notion">📓 Notion</button>
-            <button type="button" class="split-sug-chip ql-preset-chip" data-title="Steam" data-url="steam://" data-cat="Aplikace" data-icon="🎮" data-desc="Herní platforma Steam">🎮 Steam</button>
-            <button type="button" class="split-sug-chip ql-preset-chip" data-title="Telegram" data-url="tg://" data-cat="Aplikace" data-icon="✈️" data-desc="Messenger Telegram">✈️ Telegram</button>
-            <button type="button" class="split-sug-chip ql-preset-chip" data-title="Figma" data-url="figma://" data-cat="Aplikace" data-icon="🎨" data-desc="Designový nástroj Figma">🎨 Figma</button>
-            <button type="button" class="split-sug-chip ql-preset-chip" data-title="GitHub Desktop" data-url="x-github-client://" data-cat="Aplikace" data-icon="🐙" data-desc="Git klient GitHub Desktop">🐙 GitHub Desktop</button>
-            <button type="button" class="split-sug-chip ql-preset-chip" data-title="Kalkulačka" data-url="calculator:" data-cat="Aplikace" data-icon="🧮" data-desc="Windows Kalkulačka">🧮 Kalkulačka</button>
-            <button type="button" class="split-sug-chip ql-preset-chip" data-title="Nastavení Windows" data-url="ms-settings:" data-cat="Aplikace" data-icon="⚙️" data-desc="Nastavení systému Windows">⚙️ Nastavení</button>
+            <button type="button" class="split-sug-chip ql-preset-chip" data-title="VS Code" data-url="vscode://" data-cat="Aplikace" data-icon="code" data-desc="Editor kódu Visual Studio Code">
+              <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+              <span>VS Code</span>
+            </button>
+            <button type="button" class="split-sug-chip ql-preset-chip" data-title="Spotify" data-url="spotify:" data-cat="Aplikace" data-icon="music" data-desc="Hudební přehrávač Spotify">
+              <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
+              <span>Spotify</span>
+            </button>
+            <button type="button" class="split-sug-chip ql-preset-chip" data-title="Discord" data-url="discord://" data-cat="Aplikace" data-icon="message" data-desc="Komunikační server a chat Discord">
+              <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+              <span>Discord</span>
+            </button>
+            <button type="button" class="split-sug-chip ql-preset-chip" data-title="Obsidian" data-url="obsidian://" data-cat="Aplikace" data-icon="book" data-desc="Poznámkový systém Obsidian">
+              <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+              <span>Obsidian</span>
+            </button>
+            <button type="button" class="split-sug-chip ql-preset-chip" data-title="Notion" data-url="notion://" data-cat="Aplikace" data-icon="file-text" data-desc="Workspace a dokumentace Notion">
+              <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+              <span>Notion</span>
+            </button>
+            <button type="button" class="split-sug-chip ql-preset-chip" data-title="Steam" data-url="steam://" data-cat="Aplikace" data-icon="gamepad" data-desc="Herní platforma Steam">
+              <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="12" x2="10" y2="12"></line><line x1="8" y1="10" x2="8" y2="14"></line><line x1="15" y1="13" x2="15.01" y2="13"></line><line x1="18" y1="11" x2="18.01" y2="11"></line><rect x="2" y="6" width="20" height="12" rx="6"></rect></svg>
+              <span>Steam</span>
+            </button>
+            <button type="button" class="split-sug-chip ql-preset-chip" data-title="Telegram" data-url="tg://" data-cat="Aplikace" data-icon="message" data-desc="Messenger Telegram">
+              <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+              <span>Telegram</span>
+            </button>
+            <button type="button" class="split-sug-chip ql-preset-chip" data-title="Figma" data-url="figma://" data-cat="Aplikace" data-icon="palette" data-desc="Designový nástroj Figma">
+              <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"></circle><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"></circle><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"></circle><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"></circle><path d="M12 2C6.49 2 2 6.49 2 12c0 4.19 2.58 7.78 6.27 9.24.46.18.96-.16.96-.66v-.46c0-.85.69-1.54 1.54-1.54h1.46c4.97 0 9-4.03 9-9 0-5.51-4.49-9.58-9.23-9.58z"></path></svg>
+              <span>Figma</span>
+            </button>
+            <button type="button" class="split-sug-chip ql-preset-chip" data-title="GitHub Desktop" data-url="x-github-client://" data-cat="Aplikace" data-icon="code" data-desc="Git klient GitHub Desktop">
+              <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
+              <span>GitHub</span>
+            </button>
+            <button type="button" class="split-sug-chip ql-preset-chip" data-title="Kalkulačka" data-url="calculator:" data-cat="Aplikace" data-icon="calculator" data-desc="Windows Kalkulačka">
+              <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line><line x1="16" y1="14" x2="16" y2="18"></line><path d="M16 10h.01M12 10h.01M8 10h.01M12 14h.01M8 14h.01M12 18h.01M8 18h.01"></path></svg>
+              <span>Kalkulačka</span>
+            </button>
+            <button type="button" class="split-sug-chip ql-preset-chip" data-title="Nastavení Windows" data-url="ms-settings:" data-cat="Aplikace" data-icon="settings" data-desc="Nastavení systému Windows">
+              <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+              <span>Nastavení</span>
+            </button>
           </div>
         </div>
 
@@ -1487,7 +1605,7 @@
           <div class="form-group col-half">
             <label for="quicklink-category">Kategorie</label>
             <select id="quicklink-category" class="form-select">
-              <option value="Aplikace">🚀 Aplikace & Programy</option>
+              <option value="Aplikace">Aplikace & Programy</option>
               <option value="Škola">Škola</option>
               <option value="Projekty & Dev">Projekty & Dev</option>
               <option value="AI & Nástroje">AI & Nástroje</option>
@@ -1496,8 +1614,8 @@
             </select>
           </div>
           <div class="form-group col-half">
-            <label for="quicklink-icon">Ikona / Emoji (volitelné)</label>
-            <input type="text" id="quicklink-icon" class="form-input" placeholder="např. 💻, 🎧, 💬, 🚀, 🎓">
+            <label for="quicklink-icon">Ikonka (volitelné)</label>
+            <input type="text" id="quicklink-icon" class="form-input" placeholder="např. code, music, app, web">
           </div>
         </div>
 
@@ -1527,8 +1645,8 @@
           <div class="form-group col-half">
             <label for="finance-tx-type">Typ pohybu</label>
             <select id="finance-tx-type" class="form-select">
-              <option value="expense">💸 Výdaj</option>
-              <option value="income">💰 Příjem</option>
+              <option value="expense">Výdaj</option>
+              <option value="income">Příjem</option>
             </select>
           </div>
           <div class="form-group col-half">
@@ -1544,16 +1662,16 @@
           <div class="form-group col-half">
             <label for="finance-tx-category">Kategorie</label>
             <select id="finance-tx-category" class="form-select">
-              <option value="Jídlo & Potraviny">🛒 Jídlo & Potraviny</option>
-              <option value="Bydlení & Energie">🏠 Bydlení & Energie</option>
-              <option value="Doprava">🚗 Doprava & Lítačka</option>
-              <option value="Plazma (odměna)">🩸 Plazma (odměna)</option>
-              <option value="Mzda & Brigáda">💼 Mzda & Brigáda</option>
-              <option value="Fitko & Zdraví">🏋️ Fitko & Zdraví</option>
-              <option value="Předplatné & IT">💻 Předplatné & IT</option>
-              <option value="Zábava & Relax">🎉 Zábava & Relax</option>
-              <option value="Škola">🎓 Škola</option>
-              <option value="Jiné">📦 Jiné</option>
+              <option value="Jídlo & Potraviny">Jídlo & Potraviny</option>
+              <option value="Bydlení & Energie">Bydlení & Energie</option>
+              <option value="Doprava">Doprava & Lítačka</option>
+              <option value="Plazma (odměna)">Plazma (odměna)</option>
+              <option value="Mzda & Brigáda">Mzda & Brigáda</option>
+              <option value="Fitko & Zdraví">Fitko & Zdraví</option>
+              <option value="Předplatné & IT">Předplatné & IT</option>
+              <option value="Zábava & Relax">Zábava & Relax</option>
+              <option value="Škola">Škola</option>
+              <option value="Jiné">Jiné</option>
             </select>
           </div>
           <div class="form-group col-half">
@@ -1594,12 +1712,12 @@
           <div class="form-group col-half">
             <label for="recurring-category">Kategorie</label>
             <select id="recurring-category" class="form-select">
-              <option value="Bydlení & Energie">🏠 Bydlení & Energie</option>
-              <option value="Fitko & Zdraví">🏋️ Fitko & Zdraví</option>
-              <option value="Doprava">🚗 Doprava & Lítačka</option>
-              <option value="Předplatné & IT">💻 Předplatné & IT</option>
-              <option value="Jídlo & Potraviny">🛒 Jídlo & Potraviny</option>
-              <option value="Jiné">📦 Jiné</option>
+              <option value="Bydlení & Energie">Bydlení & Energie</option>
+              <option value="Fitko & Zdraví">Fitko & Zdraví</option>
+              <option value="Doprava">Doprava & Lítačka</option>
+              <option value="Předplatné & IT">Předplatné & IT</option>
+              <option value="Jídlo & Potraviny">Jídlo & Potraviny</option>
+              <option value="Jiné">Jiné</option>
             </select>
           </div>
         </div>
@@ -1638,10 +1756,12 @@
         <!-- Mode Toggle: Add vs Deduct -->
         <div class="time-mode-pills-row" style="margin-bottom: 14px; display: flex; gap: 8px;">
           <button type="button" class="time-mode-pill active" id="btn-time-mode-add" data-mode="add">
-            ➕ Přidat čas (+)
+            <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            <span>Přidat čas (+)</span>
           </button>
           <button type="button" class="time-mode-pill" id="btn-time-mode-deduct" data-mode="deduct">
-            ➖ Odebrat čas (-)
+            <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            <span>Odebrat čas (-)</span>
           </button>
         </div>
 
@@ -1669,12 +1789,30 @@
           <label for="time-activity" id="label-time-activity">Popis činnosti / Co jsi dělal? *</label>
           <input type="text" id="time-activity" class="form-input" placeholder="Např. Kódování UI, bugfix, studium dokumentace..." required>
           <div class="split-suggestions-chips" id="manual-time-chips" style="margin-top: 8px;">
-            <button type="button" class="split-sug-chip time-sug-chip" data-text="💻 Vývoj & implementace">+ Kódování</button>
-            <button type="button" class="split-sug-chip time-sug-chip" data-text="🐛 Bugfix & ladění chyb">+ Bugfix</button>
-            <button type="button" class="split-sug-chip time-sug-chip" data-text="🎨 UI design & stylování">+ UI & vzhled</button>
-            <button type="button" class="split-sug-chip time-sug-chip" data-text="⚡ Refaktoring kódu">+ Refaktoring</button>
-            <button type="button" class="split-sug-chip time-sug-chip" data-text="📚 Rešerše a dokumentace">+ Rešerše</button>
-            <button type="button" class="split-sug-chip time-sug-chip" data-text="⚠️ Korekce / Odečet chybného času">+ Korekce</button>
+            <button type="button" class="split-sug-chip time-sug-chip" data-text="Vývoj & implementace">
+              <svg class="icon-svg-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+              <span>Kódování</span>
+            </button>
+            <button type="button" class="split-sug-chip time-sug-chip" data-text="Bugfix & ladění chyb">
+              <svg class="icon-svg-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="9" width="8" height="10" rx="4"></rect><path d="M6 13h12M4 9l4 2M20 9l-4 2M4 17l4-2M20 17l-4-2M10 5l2 2 2-2"></path></svg>
+              <span>Bugfix</span>
+            </button>
+            <button type="button" class="split-sug-chip time-sug-chip" data-text="UI design & stylování">
+              <svg class="icon-svg-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"></circle><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"></circle><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"></circle><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"></circle><path d="M12 2C6.49 2 2 6.49 2 12c0 4.19 2.58 7.78 6.27 9.24.46.18.96-.16.96-.66v-.46c0-.85.69-1.54 1.54-1.54h1.46c4.97 0 9-4.03 9-9 0-5.51-4.49-9.58-9.23-9.58z"></path></svg>
+              <span>UI design</span>
+            </button>
+            <button type="button" class="split-sug-chip time-sug-chip" data-text="Refaktoring kódu">
+              <svg class="icon-svg-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+              <span>Refaktoring</span>
+            </button>
+            <button type="button" class="split-sug-chip time-sug-chip" data-text="Rešerše a dokumentace">
+              <svg class="icon-svg-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+              <span>Rešerše</span>
+            </button>
+            <button type="button" class="split-sug-chip time-sug-chip" data-text="Korekce / Odečet chybného času">
+              <svg class="icon-svg-xs text-amber" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+              <span>Korekce</span>
+            </button>
           </div>
         </div>
         <div class="dialog-actions">
@@ -1690,7 +1828,10 @@
     <div class="dialog-content">
       <div class="dialog-header">
         <div>
-          <h3>⏱️ Dokončit měření času</h3>
+          <h3>
+            <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            <span>Dokončit měření času</span>
+          </h3>
           <p class="text-xs text-muted" id="stop-timer-proj-badge" style="margin-top: 2px;">Projekt: ...</p>
         </div>
         <button class="btn-close" id="modal-stop-timer-close" aria-label="Zavřít">&times;</button>
@@ -1711,21 +1852,46 @@
           <label for="stop-timer-note">Co jsi na projektu dělal? *</label>
           <input type="text" id="stop-timer-note" class="form-input" placeholder="Např. Implementace nové funkce, bugfix, refaktoring..." required>
           <div class="split-suggestions-chips" id="stop-timer-chips" style="margin-top: 8px;">
-            <button type="button" class="split-sug-chip stop-time-chip" data-text="💻 Vývoj & implementace">+ Kódování</button>
-            <button type="button" class="split-sug-chip stop-time-chip" data-text="🐛 Bugfix & ladění chyb">+ Bugfix</button>
-            <button type="button" class="split-sug-chip stop-time-chip" data-text="🎨 UI design & stylování">+ UI design</button>
-            <button type="button" class="split-sug-chip stop-time-chip" data-text="⚡ Refaktoring kódu">+ Refaktoring</button>
-            <button type="button" class="split-sug-chip stop-time-chip" data-text="📚 Studium & návrh">+ Studium</button>
-            <button type="button" class="split-sug-chip stop-time-chip" data-text="🚀 Testování & deploy">+ Deploy</button>
+            <button type="button" class="split-sug-chip stop-time-chip" data-text="Vývoj & implementace">
+              <svg class="icon-svg-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+              <span>Kódování</span>
+            </button>
+            <button type="button" class="split-sug-chip stop-time-chip" data-text="Bugfix & ladění chyb">
+              <svg class="icon-svg-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="9" width="8" height="10" rx="4"></rect><path d="M6 13h12M4 9l4 2M20 9l-4 2M4 17l4-2M20 17l-4-2M10 5l2 2 2-2"></path></svg>
+              <span>Bugfix</span>
+            </button>
+            <button type="button" class="split-sug-chip stop-time-chip" data-text="UI design & stylování">
+              <svg class="icon-svg-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"></circle><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"></circle><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"></circle><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"></circle><path d="M12 2C6.49 2 2 6.49 2 12c0 4.19 2.58 7.78 6.27 9.24.46.18.96-.16.96-.66v-.46c0-.85.69-1.54 1.54-1.54h1.46c4.97 0 9-4.03 9-9 0-5.51-4.49-9.58-9.23-9.58z"></path></svg>
+              <span>UI design</span>
+            </button>
+            <button type="button" class="split-sug-chip stop-time-chip" data-text="Refaktoring kódu">
+              <svg class="icon-svg-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+              <span>Refaktoring</span>
+            </button>
+            <button type="button" class="split-sug-chip stop-time-chip" data-text="Studium & návrh">
+              <svg class="icon-svg-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+              <span>Studium</span>
+            </button>
+            <button type="button" class="split-sug-chip stop-time-chip" data-text="Testování & deploy">
+              <svg class="icon-svg-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"></path><path d="M9 12H4s.55-3.03 2-4.5c1.45-1.45 4.5-2 4.5-2"></path><path d="M12 9V4s3.03.55 4.5 2c1.45 1.45 2 4.5 2 4.5"></path></svg>
+              <span>Deploy</span>
+            </button>
           </div>
         </div>
         <div class="dialog-actions" style="margin-top: 18px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
           <button type="button" class="btn btn-danger btn-sm" id="btn-discard-stop-timer" title="Zahodit měření bez uložení">
-            🗑️ Zahodit stopky
+            <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            <span>Zahodit stopky</span>
           </button>
           <div style="display: flex; gap: 8px;">
-            <button type="button" class="btn btn-secondary btn-sm" id="btn-resume-stop-timer">▶️ Pokračovat</button>
-            <button type="submit" class="btn btn-primary btn-sm" id="btn-save-stop-timer">💾 Uložit čas</button>
+            <button type="button" class="btn btn-secondary btn-sm" id="btn-resume-stop-timer">
+              <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+              <span>Pokračovat</span>
+            </button>
+            <button type="submit" class="btn btn-primary btn-sm" id="btn-save-stop-timer">
+              <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+              <span>Uložit čas</span>
+            </button>
           </div>
         </div>
       </form>
@@ -1737,7 +1903,10 @@
     <div class="dialog-content">
       <div class="dialog-header">
         <div>
-          <h3>⏱️ Přehled stráveného času na projektech</h3>
+          <h3>
+            <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            <span>Přehled stráveného času na projektech</span>
+          </h3>
           <p class="text-xs text-muted" style="margin-top: 2px;">Kompletní statistika, rozpad hodin a historie činností</p>
         </div>
         <button class="btn-close" id="modal-time-overview-close" aria-label="Zavřít">&times;</button>
@@ -1759,7 +1928,8 @@
           </div>
         </div>
         <button type="button" class="btn btn-primary btn-sm" id="btn-overview-open-manual-time">
-          ➕/➖ Zapsat / Odebrat čas
+          <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          <span>Zapsat / Odebrat čas</span>
         </button>
       </div>
 

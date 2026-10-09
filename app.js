@@ -6,6 +6,322 @@
 // Storage Key
 const STORAGE_KEY = 'lifeos_dashboard_v1';
 
+/**
+ * Clean vector SVG icon renderer for professional UI aesthetics.
+ * Returns standard Feather / Lucide crisp SVG vectors.
+ */
+function getAppIconSvg(name, extraClass = '') {
+  const cls = extraClass ? `icon-svg ${extraClass}` : 'icon-svg';
+  const cleanName = (name || '').trim().toLowerCase();
+  
+  switch (cleanName) {
+    case 'clock':
+    case 'timer':
+    case '⏱️':
+    case '⏱':
+      return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>`;
+      
+    case 'calendar':
+    case '🗓️':
+    case '🗓':
+    case '📅':
+      return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>`;
+      
+    case 'chart':
+    case 'bar-chart':
+    case '📊':
+      return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>`;
+      
+    case 'play':
+    case '▶️':
+    case '▶':
+      return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>`;
+      
+    case 'square':
+    case 'stop':
+    case '⏹️':
+    case '⏹':
+      return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="6" width="12" height="12" rx="2"></rect></svg>`;
+      
+    case 'pause':
+      return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="10" y1="4" x2="10" y2="20"></line><line x1="14" y1="4" x2="14" y2="20"></line></svg>`;
+      
+    case 'plus':
+    case '➕':
+    case '+':
+      return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>`;
+      
+    case 'minus':
+    case '➖':
+    case '-':
+      return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line></svg>`;
+      
+    case 'edit':
+    case 'pencil':
+    case '✏️':
+    case '✏':
+      return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>`;
+      
+    case 'trash':
+    case 'delete':
+    case '🗑️':
+    case '🗑':
+      return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
+      
+    case 'save':
+    case '💾':
+      return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>`;
+      
+    case 'folder':
+    case '📁':
+      return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>`;
+      
+    case 'file-text':
+    case 'document':
+    case 'notes':
+    case '📝':
+    case '📓':
+      return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>`;
+      
+    case 'check':
+    case '✓':
+      return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+      
+    case 'check-circle':
+      return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>`;
+      
+    case 'dumbbell':
+    case 'workout':
+    case 'gym':
+    case '🏋️':
+    case '🏋':
+      return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 5v14M18 5v14M2 9v6M22 9v6M6 12h12"></path></svg>`;
+      
+    case 'droplet':
+    case 'plasma':
+    case 'drop':
+    case '🩸':
+      return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>`;
+      
+    case 'flame':
+    case 'fire':
+    case '🔥':
+      return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 17c1.38 0 2.5-1.12 2.5-2.5 0-1.63-1.07-2.71-2.12-3.77A14.6 14.6 0 0 1 8.5 14.5z"></path><path d="M15.5 10c0-4.42-3.5-8-3.5-8s-.5 1.5-.5 3.5a5 5 0 0 1-5 5c0 4.42 3.58 8 8 8s8-3.58 8-8c0-3.5-2-5.5-7-7z"></path></svg>`;
+      
+    case 'trophy':
+    case 'pr':
+    case '🏆':
+      return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h2"></path><path d="M18 9h2a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-2"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.45 1-1 1H7v4h10v-4h-2c-.55 0-1-.45-1-1v-2.34"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"></path></svg>`;
+      
+    case 'star':
+    case '⭐':
+    case '★':
+      return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`;
+      
+    case 'star-filled':
+      return `<svg class="${cls}" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`;
+      
+    case 'moon':
+    case 'rest':
+    case 'sleep':
+    case '💤':
+      return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
+      
+    case 'zap':
+    case 'bolt':
+    case 'lightning':
+    case '⚡':
+      return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>`;
+      
+    case 'target':
+    case 'focus':
+    case '🎯':
+      return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>`;
+      
+    case 'smile':
+    case 'sun':
+    case 'calm':
+    case '😊':
+      return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>`;
+      
+    case 'coffee':
+    case 'tired':
+    case '☕':
+      return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>`;
+      
+    case 'cloud-rain':
+    case 'rain':
+    case '🌧️':
+    case '🌧':
+      return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="16" y1="13" x2="16" y2="21"></line><line x1="8" y1="13" x2="8" y2="21"></line><line x1="12" y1="15" x2="12" y2="23"></line><path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"></path></svg>`;
+      
+    case 'cloud':
+    case '☁️':
+    case '☁':
+      return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>`;
+      
+    case 'refresh':
+    case 'sync':
+    case '🔄':
+      return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>`;
+      
+    case 'wallet':
+    case 'money':
+    case 'income':
+    case '💰':
+      return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path><path d="M18 12a2 2 0 0 0 0 4h4v-4z"></path></svg>`;
+      
+    case 'trending-up':
+    case '📈':
+      return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>`;
+      
+    case 'trending-down':
+    case 'expense':
+    case '💸':
+    case '📉':
+      return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"></polyline><polyline points="17 18 23 18 23 12"></polyline></svg>`;
+      
+    case 'code':
+    case 'dev':
+    case 'vscode':
+    case 'github':
+    case '💻':
+      return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>`;
+      
+    case 'music':
+    case 'spotify':
+    case 'audio':
+    case '🎧':
+      return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>`;
+      
+    case 'message':
+    case 'discord':
+    case 'chat':
+    case 'telegram':
+    case '💬':
+    case '✈️':
+    case '✈':
+      return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>`;
+      
+    case 'terminal':
+    case 'app':
+    case 'software':
+    case 'program':
+    case '🚀':
+      return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"></rect><path d="M10 4v4"></path><path d="M2 8h20"></path><circle cx="6" cy="6" r="1"></circle></svg>`;
+      
+    case 'globe':
+    case 'web':
+    case 'link':
+    case '🌐':
+    case '🔗':
+      return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>`;
+      
+    case 'book':
+    case 'school':
+    case 'student':
+    case 'study':
+    case '🎓':
+    case '📚':
+      return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>`;
+      
+    case 'search':
+    case '🔍':
+      return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>`;
+      
+    case 'settings':
+    case 'gear':
+    case '⚙️':
+    case '⚙':
+      return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>`;
+      
+    case 'info':
+    case '💡':
+      return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`;
+      
+    case 'alert':
+    case 'warning':
+    case '⚠️':
+    case '⚠':
+      return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>`;
+      
+    case 'bug':
+    case '🐛':
+      return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="9" width="8" height="10" rx="4"></rect><path d="M6 13h12M4 9l4 2M20 9l-4 2M4 17l4-2M20 17l-4-2M10 5l2 2 2-2"></path></svg>`;
+      
+    case 'palette':
+    case 'design':
+    case '🎨':
+      return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"></circle><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"></circle><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"></circle><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"></circle><path d="M12 2C6.49 2 2 6.49 2 12c0 4.19 2.58 7.78 6.27 9.24.46.18.96-.16.96-.66v-.46c0-.85.69-1.54 1.54-1.54h1.46c4.97 0 9-4.03 9-9 0-5.51-4.49-9.58-9.23-9.58z"></path></svg>`;
+      
+    case 'gamepad':
+    case 'steam':
+    case 'game':
+    case '🎮':
+      return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="12" x2="10" y2="12"></line><line x1="8" y1="10" x2="8" y2="14"></line><line x1="15" y1="13" x2="15.01" y2="13"></line><line x1="18" y1="11" x2="18.01" y2="11"></line><rect x="2" y="6" width="20" height="12" rx="6"></rect></svg>`;
+      
+    case 'calculator':
+    case '🧮':
+      return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line><line x1="16" y1="14" x2="16" y2="18"></line><path d="M16 10h.01M12 10h.01M8 10h.01M12 14h.01M8 14h.01M12 18h.01M8 18h.01"></path></svg>`;
+      
+    case 'chevron-right':
+    case '👉':
+      return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>`;
+      
+    case 'brain':
+    case 'ai':
+    case 'bot':
+    case '🤖':
+    case '🧠':
+      return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"></rect><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line><path d="M8 15h8"></path><line x1="12" y1="2" x2="12" y2="4"></line></svg>`;
+
+    case 'clipboard':
+    case '📋':
+      return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>`;
+
+    default:
+      return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`;
+  }
+}
+
+/**
+ * Returns crisp SVG star ratings (1 to 5).
+ */
+function getStarRatingSvg(rating = 4, max = 5) {
+  let html = '<span class="star-rating">';
+  const r = Math.max(1, Math.min(max, parseInt(rating, 10) || 4));
+  for (let i = 1; i <= max; i++) {
+    if (i <= r) {
+      html += getAppIconSvg('star-filled', 'icon-svg-xs text-amber');
+    } else {
+      html += getAppIconSvg('star', 'icon-svg-xs text-dim');
+    }
+  }
+  html += '</span>';
+  return html;
+}
+
+/**
+ * Maps mood identifier to a colored vector SVG icon.
+ */
+function getMoodIconSvg(mood, extraClass = '') {
+  const map = {
+    '⚡': { icon: 'zap', color: 'text-amber' },
+    'zap': { icon: 'zap', color: 'text-amber' },
+    '🎯': { icon: 'target', color: 'text-indigo' },
+    'target': { icon: 'target', color: 'text-indigo' },
+    '😊': { icon: 'smile', color: 'text-emerald' },
+    'smile': { icon: 'smile', color: 'text-emerald' },
+    '☕': { icon: 'coffee', color: 'text-muted' },
+    'coffee': { icon: 'coffee', color: 'text-muted' },
+    '🌧️': { icon: 'cloud-rain', color: 'text-sky' },
+    '🌧': { icon: 'cloud-rain', color: 'text-sky' },
+    'cloud-rain': { icon: 'cloud-rain', color: 'text-sky' }
+  };
+  const item = map[mood] || { icon: 'file-text', color: 'text-indigo' };
+  return getAppIconSvg(item.icon, `${item.color} ${extraClass}`.trim());
+}
+
 // Default Sample Data
 const DEFAULT_DATA = {
   user: {
@@ -28,7 +344,7 @@ const DEFAULT_DATA = {
       plasma: [
         { day: 1, dayName: 'Pondělí', focus: 'Upper A', rest: false },
         { day: 2, dayName: 'Úterý', focus: 'Lower A', rest: false },
-        { day: 3, dayName: 'Středa', focus: '🩸 Darování plazmy (Klid na ruce)', rest: true },
+        { day: 3, dayName: 'Středa', focus: 'Darování plazmy (Klid na ruce)', rest: true },
         { day: 4, dayName: 'Čtvrtek', focus: 'Lower B (Nohy / Šetřit paže)', rest: false },
         { day: 5, dayName: 'Pátek', focus: 'Upper B (Lehčí / Odpočaté paže)', rest: false },
         { day: 6, dayName: 'Sobota', focus: 'Kardio & Mobilita', rest: true },
@@ -204,15 +520,15 @@ const DEFAULT_DATA = {
   habitLogs: {},
   journal: [],
   quickLinks: [
-    { id: 'ql_1', title: 'Portál STAG / Univerzita', url: 'https://portal.osu.cz', category: 'Škola', desc: 'Rozvrh hodin, zkoušky a zápis předmětů', icon: '🎓' },
-    { id: 'ql_2', title: 'GitHub', url: 'https://github.com/TomasVyo', category: 'Projekty & Dev', desc: 'Repozitáře, commits a projekty', icon: '💻' },
-    { id: 'ql_3', title: 'ChatGPT', url: 'https://chatgpt.com', category: 'AI & Nástroje', desc: 'AI asistent pro kódování a rešerše', icon: '🤖' },
-    { id: 'ql_4', title: 'Claude', url: 'https://claude.ai', category: 'AI & Nástroje', desc: 'Anthropic AI model pro analýzu kódu', icon: '🧠' },
-    { id: 'ql_5', title: 'Supabase Dashboard', url: 'https://supabase.com/dashboard', category: 'Projekty & Dev', desc: 'Správa PostgreSQL databází a backendu', icon: '⚡' },
-    { id: 'ql_6', title: 'Moodle / E-learning', url: 'https://moodle.osu.cz', category: 'Škola', desc: 'Studijní materiály a odevzdávárny úkolů', icon: '📚' },
-    { id: 'ql_app_1', title: 'VS Code', url: 'vscode://', category: 'Aplikace', desc: 'Editor kódu Visual Studio Code', icon: '💻' },
-    { id: 'ql_app_2', title: 'Spotify', url: 'spotify:', category: 'Aplikace', desc: 'Hudební přehrávač Spotify', icon: '🎧' },
-    { id: 'ql_app_3', title: 'Discord', url: 'discord://', category: 'Aplikace', desc: 'Komunikační server a chat Discord', icon: '💬' }
+    { id: 'ql_1', title: 'Portál STAG / Univerzita', url: 'https://portal.osu.cz', category: 'Škola', desc: 'Rozvrh hodin, zkoušky a zápis předmětů', icon: 'book' },
+    { id: 'ql_2', title: 'GitHub', url: 'https://github.com/TomasVyo', category: 'Projekty & Dev', desc: 'Repozitáře, commits a projekty', icon: 'code' },
+    { id: 'ql_3', title: 'ChatGPT', url: 'https://chatgpt.com', category: 'AI & Nástroje', desc: 'AI asistent pro kódování a rešerše', icon: 'bot' },
+    { id: 'ql_4', title: 'Claude', url: 'https://claude.ai', category: 'AI & Nástroje', desc: 'Anthropic AI model pro analýzu kódu', icon: 'brain' },
+    { id: 'ql_5', title: 'Supabase Dashboard', url: 'https://supabase.com/dashboard', category: 'Projekty & Dev', desc: 'Správa PostgreSQL databází a backendu', icon: 'zap' },
+    { id: 'ql_6', title: 'Moodle / E-learning', url: 'https://moodle.osu.cz', category: 'Škola', desc: 'Studijní materiály a odevzdávárny úkolů', icon: 'book' },
+    { id: 'ql_app_1', title: 'VS Code', url: 'vscode://', category: 'Aplikace', desc: 'Editor kódu Visual Studio Code', icon: 'code' },
+    { id: 'ql_app_2', title: 'Spotify', url: 'spotify:', category: 'Aplikace', desc: 'Hudební přehrávač Spotify', icon: 'music' },
+    { id: 'ql_app_3', title: 'Discord', url: 'discord://', category: 'Aplikace', desc: 'Komunikační server a chat Discord', icon: 'message' }
   ],
   finance: {
     recurring: [],
@@ -656,7 +972,7 @@ function updateClock() {
   const userName = state.user?.name || 'Tome';
   const greetingEl = document.getElementById('greeting-title');
   if (greetingEl) {
-    greetingEl.textContent = `${greeting}, ${userName}! 👋`;
+    greetingEl.textContent = `${greeting}, ${userName}!`;
   }
 }
 
@@ -910,7 +1226,7 @@ function renderTodayGymWidget() {
 
   if (btnLabel && btnEl) {
     if (isCompletedToday) {
-      btnLabel.textContent = 'Dnes odcvičeno ✓';
+      btnLabel.textContent = 'Dnes odcvičeno';
       btnEl.classList.remove('btn-accent');
       btnEl.classList.add('btn-secondary');
     } else {
@@ -974,7 +1290,7 @@ function renderOverviewDeadlines() {
     .slice(0, 4);
 
   if (items.length === 0) {
-    container.innerHTML = '<p class="text-muted text-sm">Všechny školní úkoly máš splněné! 🎉</p>';
+    container.innerHTML = `<p class="text-muted text-sm" style="display:flex;align-items:center;justify-content:center;gap:6px;">${getAppIconSvg('check-circle', 'icon-svg-sm text-emerald')} Všechny školní úkoly máš splněné!</p>`;
     return;
   }
 
@@ -1056,7 +1372,7 @@ function renderJournalWidget() {
   if (input && document.activeElement !== input) {
     if (todayEntry) {
       input.value = todayEntry.text || '';
-      if (statusEl) statusEl.textContent = 'Dnešní zápis uložen ✓';
+      if (statusEl) statusEl.textContent = 'Dnešní zápis uložen';
     } else {
       input.value = '';
       if (statusEl) statusEl.textContent = 'Připraveno';
@@ -1112,7 +1428,7 @@ function renderJournalHistoryList() {
       <div class="journal-entry-card" data-journal-id="${escapeHtml(entry.id)}">
         <div class="journal-entry-header">
           <div class="journal-entry-meta">
-            <span class="journal-entry-mood">${escapeHtml(entry.mood || '📝')}</span>
+            <span class="journal-entry-mood">${getMoodIconSvg(entry.mood || 'zap')}</span>
             <span class="journal-entry-date">${escapeHtml(dateStr)}${entry.time ? ` • ${escapeHtml(entry.time)}` : ''}</span>
             ${entry.moodLabel ? `<span class="journal-entry-mood-label">${escapeHtml(entry.moodLabel)}</span>` : ''}
           </div>
@@ -1169,7 +1485,7 @@ function saveTodayJournalEntry(isAutosave = false) {
   saveState();
 
   if (statusEl) {
-    statusEl.textContent = isAutosave ? 'Uloženo automaticky ✓' : 'Uloženo ✓';
+    statusEl.textContent = isAutosave ? 'Uloženo automaticky' : 'Uloženo';
   }
 
   const countEl = document.getElementById('journal-history-count');
@@ -1181,7 +1497,7 @@ function saveTodayJournalEntry(isAutosave = false) {
   }
 
   if (!isAutosave) {
-    showToast('Zápis do deníku byl úspěšně uložen! 📝');
+    showToast('Zápis do deníku byl úspěšně uložen.');
   }
 }
 
@@ -1191,7 +1507,7 @@ function deleteJournalEntry(id) {
   state.journal = (state.journal || []).filter(j => j.id !== id);
   saveState();
   renderJournalWidget();
-  showToast('Zápis byl z deníku odstraněn 🗑️');
+  showToast('Zápis byl z deníku odstraněn.');
 }
 
 function setupJournalListeners() {
@@ -1242,10 +1558,10 @@ function setupJournalListeners() {
       if (isHidden) {
         drawer.classList.remove('hidden');
         renderJournalHistoryList();
-        btnToggleHistory.innerHTML = `❌ Skrýt historii (<span id="journal-history-count">${(state.journal || []).length}</span>)`;
+        btnToggleHistory.innerHTML = `${getAppIconSvg('chevron-right', 'icon-svg-xs')} Skrýt historii (<span id="journal-history-count">${(state.journal || []).length}</span>)`;
       } else {
         drawer.classList.add('hidden');
-        btnToggleHistory.innerHTML = `📜 Historie zápisů (<span id="journal-history-count">${(state.journal || []).length}</span>)`;
+        btnToggleHistory.innerHTML = `${getAppIconSvg('book', 'icon-svg-xs')} Historie zápisů (<span id="journal-history-count">${(state.journal || []).length}</span>)`;
       }
     });
   }
@@ -1360,7 +1676,7 @@ function toggleProjectTimer(projId) {
     startProjectTimerInterval();
     saveState();
     renderProjects();
-    showToast(`▶️ Stopky spuštěny pro projekt „${proj.title}“!`);
+    showToast(`Stopky spuštěny pro projekt „${proj.title}“!`);
   }
 }
 
@@ -1402,7 +1718,7 @@ function setManualTimeMode(targetMode) {
   if (btnAdd) btnAdd.classList.toggle('active', targetMode === 'add');
   if (btnDeduct) btnDeduct.classList.toggle('active', targetMode === 'deduct');
   if (titleEl) titleEl.textContent = targetMode === 'deduct' ? 'Odebrat čas z projektu' : 'Zapsat čas k projektu';
-  if (submitBtn) submitBtn.textContent = targetMode === 'deduct' ? '➖ Odebrat čas (-)' : '➕ Zapsat čas (+)';
+  if (submitBtn) submitBtn.innerHTML = targetMode === 'deduct' ? `${getAppIconSvg('minus', 'icon-svg-xs')} Odebrat čas (-)` : `${getAppIconSvg('plus', 'icon-svg-xs')} Zapsat čas (+)`;
   if (actInput) {
     actInput.placeholder = targetMode === 'deduct'
       ? 'Důvod odečtu (např. Chybně spuštěné stopky, pauza, korekce...)'
@@ -1461,9 +1777,9 @@ function renderProjectsTimeOverview() {
 
   if (select) {
     select.innerHTML = `
-      <option value="all" ${currentOverviewProjectFilter === 'all' ? 'selected' : ''}>🌐 Všechny projekty (souhrnně)</option>
+      <option value="all" ${currentOverviewProjectFilter === 'all' ? 'selected' : ''}>Všechny projekty (souhrnně)</option>
       ${state.projects.map(p => `
-        <option value="${p.id}" ${p.id === currentOverviewProjectFilter ? 'selected' : ''}>📁 ${escapeHtml(p.title)}</option>
+        <option value="${p.id}" ${p.id === currentOverviewProjectFilter ? 'selected' : ''}>${escapeHtml(p.title)}</option>
       `).join('')}
     `;
   }
@@ -1552,8 +1868,8 @@ function renderProjectsTimeOverview() {
         return `
           <div class="time-project-bar-row ${isSelected ? 'highlight-target' : ''}" style="cursor: pointer;" data-proj-id="${ps.id}">
             <div class="time-project-bar-header">
-              <span class="time-project-bar-title">
-                ${isSelected ? '👉' : '📁'} <strong>${escapeHtml(ps.title)}</strong>
+              <span class="time-project-bar-title" style="display:inline-flex;align-items:center;gap:6px;">
+                ${isSelected ? getAppIconSvg('chevron-right', 'icon-svg-xs text-primary') : getAppIconSvg('folder', 'icon-svg-xs text-muted')} <strong>${escapeHtml(ps.title)}</strong>
                 ${ps.category ? `<span class="text-xs text-muted">(${escapeHtml(ps.category)})</span>` : ''}
               </span>
               <span class="time-project-bar-meta">
@@ -1583,7 +1899,7 @@ function renderProjectsTimeOverview() {
       logsList.innerHTML = `
         <div class="card" style="text-align: center; padding: 30px;">
           <p class="text-muted" style="margin-bottom: 8px;">Zatím žádné záznamy času neodpovídají vybranému filtru.</p>
-          <button type="button" class="btn btn-outline btn-sm" id="btn-empty-add-time">➕ Zapsat čas</button>
+          <button type="button" class="btn btn-outline btn-sm" id="btn-empty-add-time">${getAppIconSvg('plus', 'icon-svg-xs')} Zapsat čas</button>
         </div>
       `;
       const emptyBtn = logsList.querySelector('#btn-empty-add-time');
@@ -1611,13 +1927,13 @@ function renderProjectsTimeOverview() {
                   <span class="time-log-note-text">${escapeHtml(log.note || 'Práce na projektu')}</span>
                 </div>
                 <div class="time-log-submeta">
-                  <span>🗓️ ${log.date}</span>
+                  <span style="display:inline-flex;align-items:center;gap:4px;">${getAppIconSvg('calendar', 'icon-svg-xs text-muted')} ${log.date}</span>
                   ${isDeduct ? '<span class="text-rose">• Korekce / Odečet</span>' : ''}
                 </div>
               </div>
             </div>
             <div class="time-overview-log-right">
-              <button type="button" class="btn btn-xs btn-secondary btn-edit-overview-log" data-proj-id="${log.projectId}" data-log-id="${log.id}" title="Upravit popis nebo čas">✏️</button>
+              <button type="button" class="btn btn-xs btn-secondary btn-edit-overview-log" data-proj-id="${log.projectId}" data-log-id="${log.id}" title="Upravit popis nebo čas">${getAppIconSvg('edit', 'icon-svg-xs')}</button>
               <button type="button" class="btn btn-xs btn-danger btn-del-overview-log" data-proj-id="${log.projectId}" data-log-id="${log.id}" title="Smazat záznam">&times;</button>
             </div>
           </div>
@@ -1697,8 +2013,8 @@ function renderProjectNotesTimeLogs(projId) {
           <span style="font-weight: 600; margin-left: 6px;">${escapeHtml(log.note || 'Práce na projektu')}</span>
         </div>
         <div style="display: flex; align-items: center; gap: 8px;">
-          <span class="text-xs text-dim">🗓️ ${log.date}</span>
-          <button type="button" class="btn-edit-time-log" data-proj-id="${proj.id}" data-log-id="${log.id}" style="background:none;border:none;color:var(--text-dim);cursor:pointer;" title="Upravit záznam">✏️</button>
+          <span class="text-xs text-dim" style="display:inline-flex;align-items:center;gap:4px;">${getAppIconSvg('calendar', 'icon-svg-xs text-muted')} ${log.date}</span>
+          <button type="button" class="btn-edit-time-log" data-proj-id="${proj.id}" data-log-id="${log.id}" style="background:none;border:none;color:var(--text-dim);cursor:pointer;display:inline-flex;align-items:center;" title="Upravit záznam">${getAppIconSvg('edit', 'icon-svg-xs')}</button>
           <button type="button" class="btn-del-time-log" data-proj-id="${proj.id}" data-log-id="${log.id}" style="background:none;border:none;color:var(--text-dim);cursor:pointer;" title="Smazat záznam">&times;</button>
         </div>
       </div>
@@ -1872,13 +2188,13 @@ function renderProjects() {
         <!-- Project Time Tracker Bar -->
         <div class="project-timetracker-bar">
           <div class="project-time-display btn-open-proj-time-overview" data-project-id="${proj.id}" title="Klikni pro přehled odpracovaného času" style="cursor: pointer;">
-            <span class="project-time-label">⏱️ Odpracováno:</span>
+            <span class="project-time-label" style="display:inline-flex;align-items:center;gap:4px;">${getAppIconSvg('clock', 'icon-svg-xs')} Odpracováno:</span>
             <span class="project-time-value" id="project-time-val-${proj.id}">${formatTimeMinutes(proj.totalTimeMinutes || 0)}</span>
           </div>
           <div class="project-timer-actions">
-            <button type="button" class="btn btn-xs btn-secondary btn-open-proj-time-overview" data-project-id="${proj.id}" title="Otevřít přehled a historii času projektu">📊 Přehled</button>
+            <button type="button" class="btn btn-xs btn-secondary btn-open-proj-time-overview" data-project-id="${proj.id}" title="Otevřít přehled a historii času projektu">${getAppIconSvg('chart', 'icon-svg-xs')} Přehled</button>
             <button type="button" class="project-timer-btn ${isActiveTimer ? 'running' : ''}" data-project-id="${proj.id}" title="${isActiveTimer ? 'Zastavit stopky a uložit čas' : 'Spustit měření času'}">
-              ${isActiveTimer ? '<span class="project-timer-pulse-dot"></span> ⏹️ Stop (<span class="project-live-timer-val">00:00</span>)' : '▶️ Měřit čas'}
+              ${isActiveTimer ? `<span class="project-timer-pulse-dot"></span> ${getAppIconSvg('stop', 'icon-svg-xs')} Stop (<span class="project-live-timer-val">00:00</span>)` : `${getAppIconSvg('play', 'icon-svg-xs')} Měřit čas`}
             </button>
             <button type="button" class="btn btn-xs btn-outline btn-manual-time" data-project-id="${proj.id}" title="Zadat nebo odebrat čas ručně">+/- Čas</button>
           </div>
@@ -1886,12 +2202,12 @@ function renderProjects() {
 
         <div class="project-footer">
           <div class="project-deadline-meta">
-            ${proj.deadline ? `<span>📅 ${proj.deadline}</span>` : '<span>Bez termínu</span>'}
+            ${proj.deadline ? `<span style="display:inline-flex;align-items:center;gap:4px;">${getAppIconSvg('calendar', 'icon-svg-xs text-muted')} ${proj.deadline}</span>` : '<span>Bez termínu</span>'}
             ${linksHtml}
           </div>
           <div class="project-card-actions">
             <button type="button" class="btn btn-sm btn-secondary btn-notes-project" data-id="${proj.id}" title="Otevřít vývojářský deník a poznámky">
-              📝 Deník (${notesCount})
+              ${getAppIconSvg('file-text', 'icon-svg-xs')} Deník (${notesCount})
             </button>
             <button type="button" class="btn btn-sm btn-secondary btn-edit-project" data-id="${proj.id}">Upravit</button>
             <button type="button" class="btn btn-sm btn-danger btn-delete-project" data-id="${proj.id}">Smazat</button>
@@ -2026,14 +2342,14 @@ function renderProjectsKanban(searchTerm = '') {
     // Action buttons depending on status
     let moveButtons = '';
     if (proj.status === 'planned') {
-      moveButtons = `<button type="button" class="btn-kanban-move" data-id="${proj.id}" data-target-status="in_progress">▶ Začít řešit</button>`;
+      moveButtons = `<button type="button" class="btn-kanban-move" data-id="${proj.id}" data-target-status="in_progress">${getAppIconSvg('play', 'icon-svg-xs')} Začít řešit</button>`;
     } else if (proj.status === 'in_progress') {
       moveButtons = `
-        <button type="button" class="btn-kanban-move" data-id="${proj.id}" data-target-status="planned">◀ Plán</button>
-        <button type="button" class="btn-kanban-move" data-id="${proj.id}" data-target-status="completed">✓ Hotovo</button>
+        <button type="button" class="btn-kanban-move" data-id="${proj.id}" data-target-status="planned">Plán</button>
+        <button type="button" class="btn-kanban-move" data-id="${proj.id}" data-target-status="completed">${getAppIconSvg('check', 'icon-svg-xs text-emerald')} Hotovo</button>
       `;
     } else if (proj.status === 'completed') {
-      moveButtons = `<button type="button" class="btn-kanban-move" data-id="${proj.id}" data-target-status="in_progress">◀ Znovu otevřít</button>`;
+      moveButtons = `<button type="button" class="btn-kanban-move" data-id="${proj.id}" data-target-status="in_progress">Znovu otevřít</button>`;
     }
 
     return `
@@ -2053,19 +2369,19 @@ function renderProjectsKanban(searchTerm = '') {
         </div>
 
         <div class="kanban-card-meta">
-          <span>📋 ${doneTasksCount}/${tasks.length} úkolů (${proj.progress || 0}%)</span>
-          ${proj.deadline ? `<span>📅 ${proj.deadline}</span>` : ''}
+          <span style="display:inline-flex;align-items:center;gap:4px;">${getAppIconSvg('clipboard', 'icon-svg-xs text-muted')} ${doneTasksCount}/${tasks.length} úkolů (${proj.progress || 0}%)</span>
+          ${proj.deadline ? `<span style="display:inline-flex;align-items:center;gap:4px;">${getAppIconSvg('calendar', 'icon-svg-xs text-muted')} ${proj.deadline}</span>` : ''}
         </div>
 
         <div class="project-timetracker-bar" style="margin-top: 8px; padding: 6px 10px;">
           <div class="project-time-display btn-open-proj-time-overview" data-project-id="${proj.id}" title="Klikni pro přehled času" style="cursor: pointer;">
-            <span class="project-time-label">⏱️</span>
+            <span class="project-time-label">${getAppIconSvg('clock', 'icon-svg-xs text-muted')}</span>
             <span class="project-time-value" style="font-size: 12px;">${formatTimeMinutes(proj.totalTimeMinutes || 0)}</span>
           </div>
           <div class="project-timer-actions">
-            <button type="button" class="btn btn-xs btn-secondary btn-open-proj-time-overview" data-project-id="${proj.id}" style="padding: 3px 6px; font-size: 11px;" title="Přehled času">📊</button>
+            <button type="button" class="btn btn-xs btn-secondary btn-open-proj-time-overview" data-project-id="${proj.id}" style="padding: 3px 6px; font-size: 11px; display:inline-flex;align-items:center;" title="Přehled času">${getAppIconSvg('chart', 'icon-svg-xs')}</button>
             <button type="button" class="project-timer-btn ${isActiveTimer ? 'running' : ''}" data-project-id="${proj.id}" style="padding: 3px 8px; font-size: 11px;">
-              ${isActiveTimer ? '<span class="project-timer-pulse-dot"></span> ⏹️ (<span class="project-live-timer-val">00:00</span>)' : '▶️ Měřit'}
+              ${isActiveTimer ? `<span class="project-timer-pulse-dot"></span> ${getAppIconSvg('stop', 'icon-svg-xs')} (<span class="project-live-timer-val">00:00</span>)` : `${getAppIconSvg('play', 'icon-svg-xs')} Měřit`}
             </button>
             <button type="button" class="btn btn-xs btn-outline btn-manual-time" data-project-id="${proj.id}" style="padding: 3px 6px; font-size: 11px;" title="Zadat nebo odebrat čas ručně">+/-</button>
           </div>
@@ -2077,10 +2393,10 @@ function renderProjectsKanban(searchTerm = '') {
           </div>
           <div style="display: flex; gap: 4px;">
             <button type="button" class="btn btn-sm btn-secondary btn-notes-project" data-id="${proj.id}" title="Vývojářský deník">
-              📝 ${notesCount}
+              ${getAppIconSvg('file-text', 'icon-svg-xs')} ${notesCount}
             </button>
             <button type="button" class="btn btn-sm btn-secondary btn-edit-project" data-id="${proj.id}" title="Upravit projekt">
-              ⚙️
+              ${getAppIconSvg('settings', 'icon-svg-xs')}
             </button>
           </div>
         </div>
@@ -2270,7 +2586,7 @@ function renderProjectDevNotesList(projId) {
   container.innerHTML = reversedNotes.map(n => `
     <div class="dev-note-item" data-note-id="${n.id}">
       <div class="dev-note-header">
-        <span class="dev-note-date">🗓️ ${escapeHtml(n.date || '')}</span>
+        <span class="dev-note-date" style="display:inline-flex;align-items:center;gap:4px;">${getAppIconSvg('calendar', 'icon-svg-xs text-muted')} ${escapeHtml(n.date || '')}</span>
         <button type="button" class="btn-del-dev-note" data-note-id="${n.id}" data-proj-id="${proj.id}" title="Smazat záznam">&times;</button>
       </div>
       <div class="dev-note-text">${escapeHtml(n.text || '')}</div>
@@ -2303,7 +2619,7 @@ function addProjectDevNote(projId, text) {
   saveState();
   renderProjectDevNotesList(projId);
   renderProjects();
-  showToast('Záznam zapsán do deníku 📝');
+  showToast('Záznam zapsán do deníku.');
 }
 
 function deleteProjectDevNote(projId, noteId) {
@@ -2428,7 +2744,7 @@ function sanitizeGymSplit() {
 
 function startActiveWorkout(split = null) {
   if (activeWorkout) {
-    showToast(`🔥 Trénink (${activeWorkout.split}) již běží! Stopky pokračují.`);
+    showToast(`Trénink (${activeWorkout.split}) již běží! Stopky pokračují.`);
     openWorkoutModal();
     return;
   }
@@ -2474,7 +2790,7 @@ function startActiveWorkout(split = null) {
 
   startActiveWorkoutTimer();
   renderActiveWorkoutBanner();
-  showToast(`🔥 Trénink (${chosenSplit}) zahájen! Stopky běží. Průběžně zapisuj své série.`);
+  showToast(`Trénink (${chosenSplit}) zahájen! Stopky běží. Průběžně zapisuj své série.`);
   openWorkoutModal();
 }
 
@@ -2674,7 +2990,7 @@ function finishActiveWorkout(isFromModal = false) {
   renderOverview();
   updateMetrics();
   updateSidebarBadges();
-  showToast(`🎉 Skvělá práce! Trénink (${elapsedMinutes} min) dokončen! 💪`);
+  showToast(`Skvělá práce! Trénink (${elapsedMinutes} min) dokončen!`);
 }
 
 function getTodaySplitFocus() {
@@ -2857,7 +3173,7 @@ function renderGymAnalytics() {
         <div style="grid-column: 1/-1; text-align: center; padding: 26px 16px; border: 1px dashed var(--border-color); border-radius: var(--radius-md); background: rgba(255,255,255,0.01);">
           <p class="text-sm text-muted">Zatím nemáš vybrané žádné cviky pro sledování PR.</p>
           <button type="button" class="btn btn-primary btn-sm" id="btn-empty-pr-configure" style="margin-top: 10px;">
-            ⚙️ Vybrat cviky na PR
+            ${getAppIconSvg('settings', 'icon-svg-xs')} Vybrat cviky na PR
           </button>
         </div>
       `;
@@ -2871,7 +3187,7 @@ function renderGymAnalytics() {
           return `
             <div class="pr-card" data-exercise="${escapeHtml(targetName)}" title="Klikni pro detailní historii">
               <div class="pr-card-header-row">
-                <span class="pr-card-name" title="${escapeHtml(foundStat.name || targetName)}">🏆 ${escapeHtml(foundStat.name || targetName)}</span>
+                <span class="pr-card-name" title="${escapeHtml(foundStat.name || targetName)}" style="display:inline-flex;align-items:center;gap:6px;">${getAppIconSvg('trophy', 'icon-svg-xs text-amber')} ${escapeHtml(foundStat.name || targetName)}</span>
                 <button type="button" class="btn-remove-pr-card" data-exercise="${escapeHtml(targetName)}" title="Odebrat z hlavních PR">&times;</button>
               </div>
               <div class="pr-card-main-stat">
@@ -2880,7 +3196,7 @@ function renderGymAnalytics() {
               </div>
               <div class="pr-card-meta">
                 <span>Odhad 1RM: <strong class="pr-1rm-badge">${foundStat.max1RM} kg</strong></span>
-                <span>📅 ${foundStat.bestDate}</span>
+                <span style="display:inline-flex;align-items:center;gap:4px;">${getAppIconSvg('calendar', 'icon-svg-xs text-muted')} ${foundStat.bestDate}</span>
               </div>
             </div>
           `;
@@ -2888,7 +3204,7 @@ function renderGymAnalytics() {
           return `
             <div class="pr-card" style="opacity: 0.72;" data-exercise="${escapeHtml(targetName)}" title="Klikni pro detailní historii">
               <div class="pr-card-header-row">
-                <span class="pr-card-name" title="${escapeHtml(targetName)}">🏋️ ${escapeHtml(targetName)}</span>
+                <span class="pr-card-name" title="${escapeHtml(targetName)}" style="display:inline-flex;align-items:center;gap:6px;">${getAppIconSvg('dumbbell', 'icon-svg-xs text-muted')} ${escapeHtml(targetName)}</span>
                 <button type="button" class="btn-remove-pr-card" data-exercise="${escapeHtml(targetName)}" title="Odebrat z hlavních PR">&times;</button>
               </div>
               <div class="pr-card-main-stat">
@@ -2977,12 +3293,12 @@ function renderExerciseExplorerDetails(exerciseName, statsMap = null) {
   if (pinBtn) {
     const isPinned = state.gym.prExercises && state.gym.prExercises.some(x => x.toLowerCase() === exerciseName.toLowerCase());
     if (isPinned) {
-      pinBtn.innerHTML = '★ V PR kartách';
+      pinBtn.innerHTML = `${getAppIconSvg('star-filled', 'icon-svg-xs text-amber')} V PR kartách`;
       pinBtn.classList.remove('btn-secondary');
       pinBtn.classList.add('btn-accent');
       pinBtn.title = 'Tento cvik je sledován v hlavních PR kartách. Klikni pro odebrání.';
     } else {
-      pinBtn.innerHTML = '⭐ Sledovat v PR';
+      pinBtn.innerHTML = `${getAppIconSvg('star', 'icon-svg-xs')} Sledovat v PR`;
       pinBtn.classList.remove('btn-accent');
       pinBtn.classList.add('btn-secondary');
       pinBtn.title = 'Přidat tento cvik do hlavních PR karet.';
@@ -3007,7 +3323,7 @@ function renderExerciseExplorerDetails(exerciseName, statsMap = null) {
   const historyItems = [...stat.history].reverse().slice(0, 5).map(h => `
     <div class="explorer-timeline-item">
       <div>
-        <span class="explorer-timeline-date">📅 ${h.date} (${escapeHtml(h.type)})</span>
+        <span class="explorer-timeline-date" style="display:inline-flex;align-items:center;gap:4px;">${getAppIconSvg('calendar', 'icon-svg-xs text-muted')} ${h.date} (${escapeHtml(h.type)})</span>
         <div class="explorer-timeline-sets" style="margin-top: 2px;">${escapeHtml(h.summary)}</div>
       </div>
       <span class="badge" style="font-size: 11px;">Tonáž: ${h.volume} kg</span>
@@ -3117,7 +3433,7 @@ function toggleExercisePrPin(exerciseName) {
     showToast(`Cvik "${exerciseName}" odebrán z PR.`);
   } else {
     state.gym.prExercises.push(exerciseName);
-    showToast(`Cvik "${exerciseName}" přidán do PR! 🏆`);
+    showToast(`Cvik "${exerciseName}" přidán do PR.`);
   }
   saveState();
   renderGymAnalytics();
@@ -3235,7 +3551,7 @@ function renderWeeklySplitGrid() {
         </div>
         <div class="day-focus-badge ${badgeClass}">${escapeHtml(displayFocus)}</div>
         <div class="day-check-indicator ${dayItem.rest ? 'rest' : ''}">
-          ${dayItem.rest ? '💤' : '🏋️'}
+          ${dayItem.rest ? getAppIconSvg('moon', 'icon-svg-xs text-sky') : getAppIconSvg('dumbbell', 'icon-svg-xs text-primary')}
         </div>
       </div>
     `;
@@ -3288,7 +3604,7 @@ function formatWorkoutLogExercisesHtml(rawText) {
       }
       return `<div class="log-exercise-item"><div class="log-exercise-title">${escapeHtml(clean)}</div></div>`;
     } else if (line.startsWith('Poznámka:')) {
-      return `<div class="text-xs text-muted" style="margin-top: 4px; font-style: italic;">📝 ${escapeHtml(line)}</div>`;
+      return `<div class="text-xs text-muted" style="margin-top: 4px; font-style: italic; display:inline-flex; align-items:center; gap:4px;">${getAppIconSvg('file-text', 'icon-svg-xs text-muted')} ${escapeHtml(line)}</div>`;
     }
     return `<div class="text-xs text-muted">${escapeHtml(line)}</div>`;
   }).join('');
@@ -3311,18 +3627,18 @@ function renderWorkoutLogs() {
   }
 
   container.innerHTML = logs.map(log => {
-    const stars = '⭐'.repeat(log.rating || 4);
+    const stars = getStarRatingSvg(log.rating || 4);
     return `
       <div class="workout-log-card">
         <div class="log-card-header">
           <div>
             <h4 class="log-type-title">${escapeHtml(log.type)}</h4>
-            <span class="log-date">📅 ${log.date}</span>
+            <span class="log-date" style="display:inline-flex;align-items:center;gap:4px;">${getAppIconSvg('calendar', 'icon-svg-xs text-muted')} ${log.date}</span>
           </div>
-          <span>${stars}</span>
+          <span class="star-rating-wrap">${stars}</span>
         </div>
         <div class="log-meta-row">
-          <span>⏱️ ${log.duration || 60} minut</span>
+          <span style="display:inline-flex;align-items:center;gap:4px;">${getAppIconSvg('clock', 'icon-svg-xs text-muted')} ${log.duration || 60} minut</span>
         </div>
         ${formatWorkoutLogExercisesHtml(log.exercises)}
         <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: auto;">
@@ -3425,15 +3741,15 @@ function renderSchool() {
     const days = getDaysRemaining(item.deadline);
     const isDone = item.status === 'done';
 
-    let priorityBadge = '<span class="tag-priority-medium">🟡 Střední priorita</span>';
-    if (item.priority === 'high') priorityBadge = '<span class="tag-priority-high">🔴 Vysoká priorita</span>';
-    if (item.priority === 'low') priorityBadge = '<span class="tag-priority-low">🟢 Nízká priorita</span>';
+    let priorityBadge = '<span class="tag-priority-medium"><span class="priority-dot medium"></span> Střední priorita</span>';
+    if (item.priority === 'high') priorityBadge = '<span class="tag-priority-high"><span class="priority-dot high"></span> Vysoká priorita</span>';
+    if (item.priority === 'low') priorityBadge = '<span class="tag-priority-low"><span class="priority-dot low"></span> Nízká priorita</span>';
 
     let countdownBadge = `<span class="urgent-countdown warning">Zbývá ${days} dní</span>`;
     if (days < 0 && !isDone) countdownBadge = '<span class="urgent-countdown danger">Po termínu!</span>';
     else if (days === 0 && !isDone) countdownBadge = '<span class="urgent-countdown danger">Dnes!</span>';
     else if (days === 1 && !isDone) countdownBadge = '<span class="urgent-countdown warning">Zítra!</span>';
-    else if (isDone) countdownBadge = '<span class="badge badge-success">Splněno ✓</span>';
+    else if (isDone) countdownBadge = `<span class="badge badge-success" style="display:inline-flex;align-items:center;gap:4px;">${getAppIconSvg('check', 'icon-svg-xs text-emerald')} Splněno</span>`;
 
     return `
       <div class="school-card ${isDone ? 'done' : ''}" data-id="${item.id}">
@@ -3453,8 +3769,8 @@ function renderSchool() {
         ${item.notes ? `<div class="school-notes-box">${escapeHtml(item.notes)}</div>` : ''}
 
         <div class="school-footer">
-          <button class="btn btn-sm ${isDone ? 'btn-secondary' : 'btn-accent'} btn-toggle-school-status" data-id="${item.id}">
-            ${isDone ? 'Vrátit do řešení' : 'Označit splněno ✓'}
+          <button class="btn btn-sm ${isDone ? 'btn-secondary' : 'btn-accent'} btn-toggle-school-status" data-id="${item.id}" style="display:inline-flex;align-items:center;gap:6px;">
+            ${isDone ? 'Vrátit do řešení' : `${getAppIconSvg('check', 'icon-svg-xs')} Označit splněno`}
           </button>
           <div style="display: flex; gap: 6px;">
             <button class="btn btn-sm btn-secondary btn-edit-school" data-id="${item.id}">Upravit</button>
@@ -3496,7 +3812,7 @@ function toggleSchoolStatus(id) {
   renderOverview();
   updateMetrics();
   updateSidebarBadges();
-  showToast(item.status === 'done' ? 'Školní úkol splněn! 🎉' : 'Úkol vrácen k vypracování');
+  showToast(item.status === 'done' ? 'Školní úkol splněn!' : 'Úkol vrácen k vypracování');
 }
 
 function deleteSchoolItem(id) {
@@ -3536,7 +3852,7 @@ function launchAppOrUrl(url, title = 'Aplikace') {
       document.body.appendChild(a);
       a.click();
       setTimeout(() => a.remove(), 100);
-      showToast(`🚀 Spouštím aplikaci „${title}“...`);
+      showToast(`Spouštím aplikaci „${title}“...`);
     } catch (e) {
       window.location.assign(url);
     }
@@ -3547,9 +3863,9 @@ function launchAppOrUrl(url, title = 'Aplikace') {
 
 function addDefaultAppsToQuickLinks() {
   const defaultApps = [
-    { id: 'ql_app_' + Date.now() + '_1', title: 'VS Code', url: 'vscode://', category: 'Aplikace', desc: 'Editor kódu Visual Studio Code', icon: '💻' },
-    { id: 'ql_app_' + Date.now() + '_2', title: 'Spotify', url: 'spotify:', category: 'Aplikace', desc: 'Hudební přehrávač Spotify', icon: '🎧' },
-    { id: 'ql_app_' + Date.now() + '_3', title: 'Discord', url: 'discord://', category: 'Aplikace', desc: 'Komunikační server a chat Discord', icon: '💬' }
+    { id: 'ql_app_' + Date.now() + '_1', title: 'VS Code', url: 'vscode://', category: 'Aplikace', desc: 'Editor kódu Visual Studio Code', icon: 'code' },
+    { id: 'ql_app_' + Date.now() + '_2', title: 'Spotify', url: 'spotify:', category: 'Aplikace', desc: 'Hudební přehrávač Spotify', icon: 'music' },
+    { id: 'ql_app_' + Date.now() + '_3', title: 'Discord', url: 'discord://', category: 'Aplikace', desc: 'Komunikační server a chat Discord', icon: 'message' }
   ];
   let added = 0;
   defaultApps.forEach(app => {
@@ -3560,7 +3876,7 @@ function addDefaultAppsToQuickLinks() {
   });
   saveState();
   renderQuickLinks();
-  showToast(added > 0 ? `🚀 Přidáno ${added} doporučených aplikací!` : 'Doporučené aplikace již v seznamu máš.');
+  showToast(added > 0 ? `Přidáno ${added} doporučených aplikací!` : 'Doporučené aplikace již v seznamu máš.');
 }
 
 function renderQuickLinks() {
@@ -3612,7 +3928,7 @@ function renderQuickLinks() {
         <div class="card" style="grid-column: 1/-1; text-align: center; padding: 40px;">
           <p class="text-muted" style="margin-bottom: 14px;">Zatím nemáš přidané žádné desktopové aplikace.</p>
           <div style="display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
-            <button type="button" class="btn btn-primary btn-sm" id="btn-quick-add-apps">⚡ Přidat doporučené aplikace (VS Code, Spotify, Discord)</button>
+            <button type="button" class="btn btn-primary btn-sm" id="btn-quick-add-apps">${getAppIconSvg('zap', 'icon-svg-xs')} Přidat doporučené aplikace (VS Code, Spotify, Discord)</button>
             <button type="button" class="btn btn-secondary btn-sm" id="btn-empty-add-custom-app">+ Přidat vlastní aplikaci</button>
           </div>
         </div>
@@ -3640,15 +3956,19 @@ function renderQuickLinks() {
       }
     }
     const faviconUrl = !isProtocol ? `https://www.google.com/s2/favicons?domain=${domain}&sz=64` : '';
-    const fallbackEmoji = item.icon || (isApp ? '🚀' : item.category === 'Škola' ? '🎓' : item.category === 'Projekty & Dev' ? '💻' : item.category === 'AI & Nástroje' ? '🤖' : '🌐');
+    const fallbackIconName = item.icon || (isApp ? 'terminal' : item.category === 'Škola' ? 'book' : item.category === 'Projekty & Dev' ? 'code' : item.category === 'AI & Nástroje' ? 'brain' : 'globe');
+    const fallbackSvg = getAppIconSvg(fallbackIconName, 'icon-svg-md');
 
     const iconHtml = isProtocol
-      ? `<div class="quicklink-favicon-wrap quicklink-app-icon" title="Desktopová aplikace">${escapeHtml(fallbackEmoji)}</div>`
+      ? `<div class="quicklink-favicon-wrap quicklink-app-icon" title="Desktopová aplikace">${fallbackSvg}</div>`
       : `<div class="quicklink-favicon-wrap">
-           <img src="${faviconUrl}" alt="${escapeHtml(item.title)}" class="quicklink-favicon" onerror="this.onerror=null; this.replaceWith('${fallbackEmoji}')">
+           <img src="${faviconUrl}" alt="${escapeHtml(item.title)}" class="quicklink-favicon" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';">
+           <div class="quicklink-fallback-icon" style="display:none; width:100%; height:100%; align-items:center; justify-content:center;">${fallbackSvg}</div>
          </div>`;
 
-    const subText = isProtocol ? `⚡ Protokol: ${escapeHtml(item.url)}` : `🌐 ${escapeHtml(domain)}`;
+    const subText = isProtocol
+      ? `<span style="display:inline-flex;align-items:center;gap:4px;">${getAppIconSvg('zap', 'icon-svg-xs text-amber')} Protokol: ${escapeHtml(item.url)}</span>`
+      : `<span style="display:inline-flex;align-items:center;gap:4px;">${getAppIconSvg('globe', 'icon-svg-xs text-muted')} ${escapeHtml(domain)}</span>`;
 
     const openBtnHtml = isProtocol
       ? `<button type="button" class="quicklink-open-btn btn-launch-app" data-url="${escapeHtml(item.url)}" data-title="${escapeHtml(item.title)}" title="Spustit aplikaci v systému">
@@ -3667,7 +3987,7 @@ function renderQuickLinks() {
           <div class="quicklink-info">
             <div class="quicklink-title-row">
               <span class="quicklink-title" title="${escapeHtml(item.title)}">${escapeHtml(item.title)}</span>
-              <span class="quicklink-badge ${isApp ? 'badge-app' : ''}">${escapeHtml(isApp ? '🚀 Aplikace' : (item.category || 'Odkaz'))}</span>
+              <span class="quicklink-badge ${isApp ? 'badge-app' : ''}">${isApp ? `<span style="display:inline-flex;align-items:center;gap:4px;">${getAppIconSvg('terminal', 'icon-svg-xs')} Aplikace</span>` : escapeHtml(item.category || 'Odkaz')}</span>
             </div>
             ${item.desc ? `<p class="quicklink-desc">${escapeHtml(item.desc)}</p>` : ''}
             <div class="quicklink-url-text">${subText}</div>
@@ -3676,7 +3996,7 @@ function renderQuickLinks() {
         <div class="quicklink-footer">
           ${openBtnHtml}
           <div class="quicklink-actions">
-            <button type="button" class="btn btn-xs btn-secondary btn-edit-quicklink" data-id="${item.id}" title="Upravit">✏️</button>
+            <button type="button" class="btn btn-xs btn-secondary btn-edit-quicklink" data-id="${item.id}" title="Upravit">${getAppIconSvg('edit', 'icon-svg-xs')}</button>
             <button type="button" class="btn btn-xs btn-danger btn-del-quicklink" data-id="${item.id}" title="Smazat">&times;</button>
           </div>
         </div>
@@ -3858,7 +4178,7 @@ function renderFinanceRecurring() {
         item.paid = cb.checked;
         saveState();
         renderFinance();
-        showToast(item.paid ? `Platba „${item.name}“ označena jako zaplacená ✓` : `Platba „${item.name}“ vrácena`);
+        showToast(item.paid ? `Platba „${item.name}“ označena jako zaplacená` : `Platba „${item.name}“ vrácena`);
       }
     });
   });
@@ -3934,7 +4254,7 @@ function renderFinanceTransactions() {
   container.innerHTML = list.map(item => {
     const isIncome = item.type === 'income';
     const sign = isIncome ? '+' : '-';
-    const icon = isIncome ? '💰' : '💸';
+    const icon = isIncome ? getAppIconSvg('trending-up', 'icon-svg-sm text-emerald') : getAppIconSvg('trending-down', 'icon-svg-sm text-rose');
 
     return `
       <div class="finance-tx-row" data-id="${item.id}">
@@ -3945,7 +4265,7 @@ function renderFinanceTransactions() {
             <div class="finance-tx-sub">
               <span>${escapeHtml(item.category || 'Pohyb')}</span>
               <span>•</span>
-              <span>🗓️ ${item.date}</span>
+              <span style="display:inline-flex;align-items:center;gap:4px;">${getAppIconSvg('calendar', 'icon-svg-xs text-muted')} ${item.date}</span>
               ${item.note ? `<span>• <em>${escapeHtml(item.note)}</em></span>` : ''}
             </div>
           </div>
@@ -4089,7 +4409,7 @@ function openProjectModal(projectId = null) {
         if (draft.techStack) document.getElementById('proj-tech-stack').value = draft.techStack;
         if (draft.liveUrl) document.getElementById('proj-live-url').value = draft.liveUrl;
         if (draft.url) document.getElementById('proj-url').value = draft.url;
-        showToast('Obnoven rozepsaný koncept 📝');
+        showToast('Obnoven rozepsaný koncept.');
       }
     }
   } catch (e) {}
@@ -4155,8 +4475,8 @@ function openWorkoutModal(forcedSplit = null, forcedDuration = null) {
   if (activeWorkout) {
     const elapsedMinutes = Math.max(1, Math.round((Date.now() - activeWorkout.startTime) / 60000));
     if (editIdInput) editIdInput.value = activeWorkout.id;
-    if (titleEl) titleEl.textContent = `🔥 Probíhá trénink: ${activeWorkout.split}`;
-    if (submitBtn) submitBtn.textContent = '💾 Průběžně uložit (cvičit dál)';
+    if (titleEl) titleEl.innerHTML = `${getAppIconSvg('flame', 'icon-svg-xs text-rose')} Probíhá trénink: ${escapeHtml(activeWorkout.split)}`;
+    if (submitBtn) submitBtn.innerHTML = `${getAppIconSvg('save', 'icon-svg-xs')} Průběžně uložit (cvičit dál)`;
     if (btnModalFinish) btnModalFinish.classList.remove('hidden');
 
     const dateInput = document.getElementById('workout-date');
@@ -4263,7 +4583,7 @@ function openWorkoutModal(forcedSplit = null, forcedDuration = null) {
   const currentSplit = (typeSelect && typeSelect.value) ? typeSelect.value : (activeWorkout ? activeWorkout.split : 'Upper A');
   const btnLoadEntire = document.getElementById('btn-load-entire-split');
   if (btnLoadEntire) {
-    btnLoadEntire.textContent = `⚡ Načíst šablonu (${currentSplit})`;
+    btnLoadEntire.innerHTML = `${getAppIconSvg('zap', 'icon-svg-xs')} Načíst šablonu (${escapeHtml(currentSplit)})`;
   }
 
   if (freeformTextarea) {
@@ -4364,7 +4684,7 @@ function setupWorkoutLoggerModes() {
         freeformTextarea.value = templateLines.join('\n');
       }
       freeformTextarea.focus();
-      showToast(`📋 Vložena osnova cviků pro ${split}!`);
+      showToast(`Vložena osnova cviků pro ${split}!`);
     });
   }
 }
@@ -4497,7 +4817,7 @@ function openEditWorkoutModal(logId) {
   const currentSplit = typeSelect ? typeSelect.value : log.type;
   const btnLoadEntire = document.getElementById('btn-load-entire-split');
   if (btnLoadEntire) {
-    btnLoadEntire.textContent = `⚡ Načíst šablonu (${currentSplit})`;
+    btnLoadEntire.innerHTML = `${getAppIconSvg('zap', 'icon-svg-xs')} Načíst šablonu (${escapeHtml(currentSplit)})`;
   }
 
   if (freeformTextarea) {
@@ -4544,7 +4864,7 @@ function loadEntireSplitIntoWorkout() {
     freeformTextarea.value = compileWorkoutFromBuilder();
   }
 
-  showToast(`⚡ Načteno všech ${exercises.length} cviků pro ${split}!`);
+  showToast(`Načteno všech ${exercises.length} cviků pro ${split}!`);
 }
 
 function renderWorkoutQuickChips(splitType) {
@@ -4564,7 +4884,7 @@ function renderWorkoutQuickChips(splitType) {
     const isAdded = currentWorkoutExercises.some(e => e.name.toLowerCase() === name.toLowerCase());
     return `
       <button type="button" class="exercise-chip ${isAdded ? 'added' : ''}" data-name="${escapeHtml(name)}">
-        <span>${isAdded ? '✓' : '+'}</span>
+        <span>${isAdded ? getAppIconSvg('check', 'icon-svg-xs text-emerald') : '+'}</span>
         <span>${escapeHtml(name)}</span>
       </button>
     `;
@@ -4608,7 +4928,7 @@ function generateExerciseSetRowHtml(exId, s, idx, canDelete) {
 function generateExerciseCardHtml(ex) {
   const perf = getLastExercisePerformance(ex.name);
   const historyBadgeHtml = (perf && perf.rawSetsSummary)
-    ? `<span class="exercise-prev-history-badge" title="Předchozí výkon z ${perf.date}">💡 Minule: <strong>${escapeHtml(perf.rawSetsSummary)}</strong></span>`
+    ? `<span class="exercise-prev-history-badge" title="Předchozí výkon z ${perf.date}">${getAppIconSvg('zap', 'icon-svg-xs text-amber')} Minule: <strong>${escapeHtml(perf.rawSetsSummary)}</strong></span>`
     : '';
 
   const canDelete = ex.sets && ex.sets.length > 1;
@@ -4618,7 +4938,7 @@ function generateExerciseCardHtml(ex) {
     <div class="workout-exercise-card" data-ex-id="${ex.id}">
       <div class="exercise-card-header">
         <div class="exercise-card-info">
-          <span class="exercise-card-name">🏋️ ${escapeHtml(ex.name)}</span>
+          <span class="exercise-card-name" style="display:inline-flex;align-items:center;gap:6px;">${getAppIconSvg('dumbbell', 'icon-svg-xs text-muted')} ${escapeHtml(ex.name)}</span>
           ${historyBadgeHtml}
         </div>
         <button type="button" class="btn-remove-exercise" data-ex-id="${ex.id}" title="Odstranit cvik" aria-label="Odstranit cvik">&times;</button>
@@ -4717,7 +5037,7 @@ function renderWorkoutExercisesBuilder() {
     container.innerHTML = `
       <div class="workout-exercises-empty">
         <p class="text-sm text-muted">Zatím nemáš vybrané žádné cviky pro tento trénink.</p>
-        <p class="text-xs text-dim" style="margin-top: 4px;">Klikni na cvik ze šablony výše nebo načti celý split tlačítkem „⚡ Načíst celý split“.</p>
+        <p class="text-xs text-dim" style="margin-top: 4px;">Klikni na cvik ze šablony výše nebo načti celý split tlačítkem „Načíst šablonu“.</p>
       </div>
     `;
     return;
@@ -4929,7 +5249,7 @@ function renderTemplateExercisesList() {
 
   container.innerHTML = list.map((item, idx) => `
     <div class="template-exercise-item">
-      <span>🏋️ ${escapeHtml(item)}</span>
+      <span style="display:inline-flex;align-items:center;gap:6px;">${getAppIconSvg('dumbbell', 'icon-svg-xs text-muted')} ${escapeHtml(item)}</span>
       <button type="button" class="btn btn-sm btn-danger btn-del-template-ex" data-split="${escapeHtml(currentSplit)}" data-index="${idx}" title="Smazat cvik">&times;</button>
     </div>
   `).join('');
@@ -5009,7 +5329,7 @@ function switchSplitProfile(profileKey) {
 
   renderGym();
   renderOverview();
-  showToast(`Profil splitu přepnut: ${profileKey === 'plasma' ? '🩸 Týden s plazmou' : '🏋️ Klasický týden'}`);
+  showToast(`Profil splitu přepnut: ${profileKey === 'plasma' ? 'Týden s plazmou' : 'Klasický týden'}`);
 }
 
 function openSplitModal(targetDay = null) {
@@ -5068,8 +5388,8 @@ function openSplitModal(targetDay = null) {
             ${isToday ? '<span class="split-today-pill">DNES</span>' : ''}
           </div>
           <div class="split-day-toggle-group">
-            <button type="button" class="split-mode-btn ${!isRest ? 'active' : ''}" data-mode="workout">🏋️ Trénink</button>
-            <button type="button" class="split-mode-btn ${isRest ? 'active' : ''}" data-mode="rest">💤 Volno / Rest</button>
+            <button type="button" class="split-mode-btn ${!isRest ? 'active' : ''}" data-mode="workout" style="display:inline-flex;align-items:center;gap:6px;">${getAppIconSvg('dumbbell', 'icon-svg-xs')} Trénink</button>
+            <button type="button" class="split-mode-btn ${isRest ? 'active' : ''}" data-mode="rest" style="display:inline-flex;align-items:center;gap:6px;">${getAppIconSvg('moon', 'icon-svg-xs')} Volno / Rest</button>
           </div>
         </div>
         <div class="split-day-body ${isRest ? 'hidden' : ''}">
@@ -5081,7 +5401,7 @@ function openSplitModal(targetDay = null) {
           </div>
         </div>
         <div class="split-day-rest-info ${!isRest ? 'hidden' : ''}">
-          <span>💤 Regenerace a odpočinek</span>
+          <span style="display:inline-flex;align-items:center;gap:6px;">${getAppIconSvg('moon', 'icon-svg-xs text-sky')} Regenerace a odpočinek</span>
         </div>
       </div>
     `;
@@ -5169,7 +5489,7 @@ function applySplitPreset(presetKey) {
     'plasma-split': {
       1: { focus: 'Upper A', rest: false },
       2: { focus: 'Lower A', rest: false },
-      3: { focus: '🩸 Darování plazmy (Klid na ruce)', rest: true },
+      3: { focus: 'Darování plazmy (Klid na ruce)', rest: true },
       4: { focus: 'Lower B (Nohy / Šetřit paže)', rest: false },
       5: { focus: 'Upper B (Lehčí / Odpočaté paže)', rest: false },
       6: { focus: 'Kardio & Mobilita', rest: true },
@@ -5245,7 +5565,7 @@ function applySplitPreset(presetKey) {
     }
   });
 
-  showToast('⚡ Šablona aplikována! Zkontroluj dny a klikni na „Uložit plán“.');
+  showToast('Šablona aplikována! Zkontroluj dny a klikni na „Uložit plán“.');
 }
 
 // ==========================================================================
@@ -5276,7 +5596,7 @@ function setupEventListeners() {
       const todayStr = getTodayStr();
       const existing = state.gym.logs.find(l => l.date === todayStr);
       if (existing) {
-        showToast('Dnešní trénink už je zaznamenán! 💪');
+        showToast('Dnešní trénink už je zaznamenán.');
       } else {
         openWorkoutModal();
       }
@@ -5398,7 +5718,7 @@ function setupEventListeners() {
       renderWorkoutQuickChips(workoutTypeSelect.value);
       const btnLoadEntire = document.getElementById('btn-load-entire-split');
       if (btnLoadEntire) {
-        btnLoadEntire.textContent = `⚡ Načíst šablonu (${workoutTypeSelect.value})`;
+        btnLoadEntire.innerHTML = `${getAppIconSvg('zap', 'icon-svg-xs')} Načíst šablonu (${escapeHtml(workoutTypeSelect.value)})`;
       }
     });
   }
@@ -5471,7 +5791,7 @@ function setupEventListeners() {
       renderTemplateExercisesList();
       boxNewSplit.classList.add('hidden');
       inputNewSplit.value = '';
-      showToast(`Nový split „${name}“ vytvořen! 🏋️`);
+      showToast(`Nový split „${name}“ byl vytvořen.`);
     };
 
     btnConfirmNewSplit.addEventListener('click', doCreateSplit);
@@ -5562,7 +5882,7 @@ function setupEventListeners() {
         if (wSelect && wSelect.value === split) {
           renderWorkoutQuickChips(split);
         }
-        showToast('Cvik přidán do šablony! 🏋️');
+        showToast('Cvik byl přidán do šablony.');
       } else {
         showToast('Tento cvik už v šabloně existuje');
       }
@@ -5788,7 +6108,7 @@ function setupEventListeners() {
         renderOverview();
         updateMetrics();
         updateSidebarBadges();
-        showToast('💾 Série průběžně uloženy! Stopky tréninku dál běží. 💪');
+        showToast('Série průběžně uloženy. Stopky tréninku dál běží.');
         return;
       }
 
@@ -5800,7 +6120,7 @@ function setupEventListeners() {
           existing.type = type;
           existing.rating = rating;
           existing.exercises = compiledExercises;
-          showToast('Trénink byl úspěšně upraven! 🏋️');
+          showToast('Trénink byl úspěšně upraven.');
         }
       } else {
         state.gym.logs.unshift({
@@ -5811,7 +6131,7 @@ function setupEventListeners() {
           rating,
           exercises: compiledExercises
         });
-        showToast('Trénink byl úspěšně zaznamenán! 🏋️');
+        showToast('Trénink byl úspěšně zaznamenán.');
       }
 
       // Also mark gym habit done for that day
@@ -5924,7 +6244,7 @@ function setupEventListeners() {
       }
       renderGym();
       renderOverview();
-      showToast('Týdenní plán upraven! 🏋️');
+      showToast('Týdenní plán upraven.');
     });
   }
 
@@ -6119,9 +6439,9 @@ function setupEventListeners() {
           renderProjectsTimeOverview();
         }
         if (mode === 'deduct') {
-          showToast(`➖ Odečteno -${formatTimeMinutes(totalMins)} z projektu ${proj.title}`);
+          showToast(`Odečteno -${formatTimeMinutes(totalMins)} z projektu ${proj.title}`);
         } else {
-          showToast(`➕ Zaznamenáno +${formatTimeMinutes(totalMins)} na projektu ${proj.title}`);
+          showToast(`Zaznamenáno +${formatTimeMinutes(totalMins)} na projektu ${proj.title}`);
         }
       }
 
@@ -6184,7 +6504,7 @@ function setupEventListeners() {
       if (overviewModal && overviewModal.open) {
         renderProjectsTimeOverview();
       }
-      showToast(`💾 Uloženo +${formatTimeMinutes(mins)} na projektu „${proj ? proj.title : ''}“`);
+      showToast(`Uloženo +${formatTimeMinutes(mins)} na projektu „${proj ? proj.title : ''}“`);
 
       const modal = document.getElementById('modal-stop-timer');
       if (modal) {
@@ -6202,7 +6522,7 @@ function setupEventListeners() {
         modal._initialValues = null;
         modal.close();
       }
-      showToast('▶️ Stopky pokračují v běhu.');
+      showToast('Stopky pokračují v běhu.');
     });
   }
 
@@ -6221,7 +6541,7 @@ function setupEventListeners() {
         modal._initialValues = null;
         modal.close();
       }
-      showToast('🗑️ Měření stopek bylo zahozeno.');
+      showToast('Měření stopek bylo zahozeno.');
     });
   }
 
@@ -6391,7 +6711,7 @@ function setupEventListeners() {
         modalQuickLink.close();
       }
       renderQuickLinks();
-      showToast(category === 'Aplikace' || isAppProtocol(url) ? 'Aplikace byla uložena 🚀' : 'Rychlý odkaz byl uložen 🔗');
+      showToast(category === 'Aplikace' || isAppProtocol(url) ? 'Aplikace byla uložena.' : 'Rychlý odkaz byl uložen.');
     });
   }
 
@@ -6464,7 +6784,7 @@ function setupEventListeners() {
         modalTx.close();
       }
       renderFinance();
-      showToast(type === 'income' ? `Příjem +${amount.toLocaleString('cs-CZ')} Kč uložen 💰` : `Výdaj -${amount.toLocaleString('cs-CZ')} Kč uložen 💸`);
+      showToast(type === 'income' ? `Příjem +${amount.toLocaleString('cs-CZ')} Kč uložen` : `Výdaj -${amount.toLocaleString('cs-CZ')} Kč uložen`);
     });
   }
 
@@ -6515,7 +6835,7 @@ function setupEventListeners() {
         modalRec.close();
       }
       renderFinance();
-      showToast(`Pravidelná platba „${name}“ uložena ✓`);
+      showToast(`Pravidelná platba „${name}“ uložena.`);
     });
   }
 }
@@ -6700,7 +7020,7 @@ function initPWA() {
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
     if (outcome === 'accepted') {
-      showToast('Aplikace byla úspěšně nainstalována! 🎉');
+      showToast('Aplikace byla úspěšně nainstalována.');
     }
     deferredPrompt = null;
     if (installBtn) installBtn.classList.add('hidden');
@@ -6988,7 +7308,7 @@ async function handleSupabaseAuth(url, key, email, password, isRegister) {
       if (error) throw error;
       if (data.session) {
         currentUser = data.session.user;
-        showToast('Účet byl vytvořen a přihlášen! 🎉');
+        showToast('Účet byl vytvořen a přihlášen.');
         // Initial push of existing local state
         await pushToSupabase(false);
       } else {
@@ -7029,7 +7349,7 @@ function updateSyncStatusUI(status) {
   const configBtnLabel = document.getElementById('btn-supabase-config-label');
 
   if (status === 'connected' && currentUser) {
-    if (iconEl) iconEl.textContent = '☁️';
+    if (iconEl) iconEl.innerHTML = getAppIconSvg('cloud', 'icon-svg-xs text-primary');
     if (labelEl) labelEl.textContent = 'Cloud Live';
     if (dotEl) {
       dotEl.className = 'status-indicator-dot online';
@@ -7041,12 +7361,12 @@ function updateSyncStatusUI(status) {
     if (authFormView) authFormView.classList.add('hidden');
     if (configBtnLabel) configBtnLabel.textContent = 'Spravovat Cloud Sync';
   } else if (status === 'syncing') {
-    if (iconEl) iconEl.textContent = '🔄';
+    if (iconEl) iconEl.innerHTML = getAppIconSvg('refresh', 'icon-svg-xs text-amber spinning-icon');
     if (labelEl) labelEl.textContent = 'Sync...';
     if (dotEl) dotEl.className = 'status-indicator-dot offline';
   } else {
     // Disconnected / Local only
-    if (iconEl) iconEl.textContent = '☁️';
+    if (iconEl) iconEl.innerHTML = getAppIconSvg('cloud', 'icon-svg-xs text-muted');
     if (labelEl) labelEl.textContent = 'Lokální';
     if (dotEl) dotEl.className = 'status-indicator-dot offline';
     if (headingEl) headingEl.textContent = 'Lokální režim (Bez cloudu)';
@@ -7097,7 +7417,7 @@ function subscribeToSupabaseRealtime() {
           }
           saveState(true);
           renderAllViews();
-          showToast('Položka smazána z druhého zařízení 🗑️');
+          showToast('Položka smazána z druhého zařízení.');
         }
         return;
       }
@@ -7424,7 +7744,7 @@ async function pushToSupabase(isManual = false) {
 
     updateSyncStatusUI('connected');
     if (isManual) {
-      showToast('Všechna lokální data byla nahrána do Supabase cloudu! ☁️');
+      showToast('Všechna lokální data byla nahrána do Supabase cloudu.');
     }
 
   } catch (err) {
@@ -7754,7 +8074,7 @@ async function pullFromSupabase(isRealtime = false, isManual = false) {
       }
 
       if (isRealtime) {
-        showToast('⚡ Změna z druhého zařízení synchronizována!');
+        showToast('Změna z druhého zařízení synchronizována.');
       } else if (isManual) {
         showToast('Aktuální data byla úspěšně stažena z cloudu!');
       }

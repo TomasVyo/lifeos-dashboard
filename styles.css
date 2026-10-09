@@ -477,6 +477,105 @@ a {
   color: #ffffff;
 }
 
+/* Vector Icon Utilities */
+.icon-svg {
+  width: 16px;
+  height: 16px;
+  display: inline-block;
+  vertical-align: -0.15em;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex-shrink: 0;
+}
+
+.icon-svg-xs {
+  width: 12px;
+  height: 12px;
+}
+
+.icon-svg-sm {
+  width: 14px;
+  height: 14px;
+}
+
+.icon-svg-md {
+  width: 18px;
+  height: 18px;
+}
+
+.icon-svg-lg {
+  width: 22px;
+  height: 22px;
+}
+
+.icon-svg-xl {
+  width: 28px;
+  height: 28px;
+}
+
+/* Color utilities for icons and badges */
+.text-rose { color: var(--accent-rose); }
+.text-emerald { color: var(--accent-emerald); }
+.text-amber { color: var(--accent-amber); }
+.text-sky { color: var(--accent-sky); }
+.text-indigo { color: var(--accent-indigo); }
+.text-primary { color: var(--primary); }
+
+/* Alignment within interactive elements */
+.btn .icon-svg,
+.filter-pill .icon-svg,
+.split-mode-btn .icon-svg,
+.split-toggle-pill .icon-svg,
+.split-sug-chip .icon-svg,
+.time-mode-pill .icon-svg,
+.journal-mood-pill .icon-svg {
+  margin-right: 4px;
+  vertical-align: -0.15em;
+}
+
+/* Linear-style Priority Dots */
+.priority-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+.priority-dot.high {
+  background-color: #ef4444;
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.4);
+}
+
+.priority-dot.medium {
+  background-color: #f59e0b;
+  box-shadow: 0 0 6px rgba(245, 158, 11, 0.4);
+}
+
+.priority-dot.low {
+  background-color: #10b981;
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.4);
+}
+
+/* Rating Stars */
+.star-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  vertical-align: middle;
+}
+
+.star-rating .icon-svg {
+  width: 13px;
+  height: 13px;
+  margin: 0;
+}
+
 /* ==========================================================================
    CONTENT CONTAINER & VIEWS
    ========================================================================== */
@@ -2246,6 +2345,10 @@ a {
   font-weight: 700;
   border-radius: var(--radius-full);
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
   transition: all var(--transition-fast);
 }
 
@@ -2286,6 +2389,9 @@ a {
   font-weight: 600;
   border-radius: var(--radius-sm);
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   transition: all var(--transition-fast);
 }
 
@@ -3526,6 +3632,9 @@ a {
 }
 
 .journal-mood-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   padding: 6px 12px;
   border-radius: var(--radius-full);
   font-size: 12px;
