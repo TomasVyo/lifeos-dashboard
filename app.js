@@ -1238,13 +1238,20 @@ function setupJournalListeners() {
 // 2. PROJECTS & TIME TRACKING
 // ==========================================================================
 
+let currentOverviewProjectFilter = 'all';
+let currentOverviewPeriodFilter = 'all';
+
 function formatTimeMinutes(totalMinutes) {
-  if (!totalMinutes || totalMinutes <= 0) return '0 min';
-  const hours = Math.floor(totalMinutes / 60);
-  const mins = totalMinutes % 60;
-  if (hours > 0 && mins > 0) return `${hours}h ${mins}m`;
-  if (hours > 0) return `${hours}h`;
-  return `${mins}m`;
+  if (totalMinutes === 0 || totalMinutes === undefined || totalMinutes === null) return '0 min';
+  const isNeg = totalMinutes < 0;
+  const abs = Math.abs(totalMinutes);
+  const hours = Math.floor(abs / 60);
+  const mins = abs % 60;
+  let str = '';
+  if (hours > 0 && mins > 0) str = `${hours}h ${mins}m`;
+  else if (hours > 0) str = `${hours}h`;
+  else str = `${mins}m`;
+  return isNeg ? `-${str}` : str;
 }
 
 function initProjectTimers() {
@@ -1263,6 +1270,11 @@ function startProjectTimerInterval() {
   if (projectTimerInterval) clearInterval(projectTimerInterval);
   updateLiveProjectTimerUI();
   projectTimerInterval = setInterval(updateLiveProjectTimerUI, 1000);
+}
+
+function stopProjectTimerInterval() {
+  if (projectTimerInterval) clearInterval(projectTimerInterval);
+  projectTimerInterval = null;
 }
 
 function updateLiveProjectTimerUI() {
@@ -1289,26 +1301,10 @@ function toggleProjectTimer(projId) {
   if (!proj) return;
 
   if (activeProjectTimer && activeProjectTimer.projectId === projId) {
-    // Stop active timer & save time
+    // Stop active timer & open modal to let user write what was done and check minutes
     const elapsedMs = Date.now() - activeProjectTimer.startTime;
     const elapsedMinutes = Math.max(1, Math.round(elapsedMs / 60000));
-    proj.totalTimeMinutes = (proj.totalTimeMinutes || 0) + elapsedMinutes;
-    if (!Array.isArray(proj.timeLogs)) proj.timeLogs = [];
-    proj.timeLogs.push({
-      id: 'tl_' + Date.now(),
-      date: getTodayStr(),
-      minutes: elapsedMinutes,
-      note: 'Měření stopkami'
-    });
-
-    localStorage.removeItem('lifeos_active_project_timer');
-    activeProjectTimer = null;
-    if (projectTimerInterval) clearInterval(projectTimerInterval);
-
-    saveState();
-    renderProjects();
-    if (currentNotesProjectId === projId) renderProjectNotesTimeLogs(projId);
-    showToast(`⏱️ Čas zastaven a uložen (+${elapsedMinutes} min) k „${proj.title}“!`);
+    openStopTimerModal(projId, elapsedMinutes);
   } else {
     // If another timer was running, auto-save and stop it first
     if (activeProjectTimer) {
@@ -1321,7 +1317,7 @@ function toggleProjectTimer(projId) {
           id: 'tl_' + Date.now(),
           date: getTodayStr(),
           minutes: prevElapsed,
-          note: 'Měření stopkami (automaticky uloženo)'
+          note: 'Měření stopkami (přepnutí projektu)'
         });
       }
     }
@@ -1338,13 +1334,64 @@ function toggleProjectTimer(projId) {
   }
 }
 
-function openManualTimeModal(projId = null) {
+function openStopTimerModal(projId, elapsedMinutes) {
+  const modal = document.getElementById('modal-stop-timer');
+  const proj = state.projects.find(p => p.id === projId);
+  if (!modal || !proj) return;
+
+  const idInput = document.getElementById('stop-timer-proj-id');
+  const badgeEl = document.getElementById('stop-timer-proj-badge');
+  const minInput = document.getElementById('stop-timer-minutes');
+  const dateInput = document.getElementById('stop-timer-date');
+  const noteInput = document.getElementById('stop-timer-note');
+
+  if (idInput) idInput.value = projId;
+  if (badgeEl) badgeEl.textContent = `Projekt: ${proj.title} • Naměřeno cca ${elapsedMinutes} min`;
+  if (minInput) minInput.value = elapsedMinutes;
+  if (dateInput) dateInput.value = getTodayStr();
+  if (noteInput) {
+    noteInput.value = '';
+    setTimeout(() => noteInput.focus(), 80);
+  }
+
+  modal.showModal();
+  markModalInitialState(modal);
+}
+
+function setManualTimeMode(targetMode) {
+  const modeInput = document.getElementById('time-action-mode');
+  const btnAdd = document.getElementById('btn-time-mode-add');
+  const btnDeduct = document.getElementById('btn-time-mode-deduct');
+  const titleEl = document.getElementById('modal-manual-time-title');
+  const submitBtn = document.getElementById('btn-save-manual-time');
+  const actInput = document.getElementById('time-activity');
+  const hoursInput = document.getElementById('time-hours');
+  const minsInput = document.getElementById('time-minutes');
+
+  if (modeInput) modeInput.value = targetMode;
+  if (btnAdd) btnAdd.classList.toggle('active', targetMode === 'add');
+  if (btnDeduct) btnDeduct.classList.toggle('active', targetMode === 'deduct');
+  if (titleEl) titleEl.textContent = targetMode === 'deduct' ? 'Odebrat čas z projektu' : 'Zapsat čas k projektu';
+  if (submitBtn) submitBtn.textContent = targetMode === 'deduct' ? '➖ Odebrat čas (-)' : '➕ Zapsat čas (+)';
+  if (actInput) {
+    actInput.placeholder = targetMode === 'deduct'
+      ? 'Důvod odečtu (např. Chybně spuštěné stopky, pauza, korekce...)'
+      : 'Např. Kódování UI, bugfix, studium dokumentace...';
+  }
+  if (targetMode === 'deduct') {
+    if (hoursInput) hoursInput.value = '0';
+    if (minsInput) minsInput.value = '30';
+  } else {
+    if (hoursInput) hoursInput.value = '1';
+    if (minsInput) minsInput.value = '0';
+  }
+}
+
+function openManualTimeModal(projId = null, mode = 'add') {
   const modal = document.getElementById('modal-manual-time');
   const select = document.getElementById('time-proj-select');
   const idInput = document.getElementById('time-proj-id');
   const dateInput = document.getElementById('time-date');
-  const hoursInput = document.getElementById('time-hours');
-  const minsInput = document.getElementById('time-minutes');
   const actInput = document.getElementById('time-activity');
   if (!modal || !select) return;
 
@@ -1354,9 +1401,243 @@ function openManualTimeModal(projId = null) {
 
   if (idInput) idInput.value = projId || (state.projects[0]?.id || '');
   if (dateInput) dateInput.value = getTodayStr();
-  if (hoursInput) hoursInput.value = '1';
-  if (minsInput) minsInput.value = '30';
+
+  setManualTimeMode(mode);
   if (actInput) actInput.value = '';
+
+  modal.showModal();
+  markModalInitialState(modal);
+}
+
+function openProjectsTimeOverview(selectedProjId = 'all') {
+  const modal = document.getElementById('modal-projects-time-overview');
+  if (!modal) return;
+  currentOverviewProjectFilter = selectedProjId || 'all';
+  renderProjectsTimeOverview();
+  modal.showModal();
+}
+
+function renderProjectsTimeOverview() {
+  const select = document.getElementById('time-overview-project-filter');
+  const kpiTotal = document.getElementById('time-kpi-total');
+  const kpiWeek = document.getElementById('time-kpi-week');
+  const kpiMonth = document.getElementById('time-kpi-month');
+  const kpiCount = document.getElementById('time-kpi-count');
+  const breakdownCard = document.getElementById('time-overview-breakdown-card');
+  const breakdownList = document.getElementById('time-projects-breakdown-list');
+  const logsList = document.getElementById('time-overview-logs-list');
+  const logsCount = document.getElementById('time-overview-logs-count');
+  const shareCount = document.getElementById('time-overview-share-count');
+
+  if (select) {
+    select.innerHTML = `
+      <option value="all" ${currentOverviewProjectFilter === 'all' ? 'selected' : ''}>🌐 Všechny projekty (souhrnně)</option>
+      ${state.projects.map(p => `
+        <option value="${p.id}" ${p.id === currentOverviewProjectFilter ? 'selected' : ''}>📁 ${escapeHtml(p.title)}</option>
+      `).join('')}
+    `;
+  }
+
+  // Collect all logs with project metadata
+  const allLogs = [];
+  state.projects.forEach(p => {
+    if (Array.isArray(p.timeLogs)) {
+      p.timeLogs.forEach(l => {
+        allLogs.push({
+          ...l,
+          projectId: p.id,
+          projectTitle: p.title,
+          projectCategory: p.category || ''
+        });
+      });
+    }
+  });
+
+  // Project filtering
+  let filteredLogs = allLogs;
+  if (currentOverviewProjectFilter !== 'all') {
+    filteredLogs = filteredLogs.filter(l => l.projectId === currentOverviewProjectFilter);
+  }
+
+  // Period filtering
+  const todayStr = getTodayStr();
+  const currentMonthPrefix = todayStr.substring(0, 7); // YYYY-MM
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+  const sevenDaysAgoStr = sevenDaysAgo.toISOString().split('T')[0];
+
+  if (currentOverviewPeriodFilter === 'today') {
+    filteredLogs = filteredLogs.filter(l => l.date === todayStr);
+  } else if (currentOverviewPeriodFilter === 'week') {
+    filteredLogs = filteredLogs.filter(l => l.date >= sevenDaysAgoStr && l.date <= todayStr);
+  } else if (currentOverviewPeriodFilter === 'month') {
+    filteredLogs = filteredLogs.filter(l => l.date && l.date.startsWith(currentMonthPrefix));
+  }
+
+  // Sort logs: newest first
+  filteredLogs.sort((a, b) => {
+    const comp = (b.date || '').localeCompare(a.date || '');
+    if (comp !== 0) return comp;
+    return (b.id || '').localeCompare(a.id || '');
+  });
+
+  // Calculate KPIs
+  const totalMins = filteredLogs.reduce((acc, l) => acc + (l.minutes || 0), 0);
+  const weekMins = allLogs
+    .filter(l => (currentOverviewProjectFilter === 'all' || l.projectId === currentOverviewProjectFilter) && l.date >= sevenDaysAgoStr && l.date <= todayStr)
+    .reduce((acc, l) => acc + (l.minutes || 0), 0);
+  const monthMins = allLogs
+    .filter(l => (currentOverviewProjectFilter === 'all' || l.projectId === currentOverviewProjectFilter) && l.date && l.date.startsWith(currentMonthPrefix))
+    .reduce((acc, l) => acc + (l.minutes || 0), 0);
+
+  if (kpiTotal) kpiTotal.textContent = formatTimeMinutes(totalMins);
+  if (kpiWeek) kpiWeek.textContent = formatTimeMinutes(weekMins);
+  if (kpiMonth) kpiMonth.textContent = formatTimeMinutes(monthMins);
+  if (kpiCount) kpiCount.textContent = filteredLogs.length;
+  if (logsCount) logsCount.textContent = `${filteredLogs.length} ${filteredLogs.length === 1 ? 'záznam' : (filteredLogs.length >= 2 && filteredLogs.length <= 4 ? 'záznamy' : 'záznamů')}`;
+
+  // Render project distribution breakdown
+  if (breakdownList && breakdownCard) {
+    if (state.projects.length === 0) {
+      breakdownCard.classList.add('hidden');
+    } else {
+      breakdownCard.classList.remove('hidden');
+      const totalAllProjectsMins = state.projects.reduce((acc, p) => acc + Math.max(0, p.totalTimeMinutes || 0), 0);
+      if (shareCount) shareCount.textContent = `${formatTimeMinutes(totalAllProjectsMins)} celkem`;
+
+      const projectStats = state.projects.map(p => {
+        const pMins = Math.max(0, p.totalTimeMinutes || 0);
+        const pct = totalAllProjectsMins > 0 ? Math.round((pMins / totalAllProjectsMins) * 100) : 0;
+        return {
+          id: p.id,
+          title: p.title,
+          category: p.category,
+          minutes: pMins,
+          pct
+        };
+      }).sort((a, b) => b.minutes - a.minutes);
+
+      breakdownList.innerHTML = projectStats.map(ps => {
+        const isSelected = ps.id === currentOverviewProjectFilter;
+        return `
+          <div class="time-project-bar-row ${isSelected ? 'highlight-target' : ''}" style="cursor: pointer;" data-proj-id="${ps.id}">
+            <div class="time-project-bar-header">
+              <span class="time-project-bar-title">
+                ${isSelected ? '👉' : '📁'} <strong>${escapeHtml(ps.title)}</strong>
+                ${ps.category ? `<span class="text-xs text-muted">(${escapeHtml(ps.category)})</span>` : ''}
+              </span>
+              <span class="time-project-bar-meta">
+                <strong>${formatTimeMinutes(ps.minutes)}</strong> (${ps.pct}%)
+              </span>
+            </div>
+            <div class="time-project-bar-track">
+              <div class="time-project-bar-fill" style="width: ${ps.pct}%;"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      breakdownList.querySelectorAll('.time-project-bar-row').forEach(row => {
+        row.addEventListener('click', () => {
+          const pId = row.getAttribute('data-proj-id');
+          currentOverviewProjectFilter = currentOverviewProjectFilter === pId ? 'all' : pId;
+          renderProjectsTimeOverview();
+        });
+      });
+    }
+  }
+
+  // Render detailed logs list
+  if (logsList) {
+    if (filteredLogs.length === 0) {
+      logsList.innerHTML = `
+        <div class="card" style="text-align: center; padding: 30px;">
+          <p class="text-muted" style="margin-bottom: 8px;">Zatím žádné záznamy času neodpovídají vybranému filtru.</p>
+          <button type="button" class="btn btn-outline btn-sm" id="btn-empty-add-time">➕ Zapsat čas</button>
+        </div>
+      `;
+      const emptyBtn = logsList.querySelector('#btn-empty-add-time');
+      if (emptyBtn) {
+        emptyBtn.addEventListener('click', () => {
+          const targetProj = currentOverviewProjectFilter !== 'all' ? currentOverviewProjectFilter : null;
+          openManualTimeModal(targetProj, 'add');
+        });
+      }
+    } else {
+      logsList.innerHTML = filteredLogs.map(log => {
+        const isDeduct = (log.minutes || 0) < 0;
+        const sign = isDeduct ? '-' : '+';
+        const formattedTime = formatTimeMinutes(Math.abs(log.minutes || 0));
+
+        return `
+          <div class="time-overview-log-item" data-proj-id="${log.projectId}" data-log-id="${log.id}">
+            <div class="time-overview-log-left">
+              <span class="time-badge ${isDeduct ? 'deduct' : 'add'}">${sign}${formattedTime}</span>
+              <div class="time-log-info">
+                <div class="time-log-headline-row">
+                  <span class="time-log-project-pill" data-proj-id="${log.projectId}" title="Filtrovat pouze tento projekt">
+                    ${escapeHtml(log.projectTitle)}
+                  </span>
+                  <span class="time-log-note-text">${escapeHtml(log.note || 'Práce na projektu')}</span>
+                </div>
+                <div class="time-log-submeta">
+                  <span>🗓️ ${log.date}</span>
+                  ${isDeduct ? '<span class="text-rose">• Korekce / Odečet</span>' : ''}
+                </div>
+              </div>
+            </div>
+            <div class="time-overview-log-right">
+              <button type="button" class="btn btn-xs btn-secondary btn-edit-overview-log" data-proj-id="${log.projectId}" data-log-id="${log.id}" title="Upravit popis nebo čas">✏️</button>
+              <button type="button" class="btn btn-xs btn-danger btn-del-overview-log" data-proj-id="${log.projectId}" data-log-id="${log.id}" title="Smazat záznam">&times;</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      logsList.querySelectorAll('.time-log-project-pill').forEach(pill => {
+        pill.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const pId = pill.getAttribute('data-proj-id');
+          currentOverviewProjectFilter = pId;
+          renderProjectsTimeOverview();
+        });
+      });
+
+      logsList.querySelectorAll('.btn-edit-overview-log').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const pId = btn.getAttribute('data-proj-id');
+          const lId = btn.getAttribute('data-log-id');
+          openEditTimeLogModal(pId, lId);
+        });
+      });
+
+      logsList.querySelectorAll('.btn-del-overview-log').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const pId = btn.getAttribute('data-proj-id');
+          const lId = btn.getAttribute('data-log-id');
+          if (confirm('Opravdu chceš smazat tento časový záznam? Celkový čas na projektu se automaticky přepočítá.')) {
+            deleteProjectTimeLog(pId, lId);
+            renderProjectsTimeOverview();
+          }
+        });
+      });
+    }
+  }
+}
+
+function openEditTimeLogModal(projId, logId) {
+  const modal = document.getElementById('modal-edit-time-log');
+  const proj = state.projects.find(p => p.id === projId);
+  if (!modal || !proj || !proj.timeLogs) return;
+
+  const log = proj.timeLogs.find(l => l.id === logId);
+  if (!log) return;
+
+  document.getElementById('edit-time-proj-id').value = projId;
+  document.getElementById('edit-time-log-id').value = logId;
+  document.getElementById('edit-time-minutes').value = log.minutes || 0;
+  document.getElementById('edit-time-date').value = log.date || getTodayStr();
+  document.getElementById('edit-time-note').value = log.note || '';
 
   modal.showModal();
   markModalInitialState(modal);
@@ -1374,24 +1655,41 @@ function renderProjectNotesTimeLogs(projId) {
   }
 
   const reversed = [...logs].reverse();
-  container.innerHTML = reversed.map(log => `
-    <div class="project-time-log-item" data-id="${log.id}">
-      <div>
-        <strong>${formatTimeMinutes(log.minutes)}</strong>
-        <span class="text-muted" style="margin-left: 6px;">(${escapeHtml(log.note || 'Práce na projektu')})</span>
+  container.innerHTML = reversed.map(log => {
+    const isDeduct = (log.minutes || 0) < 0;
+    const sign = isDeduct ? '-' : '+';
+    const formatted = formatTimeMinutes(Math.abs(log.minutes || 0));
+
+    return `
+      <div class="project-time-log-item" data-id="${log.id}">
+        <div>
+          <span class="time-badge ${isDeduct ? 'deduct' : 'add'}" style="font-size: 11px; padding: 2px 6px;">${sign}${formatted}</span>
+          <span style="font-weight: 600; margin-left: 6px;">${escapeHtml(log.note || 'Práce na projektu')}</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span class="text-xs text-dim">🗓️ ${log.date}</span>
+          <button type="button" class="btn-edit-time-log" data-proj-id="${proj.id}" data-log-id="${log.id}" style="background:none;border:none;color:var(--text-dim);cursor:pointer;" title="Upravit záznam">✏️</button>
+          <button type="button" class="btn-del-time-log" data-proj-id="${proj.id}" data-log-id="${log.id}" style="background:none;border:none;color:var(--text-dim);cursor:pointer;" title="Smazat záznam">&times;</button>
+        </div>
       </div>
-      <div style="display: flex; align-items: center; gap: 8px;">
-        <span class="text-xs text-dim">🗓️ ${log.date}</span>
-        <button type="button" class="btn-del-time-log" data-proj-id="${proj.id}" data-log-id="${log.id}" style="background:none;border:none;color:var(--text-dim);cursor:pointer;" title="Smazat záznam">&times;</button>
-      </div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
+
+  container.querySelectorAll('.btn-edit-time-log').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const pId = btn.getAttribute('data-proj-id');
+      const lId = btn.getAttribute('data-log-id');
+      openEditTimeLogModal(pId, lId);
+    });
+  });
 
   container.querySelectorAll('.btn-del-time-log').forEach(btn => {
     btn.addEventListener('click', () => {
       const pId = btn.getAttribute('data-proj-id');
       const lId = btn.getAttribute('data-log-id');
-      deleteProjectTimeLog(pId, lId);
+      if (confirm('Opravdu chceš smazat tento časový záznam?')) {
+        deleteProjectTimeLog(pId, lId);
+      }
     });
   });
 }
@@ -1407,7 +1705,11 @@ function deleteProjectTimeLog(projId, logId) {
   proj.timeLogs = proj.timeLogs.filter(l => l.id !== logId);
   saveState();
   renderProjects();
-  renderProjectNotesTimeLogs(projId);
+  if (currentNotesProjectId === projId) renderProjectNotesTimeLogs(projId);
+  const overviewModal = document.getElementById('modal-projects-time-overview');
+  if (overviewModal && overviewModal.open) {
+    renderProjectsTimeOverview();
+  }
   showToast('Záznam času smazán');
 }
 
@@ -1537,15 +1839,16 @@ function renderProjects() {
 
         <!-- Project Time Tracker Bar -->
         <div class="project-timetracker-bar">
-          <div class="project-time-display">
+          <div class="project-time-display btn-open-proj-time-overview" data-project-id="${proj.id}" title="Klikni pro přehled odpracovaného času" style="cursor: pointer;">
             <span class="project-time-label">⏱️ Odpracováno:</span>
             <span class="project-time-value" id="project-time-val-${proj.id}">${formatTimeMinutes(proj.totalTimeMinutes || 0)}</span>
           </div>
           <div class="project-timer-actions">
+            <button type="button" class="btn btn-xs btn-secondary btn-open-proj-time-overview" data-project-id="${proj.id}" title="Otevřít přehled a historii času projektu">📊 Přehled</button>
             <button type="button" class="project-timer-btn ${isActiveTimer ? 'running' : ''}" data-project-id="${proj.id}" title="${isActiveTimer ? 'Zastavit stopky a uložit čas' : 'Spustit měření času'}">
               ${isActiveTimer ? '<span class="project-timer-pulse-dot"></span> ⏹️ Stop (<span class="project-live-timer-val">00:00</span>)' : '▶️ Měřit čas'}
             </button>
-            <button type="button" class="btn btn-xs btn-outline btn-manual-time" data-project-id="${proj.id}" title="Zadat čas ručně">+ Čas</button>
+            <button type="button" class="btn btn-xs btn-outline btn-manual-time" data-project-id="${proj.id}" title="Zadat nebo odebrat čas ručně">+/- Čas</button>
           </div>
         </div>
 
@@ -1595,6 +1898,15 @@ function renderProjects() {
         addProjectSubtask(projId, input.value.trim());
         input.value = '';
       }
+    });
+  });
+
+  grid.querySelectorAll('.btn-open-proj-time-overview').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const projId = btn.getAttribute('data-project-id');
+      openProjectsTimeOverview(projId);
     });
   });
 
@@ -1714,14 +2026,16 @@ function renderProjectsKanban(searchTerm = '') {
         </div>
 
         <div class="project-timetracker-bar" style="margin-top: 8px; padding: 6px 10px;">
-          <div class="project-time-display">
+          <div class="project-time-display btn-open-proj-time-overview" data-project-id="${proj.id}" title="Klikni pro přehled času" style="cursor: pointer;">
             <span class="project-time-label">⏱️</span>
             <span class="project-time-value" style="font-size: 12px;">${formatTimeMinutes(proj.totalTimeMinutes || 0)}</span>
           </div>
           <div class="project-timer-actions">
+            <button type="button" class="btn btn-xs btn-secondary btn-open-proj-time-overview" data-project-id="${proj.id}" style="padding: 3px 6px; font-size: 11px;" title="Přehled času">📊</button>
             <button type="button" class="project-timer-btn ${isActiveTimer ? 'running' : ''}" data-project-id="${proj.id}" style="padding: 3px 8px; font-size: 11px;">
               ${isActiveTimer ? '<span class="project-timer-pulse-dot"></span> ⏹️ (<span class="project-live-timer-val">00:00</span>)' : '▶️ Měřit'}
             </button>
+            <button type="button" class="btn btn-xs btn-outline btn-manual-time" data-project-id="${proj.id}" style="padding: 3px 6px; font-size: 11px;" title="Zadat nebo odebrat čas ručně">+/-</button>
           </div>
         </div>
 
@@ -1762,6 +2076,23 @@ function renderProjectsKanban(searchTerm = '') {
         const projId = btn.getAttribute('data-id');
         const targetStatus = btn.getAttribute('data-target-status');
         moveProjectStatus(projId, targetStatus);
+      });
+    });
+
+    board.querySelectorAll('.btn-open-proj-time-overview').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const projId = btn.getAttribute('data-project-id');
+        openProjectsTimeOverview(projId);
+      });
+    });
+
+    board.querySelectorAll('.btn-manual-time').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const projId = btn.getAttribute('data-project-id');
+        openManualTimeModal(projId);
       });
     });
 
@@ -4885,6 +5216,9 @@ function setupEventListeners() {
   setupModalClose('modal-finance-tx', 'modal-finance-tx-close', 'modal-finance-tx-cancel');
   setupModalClose('modal-finance-recurring', 'modal-recurring-close', 'modal-recurring-cancel');
   setupModalClose('modal-manual-time', 'modal-manual-time-close', 'modal-manual-time-cancel');
+  setupModalClose('modal-stop-timer', 'modal-stop-timer-close', null);
+  setupModalClose('modal-projects-time-overview', 'modal-time-overview-close', 'modal-time-overview-cancel');
+  setupModalClose('modal-edit-time-log', 'modal-edit-time-close', 'modal-edit-time-cancel');
 
   // --- Project View Mode Toggle (Grid vs. Kanban) ---
   const btnViewGrid = document.getElementById('btn-project-view-grid');
@@ -5567,6 +5901,7 @@ function setupEventListeners() {
     });
   }
 
+  // --- Time Tracking & Logs ---
   const timeProjSelect = document.getElementById('time-proj-select');
   if (timeProjSelect) {
     timeProjSelect.addEventListener('change', (e) => {
@@ -5574,6 +5909,22 @@ function setupEventListeners() {
       if (idInput) idInput.value = e.target.value;
     });
   }
+
+  const btnTimeAdd = document.getElementById('btn-time-mode-add');
+  const btnTimeDeduct = document.getElementById('btn-time-mode-deduct');
+  if (btnTimeAdd) btnTimeAdd.addEventListener('click', () => setManualTimeMode('add'));
+  if (btnTimeDeduct) btnTimeDeduct.addEventListener('click', () => setManualTimeMode('deduct'));
+
+  document.querySelectorAll('#manual-time-chips .time-sug-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const text = chip.getAttribute('data-text');
+      const actInput = document.getElementById('time-activity');
+      if (actInput && text) {
+        actInput.value = text;
+        actInput.focus();
+      }
+    });
+  });
 
   const formManualTime = document.getElementById('form-manual-time');
   if (formManualTime) {
@@ -5584,10 +5935,71 @@ function setupEventListeners() {
       const mins = parseInt(document.getElementById('time-minutes')?.value || '0', 10);
       const date = document.getElementById('time-date')?.value || getTodayStr();
       const note = document.getElementById('time-activity')?.value.trim() || 'Práce na projektu';
+      const mode = document.getElementById('time-action-mode')?.value || 'add';
 
       const totalMins = (hours * 60) + mins;
       if (totalMins <= 0) {
         showToast('Zadej prosím platný čas větší než 0 minut.');
+        return;
+      }
+
+      const effectiveMins = mode === 'deduct' ? -totalMins : totalMins;
+
+      const proj = state.projects.find(p => p.id === projId);
+      if (proj) {
+        if (!Array.isArray(proj.timeLogs)) proj.timeLogs = [];
+        proj.timeLogs.push({
+          id: 'tl_' + Date.now(),
+          minutes: effectiveMins,
+          date,
+          note: note + (mode === 'deduct' && !note.toLowerCase().includes('odečet') ? ' (odečet)' : '')
+        });
+        proj.totalTimeMinutes = Math.max(0, (proj.totalTimeMinutes || 0) + effectiveMins);
+        saveState();
+        renderProjects();
+        renderProjectNotesTimeLogs(projId);
+        const overviewModal = document.getElementById('modal-projects-time-overview');
+        if (overviewModal && overviewModal.open) {
+          renderProjectsTimeOverview();
+        }
+        if (mode === 'deduct') {
+          showToast(`➖ Odečteno -${formatTimeMinutes(totalMins)} z projektu ${proj.title}`);
+        } else {
+          showToast(`➕ Zaznamenáno +${formatTimeMinutes(totalMins)} na projektu ${proj.title}`);
+        }
+      }
+
+      const modalManualTime = document.getElementById('modal-manual-time');
+      if (modalManualTime) {
+        modalManualTime._initialValues = null;
+        modalManualTime.close();
+      }
+    });
+  }
+
+  // --- Stop Timer Modal Actions ---
+  document.querySelectorAll('#stop-timer-chips .stop-time-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const text = chip.getAttribute('data-text');
+      const noteInput = document.getElementById('stop-timer-note');
+      if (noteInput && text) {
+        noteInput.value = text;
+        noteInput.focus();
+      }
+    });
+  });
+
+  const formStopTimer = document.getElementById('form-stop-timer');
+  if (formStopTimer) {
+    formStopTimer.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const projId = document.getElementById('stop-timer-proj-id')?.value;
+      const mins = parseInt(document.getElementById('stop-timer-minutes')?.value || '0', 10);
+      const date = document.getElementById('stop-timer-date')?.value || getTodayStr();
+      const note = document.getElementById('stop-timer-note')?.value.trim() || 'Práce na projektu';
+
+      if (mins <= 0) {
+        showToast('Zadej platný čas (alespoň 1 minutu).');
         return;
       }
 
@@ -5596,22 +6008,144 @@ function setupEventListeners() {
         if (!Array.isArray(proj.timeLogs)) proj.timeLogs = [];
         proj.timeLogs.push({
           id: 'tl_' + Date.now(),
-          minutes: totalMins,
+          minutes: mins,
           date,
           note
         });
-        proj.totalTimeMinutes = (proj.totalTimeMinutes || 0) + totalMins;
-        saveState();
-        renderProjects();
-        renderProjectNotesTimeLogs(projId);
-        showToast(`Zaznamenáno +${formatTimeMinutes(totalMins)} na projektu ${proj.title}`);
+        proj.totalTimeMinutes = (proj.totalTimeMinutes || 0) + mins;
       }
 
-      const modalManualTime = document.getElementById('modal-manual-time');
-      if (modalManualTime) {
-        modalManualTime._initialValues = null;
-        modalManualTime.close();
+      if (activeProjectTimer && activeProjectTimer.projectId === projId) {
+        activeProjectTimer = null;
+        localStorage.removeItem('lifeos_active_project_timer');
+        stopProjectTimerInterval();
       }
+
+      saveState();
+      renderProjects();
+      renderProjectNotesTimeLogs(projId);
+      const overviewModal = document.getElementById('modal-projects-time-overview');
+      if (overviewModal && overviewModal.open) {
+        renderProjectsTimeOverview();
+      }
+      showToast(`💾 Uloženo +${formatTimeMinutes(mins)} na projektu „${proj ? proj.title : ''}“`);
+
+      const modal = document.getElementById('modal-stop-timer');
+      if (modal) {
+        modal._initialValues = null;
+        modal.close();
+      }
+    });
+  }
+
+  const btnResumeStopTimer = document.getElementById('btn-resume-stop-timer');
+  if (btnResumeStopTimer) {
+    btnResumeStopTimer.addEventListener('click', () => {
+      const modal = document.getElementById('modal-stop-timer');
+      if (modal) {
+        modal._initialValues = null;
+        modal.close();
+      }
+      showToast('▶️ Stopky pokračují v běhu.');
+    });
+  }
+
+  const btnDiscardStopTimer = document.getElementById('btn-discard-stop-timer');
+  if (btnDiscardStopTimer) {
+    btnDiscardStopTimer.addEventListener('click', () => {
+      if (!confirm('Opravdu chceš zahodit toto měření bez uložení?')) return;
+      if (activeProjectTimer) {
+        activeProjectTimer = null;
+        localStorage.removeItem('lifeos_active_project_timer');
+        stopProjectTimerInterval();
+      }
+      renderProjects();
+      const modal = document.getElementById('modal-stop-timer');
+      if (modal) {
+        modal._initialValues = null;
+        modal.close();
+      }
+      showToast('🗑️ Měření stopek bylo zahozeno.');
+    });
+  }
+
+  // --- Edit Single Time Log Form ---
+  const formEditTime = document.getElementById('form-edit-time-log');
+  if (formEditTime) {
+    formEditTime.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const projId = document.getElementById('edit-time-proj-id')?.value;
+      const logId = document.getElementById('edit-time-log-id')?.value;
+      const mins = parseInt(document.getElementById('edit-time-minutes')?.value || '0', 10);
+      const date = document.getElementById('edit-time-date')?.value || getTodayStr();
+      const note = document.getElementById('edit-time-note')?.value.trim() || 'Práce na projektu';
+
+      if (mins === 0) {
+        showToast('Čas nesmí být 0 minut.');
+        return;
+      }
+
+      const proj = state.projects.find(p => p.id === projId);
+      if (!proj || !Array.isArray(proj.timeLogs)) return;
+
+      const log = proj.timeLogs.find(l => l.id === logId);
+      if (!log) return;
+
+      const oldMins = log.minutes || 0;
+      const diff = mins - oldMins;
+
+      log.minutes = mins;
+      log.date = date;
+      log.note = note;
+
+      proj.totalTimeMinutes = Math.max(0, (proj.totalTimeMinutes || 0) + diff);
+
+      saveState();
+      renderProjects();
+      renderProjectNotesTimeLogs(projId);
+      const overviewModal = document.getElementById('modal-projects-time-overview');
+      if (overviewModal && overviewModal.open) {
+        renderProjectsTimeOverview();
+      }
+
+      const modal = document.getElementById('modal-edit-time-log');
+      if (modal) {
+        modal._initialValues = null;
+        modal.close();
+      }
+      showToast('Časový záznam byl upraven.');
+    });
+  }
+
+  // --- Projects Time Overview Toolbar ---
+  const btnOpenOverview = document.getElementById('btn-open-projects-time-overview');
+  if (btnOpenOverview) {
+    btnOpenOverview.addEventListener('click', () => openProjectsTimeOverview('all'));
+  }
+
+  const overviewFilterSelect = document.getElementById('time-overview-project-filter');
+  if (overviewFilterSelect) {
+    overviewFilterSelect.addEventListener('change', (e) => {
+      currentOverviewProjectFilter = e.target.value;
+      renderProjectsTimeOverview();
+    });
+  }
+
+  const overviewPeriodPills = document.querySelectorAll('#time-overview-period-pills .filter-pill');
+  overviewPeriodPills.forEach(pill => {
+    pill.addEventListener('click', () => {
+      overviewPeriodPills.forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      currentOverviewPeriodFilter = pill.getAttribute('data-period') || 'all';
+      renderProjectsTimeOverview();
+    });
+  });
+
+  const btnOverviewOpenManual = document.getElementById('btn-overview-open-manual-time');
+  if (btnOverviewOpenManual) {
+    btnOverviewOpenManual.addEventListener('click', () => {
+      const targetProj = currentOverviewProjectFilter !== 'all' ? currentOverviewProjectFilter : null;
+      openManualTimeModal(targetProj, 'add');
     });
   }
 

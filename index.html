@@ -370,10 +370,15 @@
               <h2 class="section-title">Moje Projekty</h2>
               <p class="section-desc">Sledování vývoje, kódování a osobních projektů</p>
             </div>
-            <button class="btn btn-primary" id="btn-open-project-modal">
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>Nový projekt</span>
-            </button>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button type="button" class="btn btn-outline" id="btn-open-projects-time-overview" title="Otevřít přehled a statistiku odpracovaného času">
+                ⏱️ <span>Přehled času</span>
+              </button>
+              <button class="btn btn-primary" id="btn-open-project-modal">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                <span>Nový projekt</span>
+              </button>
+            </div>
           </div>
 
           <!-- Filter & Search Toolbar -->
@@ -1590,6 +1595,18 @@
       </div>
       <form id="form-manual-time">
         <input type="hidden" id="time-proj-id">
+        <input type="hidden" id="time-action-mode" value="add">
+
+        <!-- Mode Toggle: Add vs Deduct -->
+        <div class="time-mode-pills-row" style="margin-bottom: 14px; display: flex; gap: 8px;">
+          <button type="button" class="time-mode-pill active" id="btn-time-mode-add" data-mode="add">
+            ➕ Přidat čas (+)
+          </button>
+          <button type="button" class="time-mode-pill" id="btn-time-mode-deduct" data-mode="deduct">
+            ➖ Odebrat čas (-)
+          </button>
+        </div>
+
         <div class="form-group">
           <label for="time-proj-select">Projekt *</label>
           <select id="time-proj-select" class="form-select" required>
@@ -1606,19 +1623,183 @@
             <input type="number" id="time-minutes" class="form-input" min="0" max="59" step="5" value="30">
           </div>
         </div>
-        <div class="form-row">
-          <div class="form-group col-half">
-            <label for="time-date">Datum *</label>
-            <input type="date" id="time-date" class="form-input" required>
-          </div>
-          <div class="form-group col-half">
-            <label for="time-activity">Aktivita / Popis</label>
-            <input type="text" id="time-activity" class="form-input" placeholder="Např. Kódování UI, bugfix, studium dokumentace">
+        <div class="form-group">
+          <label for="time-date">Datum *</label>
+          <input type="date" id="time-date" class="form-input" required>
+        </div>
+        <div class="form-group">
+          <label for="time-activity" id="label-time-activity">Popis činnosti / Co jsi dělal? *</label>
+          <input type="text" id="time-activity" class="form-input" placeholder="Např. Kódování UI, bugfix, studium dokumentace..." required>
+          <div class="split-suggestions-chips" id="manual-time-chips" style="margin-top: 8px;">
+            <button type="button" class="split-sug-chip time-sug-chip" data-text="💻 Vývoj & implementace">+ Kódování</button>
+            <button type="button" class="split-sug-chip time-sug-chip" data-text="🐛 Bugfix & ladění chyb">+ Bugfix</button>
+            <button type="button" class="split-sug-chip time-sug-chip" data-text="🎨 UI design & stylování">+ UI & vzhled</button>
+            <button type="button" class="split-sug-chip time-sug-chip" data-text="⚡ Refaktoring kódu">+ Refaktoring</button>
+            <button type="button" class="split-sug-chip time-sug-chip" data-text="📚 Rešerše a dokumentace">+ Rešerše</button>
+            <button type="button" class="split-sug-chip time-sug-chip" data-text="⚠️ Korekce / Odečet chybného času">+ Korekce</button>
           </div>
         </div>
         <div class="dialog-actions">
           <button type="button" class="btn btn-secondary" id="modal-manual-time-cancel">Zrušit</button>
-          <button type="submit" class="btn btn-primary" id="btn-save-manual-time">Zapsat čas</button>
+          <button type="submit" class="btn btn-primary" id="btn-save-manual-time">Zapsat čas (+)</button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+
+  <!-- ================= DIALOG: STOP ACTIVE PROJECT TIMER ================= -->
+  <dialog id="modal-stop-timer" class="custom-dialog">
+    <div class="dialog-content">
+      <div class="dialog-header">
+        <div>
+          <h3>⏱️ Dokončit měření času</h3>
+          <p class="text-xs text-muted" id="stop-timer-proj-badge" style="margin-top: 2px;">Projekt: ...</p>
+        </div>
+        <button class="btn-close" id="modal-stop-timer-close" aria-label="Zavřít">&times;</button>
+      </div>
+      <form id="form-stop-timer">
+        <input type="hidden" id="stop-timer-proj-id">
+        <div class="form-row">
+          <div class="form-group col-half">
+            <label for="stop-timer-minutes">Naměřený čas (minuty) *</label>
+            <input type="number" id="stop-timer-minutes" class="form-input" min="1" max="1440" required>
+          </div>
+          <div class="form-group col-half">
+            <label for="stop-timer-date">Datum *</label>
+            <input type="date" id="stop-timer-date" class="form-input" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="stop-timer-note">Co jsi na projektu dělal? *</label>
+          <input type="text" id="stop-timer-note" class="form-input" placeholder="Např. Implementace nové funkce, bugfix, refaktoring..." required>
+          <div class="split-suggestions-chips" id="stop-timer-chips" style="margin-top: 8px;">
+            <button type="button" class="split-sug-chip stop-time-chip" data-text="💻 Vývoj & implementace">+ Kódování</button>
+            <button type="button" class="split-sug-chip stop-time-chip" data-text="🐛 Bugfix & ladění chyb">+ Bugfix</button>
+            <button type="button" class="split-sug-chip stop-time-chip" data-text="🎨 UI design & stylování">+ UI design</button>
+            <button type="button" class="split-sug-chip stop-time-chip" data-text="⚡ Refaktoring kódu">+ Refaktoring</button>
+            <button type="button" class="split-sug-chip stop-time-chip" data-text="📚 Studium & návrh">+ Studium</button>
+            <button type="button" class="split-sug-chip stop-time-chip" data-text="🚀 Testování & deploy">+ Deploy</button>
+          </div>
+        </div>
+        <div class="dialog-actions" style="margin-top: 18px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+          <button type="button" class="btn btn-danger btn-sm" id="btn-discard-stop-timer" title="Zahodit měření bez uložení">
+            🗑️ Zahodit stopky
+          </button>
+          <div style="display: flex; gap: 8px;">
+            <button type="button" class="btn btn-secondary btn-sm" id="btn-resume-stop-timer">▶️ Pokračovat</button>
+            <button type="submit" class="btn btn-primary btn-sm" id="btn-save-stop-timer">💾 Uložit čas</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </dialog>
+
+  <!-- ================= DIALOG: PROJECTS TIME OVERVIEW MODAL ================= -->
+  <dialog id="modal-projects-time-overview" class="custom-dialog custom-dialog-wide">
+    <div class="dialog-content">
+      <div class="dialog-header">
+        <div>
+          <h3>⏱️ Přehled stráveného času na projektech</h3>
+          <p class="text-xs text-muted" style="margin-top: 2px;">Kompletní statistika, rozpad hodin a historie činností</p>
+        </div>
+        <button class="btn-close" id="modal-time-overview-close" aria-label="Zavřít">&times;</button>
+      </div>
+
+      <!-- Overview Toolbar & Filters -->
+      <div class="time-overview-toolbar" style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; flex: 1;">
+          <div style="min-width: 200px;">
+            <select id="time-overview-project-filter" class="form-select" style="font-size: 13px; font-weight: 600;">
+              <!-- Populated dynamically with all + each project -->
+            </select>
+          </div>
+          <div class="filter-pills" id="time-overview-period-pills">
+            <button type="button" class="filter-pill active" data-period="all">Celkově</button>
+            <button type="button" class="filter-pill" data-period="month">Tento měsíc</button>
+            <button type="button" class="filter-pill" data-period="week">Tento týden</button>
+            <button type="button" class="filter-pill" data-period="today">Dnes</button>
+          </div>
+        </div>
+        <button type="button" class="btn btn-primary btn-sm" id="btn-overview-open-manual-time">
+          ➕/➖ Zapsat / Odebrat čas
+        </button>
+      </div>
+
+      <!-- KPI Summary Cards Grid -->
+      <div class="time-overview-kpi-grid">
+        <div class="time-kpi-card">
+          <span class="time-kpi-label">Celkový čas</span>
+          <span class="time-kpi-val" id="time-kpi-total">0h 0m</span>
+        </div>
+        <div class="time-kpi-card">
+          <span class="time-kpi-label">Tento týden</span>
+          <span class="time-kpi-val text-green" id="time-kpi-week">0h 0m</span>
+        </div>
+        <div class="time-kpi-card">
+          <span class="time-kpi-label">Tento měsíc</span>
+          <span class="time-kpi-val text-indigo" id="time-kpi-month">0h 0m</span>
+        </div>
+        <div class="time-kpi-card">
+          <span class="time-kpi-label">Počet zápisů</span>
+          <span class="time-kpi-val" id="time-kpi-count">0</span>
+        </div>
+      </div>
+
+      <!-- Projects Share / Distribution Breakdown -->
+      <div class="time-overview-breakdown-card card" id="time-overview-breakdown-card" style="margin-top: 14px; padding: 14px 16px;">
+        <h4 style="font-size: 13px; font-weight: 700; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between;">
+          <span>Rozpad času podle projektů</span>
+          <span class="text-xs text-muted" id="time-overview-share-count">...</span>
+        </h4>
+        <div class="time-projects-breakdown-list" id="time-projects-breakdown-list">
+          <!-- Dynamic progress bars -->
+        </div>
+      </div>
+
+      <!-- Detailed Logs List -->
+      <div style="margin-top: 16px;">
+        <h4 style="font-size: 13px; font-weight: 700; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between;">
+          <span>Historie odpracovaných činností</span>
+          <span class="text-xs text-muted" id="time-overview-logs-count">0 zápisů</span>
+        </h4>
+        <div class="time-overview-logs-list" id="time-overview-logs-list">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+
+      <div class="dialog-actions" style="margin-top: 20px;">
+        <button type="button" class="btn btn-secondary" id="modal-time-overview-cancel">Zavřít</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- ================= DIALOG: EDIT SINGLE TIME LOG ================= -->
+  <dialog id="modal-edit-time-log" class="custom-dialog">
+    <div class="dialog-content">
+      <div class="dialog-header">
+        <h3 id="modal-edit-time-title">Upravit časový zápis</h3>
+        <button class="btn-close" id="modal-edit-time-close" aria-label="Zavřít">&times;</button>
+      </div>
+      <form id="form-edit-time-log">
+        <input type="hidden" id="edit-time-proj-id">
+        <input type="hidden" id="edit-time-log-id">
+        <div class="form-row">
+          <div class="form-group col-half">
+            <label for="edit-time-minutes">Čas (minuty, záporné = odečet) *</label>
+            <input type="number" id="edit-time-minutes" class="form-input" required>
+          </div>
+          <div class="form-group col-half">
+            <label for="edit-time-date">Datum *</label>
+            <input type="date" id="edit-time-date" class="form-input" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="edit-time-note">Co jsi dělal / Poznámka *</label>
+          <input type="text" id="edit-time-note" class="form-input" required placeholder="Popis práce...">
+        </div>
+        <div class="dialog-actions">
+          <button type="button" class="btn btn-secondary" id="modal-edit-time-cancel">Zrušit</button>
+          <button type="submit" class="btn btn-primary" id="btn-save-edit-time">Uložit změny</button>
         </div>
       </form>
     </div>
