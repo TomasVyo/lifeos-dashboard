@@ -209,7 +209,10 @@ const DEFAULT_DATA = {
     { id: 'ql_3', title: 'ChatGPT', url: 'https://chatgpt.com', category: 'AI & Nástroje', desc: 'AI asistent pro kódování a rešerše', icon: '🤖' },
     { id: 'ql_4', title: 'Claude', url: 'https://claude.ai', category: 'AI & Nástroje', desc: 'Anthropic AI model pro analýzu kódu', icon: '🧠' },
     { id: 'ql_5', title: 'Supabase Dashboard', url: 'https://supabase.com/dashboard', category: 'Projekty & Dev', desc: 'Správa PostgreSQL databází a backendu', icon: '⚡' },
-    { id: 'ql_6', title: 'Moodle / E-learning', url: 'https://moodle.osu.cz', category: 'Škola', desc: 'Studijní materiály a odevzdávárny úkolů', icon: '📚' }
+    { id: 'ql_6', title: 'Moodle / E-learning', url: 'https://moodle.osu.cz', category: 'Škola', desc: 'Studijní materiály a odevzdávárny úkolů', icon: '📚' },
+    { id: 'ql_app_1', title: 'VS Code', url: 'vscode://', category: 'Aplikace', desc: 'Editor kódu Visual Studio Code', icon: '💻' },
+    { id: 'ql_app_2', title: 'Spotify', url: 'spotify:', category: 'Aplikace', desc: 'Hudební přehrávač Spotify', icon: '🎧' },
+    { id: 'ql_app_3', title: 'Discord', url: 'discord://', category: 'Aplikace', desc: 'Komunikační server a chat Discord', icon: '💬' }
   ],
   finance: {
     recurring: [],
@@ -546,28 +549,46 @@ function loadState() {
   return JSON.parse(JSON.stringify(DEFAULT_DATA));
 }
 
+// Generic lightweight debounce helper for fluid UI typing and delayed jobs
+function debounce(fn, wait = 120) {
+  let timeout;
+  return function (...args) {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => fn.apply(this, args), wait);
+  };
+}
+
+let backupSaveTimeout = null;
+function scheduleSecondaryBackups() {
+  if (backupSaveTimeout) clearTimeout(backupSaveTimeout);
+  backupSaveTimeout = setTimeout(() => {
+    try {
+      if (state.gym && Array.isArray(state.gym.logs) && state.gym.logs.length > 0) {
+        localStorage.setItem('lifeos_gym_logs_backup_v1', JSON.stringify(state.gym.logs));
+      }
+      if (state.projects && Array.isArray(state.projects) && state.projects.length > 0) {
+        localStorage.setItem('lifeos_projects_backup_v1', JSON.stringify(state.projects));
+      }
+      if (state.school && Array.isArray(state.school) && state.school.length > 0) {
+        localStorage.setItem('lifeos_school_backup_v1', JSON.stringify(state.school));
+      }
+      if (state.journal && Array.isArray(state.journal) && state.journal.length > 0) {
+        localStorage.setItem('lifeos_journal_backup_v1', JSON.stringify(state.journal));
+      }
+      if (state.quickLinks && Array.isArray(state.quickLinks) && state.quickLinks.length > 0) {
+        localStorage.setItem('lifeos_quicklinks_backup_v1', JSON.stringify(state.quickLinks));
+      }
+      if (state.finance && typeof state.finance === 'object') {
+        localStorage.setItem('lifeos_finance_backup_v1', JSON.stringify(state.finance));
+      }
+    } catch (e) {}
+  }, 1000);
+}
+
 function saveState(skipRemoteSync = false) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    // Maintain persistent safety backups for user data
-    if (state.gym && Array.isArray(state.gym.logs) && state.gym.logs.length > 0) {
-      localStorage.setItem('lifeos_gym_logs_backup_v1', JSON.stringify(state.gym.logs));
-    }
-    if (state.projects && Array.isArray(state.projects) && state.projects.length > 0) {
-      localStorage.setItem('lifeos_projects_backup_v1', JSON.stringify(state.projects));
-    }
-    if (state.school && Array.isArray(state.school) && state.school.length > 0) {
-      localStorage.setItem('lifeos_school_backup_v1', JSON.stringify(state.school));
-    }
-    if (state.journal && Array.isArray(state.journal) && state.journal.length > 0) {
-      localStorage.setItem('lifeos_journal_backup_v1', JSON.stringify(state.journal));
-    }
-    if (state.quickLinks && Array.isArray(state.quickLinks) && state.quickLinks.length > 0) {
-      localStorage.setItem('lifeos_quicklinks_backup_v1', JSON.stringify(state.quickLinks));
-    }
-    if (state.finance && typeof state.finance === 'object') {
-      localStorage.setItem('lifeos_finance_backup_v1', JSON.stringify(state.finance));
-    }
+    scheduleSecondaryBackups();
   } catch (err) {
     console.error('Failed to save state:', err);
   }
@@ -598,9 +619,17 @@ document.addEventListener('DOMContentLoaded', () => {
 function initClock() {
   updateClock();
   setInterval(updateClock, 1000);
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+      updateClock();
+      if (typeof activeProjectTimer !== 'undefined' && activeProjectTimer) updateLiveProjectTimerUI();
+      if (typeof activeWorkout !== 'undefined' && activeWorkout) updateActiveWorkoutTimerUI();
+    }
+  });
 }
 
 function updateClock() {
+  if (document.hidden) return;
   const now = new Date();
   
   // Date format Czech
@@ -1278,6 +1307,7 @@ function stopProjectTimerInterval() {
 }
 
 function updateLiveProjectTimerUI() {
+  if (document.hidden) return;
   if (!activeProjectTimer) {
     if (projectTimerInterval) clearInterval(projectTimerInterval);
     return;
@@ -1729,8 +1759,10 @@ function renderProjects() {
   if (countPlanned) countPlanned.textContent = state.projects.filter(p => p.status === 'planned').length;
   if (countDone) countDone.textContent = state.projects.filter(p => p.status === 'completed').length;
 
-  // Always update Kanban columns in background or when active
-  renderProjectsKanban(searchTerm);
+  // Only update Kanban columns when Kanban view is active
+  if (typeof currentProjectViewMode !== 'undefined' && currentProjectViewMode === 'kanban') {
+    renderProjectsKanban(searchTerm);
+  }
 
   if (!grid) return;
 
@@ -2453,6 +2485,7 @@ function startActiveWorkoutTimer() {
 }
 
 function updateActiveWorkoutTimerUI() {
+  if (document.hidden) return;
   if (!activeWorkout) {
     if (activeWorkoutTimerInterval) clearInterval(activeWorkoutTimerInterval);
     return;
@@ -3488,6 +3521,48 @@ function deleteSchoolItem(id) {
 // ==========================================================================
 let currentQuickLinkCategory = 'all';
 
+function isAppProtocol(url) {
+  if (!url) return false;
+  return /^[a-zA-Z0-9\-\+\.]+:/i.test(url) && !/^https?:\/\//i.test(url);
+}
+
+function launchAppOrUrl(url, title = 'Aplikace') {
+  if (!url) return;
+  if (isAppProtocol(url)) {
+    try {
+      const a = document.createElement('a');
+      a.href = url;
+      a.style.display = 'none';
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => a.remove(), 100);
+      showToast(`🚀 Spouštím aplikaci „${title}“...`);
+    } catch (e) {
+      window.location.assign(url);
+    }
+  } else {
+    window.open(url, '_blank', 'noopener,noreferrer');
+  }
+}
+
+function addDefaultAppsToQuickLinks() {
+  const defaultApps = [
+    { id: 'ql_app_' + Date.now() + '_1', title: 'VS Code', url: 'vscode://', category: 'Aplikace', desc: 'Editor kódu Visual Studio Code', icon: '💻' },
+    { id: 'ql_app_' + Date.now() + '_2', title: 'Spotify', url: 'spotify:', category: 'Aplikace', desc: 'Hudební přehrávač Spotify', icon: '🎧' },
+    { id: 'ql_app_' + Date.now() + '_3', title: 'Discord', url: 'discord://', category: 'Aplikace', desc: 'Komunikační server a chat Discord', icon: '💬' }
+  ];
+  let added = 0;
+  defaultApps.forEach(app => {
+    if (!state.quickLinks.some(q => q.title.toLowerCase() === app.title.toLowerCase() || q.url === app.url)) {
+      state.quickLinks.push(app);
+      added++;
+    }
+  });
+  saveState();
+  renderQuickLinks();
+  showToast(added > 0 ? `🚀 Přidáno ${added} doporučených aplikací!` : 'Doporučené aplikace již v seznamu máš.');
+}
+
 function renderQuickLinks() {
   const grid = document.getElementById('quicklinks-grid');
   const searchInput = document.getElementById('quicklinks-search-input');
@@ -3500,12 +3575,14 @@ function renderQuickLinks() {
   // Update category counts
   const allLinks = state.quickLinks;
   const countAll = document.getElementById('count-ql-all');
+  const countApp = document.getElementById('count-ql-app');
   const countSchool = document.getElementById('count-ql-school');
   const countDev = document.getElementById('count-ql-dev');
   const countAi = document.getElementById('count-ql-ai');
   const countPersonal = document.getElementById('count-ql-personal');
 
   if (countAll) countAll.textContent = allLinks.length;
+  if (countApp) countApp.textContent = allLinks.filter(l => l.category === 'Aplikace' || isAppProtocol(l.url)).length;
   if (countSchool) countSchool.textContent = allLinks.filter(l => l.category === 'Škola').length;
   if (countDev) countDev.textContent = allLinks.filter(l => l.category === 'Projekty & Dev').length;
   if (countAi) countAi.textContent = allLinks.filter(l => l.category === 'AI & Nástroje').length;
@@ -3514,7 +3591,9 @@ function renderQuickLinks() {
   if (!grid) return;
 
   let filtered = allLinks;
-  if (currentQuickLinkCategory !== 'all') {
+  if (currentQuickLinkCategory === 'Aplikace') {
+    filtered = filtered.filter(l => l.category === 'Aplikace' || isAppProtocol(l.url));
+  } else if (currentQuickLinkCategory !== 'all') {
     filtered = filtered.filter(l => l.category === currentQuickLinkCategory);
   }
 
@@ -3528,40 +3607,74 @@ function renderQuickLinks() {
   }
 
   if (filtered.length === 0) {
-    grid.innerHTML = '<div class="card" style="grid-column: 1/-1; text-align: center; padding: 40px;"><p class="text-muted">Žádné rychlé odkazy neodpovídají filtru.</p></div>';
+    if (currentQuickLinkCategory === 'Aplikace') {
+      grid.innerHTML = `
+        <div class="card" style="grid-column: 1/-1; text-align: center; padding: 40px;">
+          <p class="text-muted" style="margin-bottom: 14px;">Zatím nemáš přidané žádné desktopové aplikace.</p>
+          <div style="display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+            <button type="button" class="btn btn-primary btn-sm" id="btn-quick-add-apps">⚡ Přidat doporučené aplikace (VS Code, Spotify, Discord)</button>
+            <button type="button" class="btn btn-secondary btn-sm" id="btn-empty-add-custom-app">+ Přidat vlastní aplikaci</button>
+          </div>
+        </div>
+      `;
+      const btnAddApps = grid.querySelector('#btn-quick-add-apps');
+      if (btnAddApps) btnAddApps.addEventListener('click', addDefaultAppsToQuickLinks);
+      const btnAddCust = grid.querySelector('#btn-empty-add-custom-app');
+      if (btnAddCust) btnAddCust.addEventListener('click', () => openQuickLinkModal(null, 'app'));
+    } else {
+      grid.innerHTML = '<div class="card" style="grid-column: 1/-1; text-align: center; padding: 40px;"><p class="text-muted">Žádné rychlé odkazy neodpovídají filtru.</p></div>';
+    }
     return;
   }
 
   grid.innerHTML = filtered.map(item => {
+    const isProtocol = isAppProtocol(item.url);
+    const isApp = item.category === 'Aplikace' || isProtocol;
+
     let domain = '';
-    try {
-      domain = new URL(item.url).hostname;
-    } catch (e) {
-      domain = item.url || '';
+    if (!isProtocol) {
+      try {
+        domain = new URL(item.url).hostname;
+      } catch (e) {
+        domain = item.url || '';
+      }
     }
-    const faviconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
-    const fallbackEmoji = item.icon || (item.category === 'Škola' ? '🎓' : item.category === 'Projekty & Dev' ? '💻' : item.category === 'AI & Nástroje' ? '🤖' : '🌐');
+    const faviconUrl = !isProtocol ? `https://www.google.com/s2/favicons?domain=${domain}&sz=64` : '';
+    const fallbackEmoji = item.icon || (isApp ? '🚀' : item.category === 'Škola' ? '🎓' : item.category === 'Projekty & Dev' ? '💻' : item.category === 'AI & Nástroje' ? '🤖' : '🌐');
+
+    const iconHtml = isProtocol
+      ? `<div class="quicklink-favicon-wrap quicklink-app-icon" title="Desktopová aplikace">${escapeHtml(fallbackEmoji)}</div>`
+      : `<div class="quicklink-favicon-wrap">
+           <img src="${faviconUrl}" alt="${escapeHtml(item.title)}" class="quicklink-favicon" onerror="this.onerror=null; this.replaceWith('${fallbackEmoji}')">
+         </div>`;
+
+    const subText = isProtocol ? `⚡ Protokol: ${escapeHtml(item.url)}` : `🌐 ${escapeHtml(domain)}`;
+
+    const openBtnHtml = isProtocol
+      ? `<button type="button" class="quicklink-open-btn btn-launch-app" data-url="${escapeHtml(item.url)}" data-title="${escapeHtml(item.title)}" title="Spustit aplikaci v systému">
+           <span>Spustit</span>
+           <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+         </button>`
+      : `<a href="${escapeHtml(item.url)}" target="_blank" rel="noopener" class="quicklink-open-btn" title="Otevřít odkaz v novém okně">
+           <span>Otevřít</span>
+           <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+         </a>`;
 
     return `
-      <div class="quicklink-card" data-id="${item.id}">
+      <div class="quicklink-card ${isApp ? 'is-app' : ''}" data-id="${item.id}">
         <div class="quicklink-header">
-          <div class="quicklink-favicon-wrap">
-            <img src="${faviconUrl}" alt="${escapeHtml(item.title)}" class="quicklink-favicon" onerror="this.onerror=null; this.replaceWith('${fallbackEmoji}')">
-          </div>
+          ${iconHtml}
           <div class="quicklink-info">
             <div class="quicklink-title-row">
               <span class="quicklink-title" title="${escapeHtml(item.title)}">${escapeHtml(item.title)}</span>
-              <span class="quicklink-badge">${escapeHtml(item.category || 'Odkaz')}</span>
+              <span class="quicklink-badge ${isApp ? 'badge-app' : ''}">${escapeHtml(isApp ? '🚀 Aplikace' : (item.category || 'Odkaz'))}</span>
             </div>
             ${item.desc ? `<p class="quicklink-desc">${escapeHtml(item.desc)}</p>` : ''}
-            <div class="quicklink-url-text">${escapeHtml(domain)}</div>
+            <div class="quicklink-url-text">${subText}</div>
           </div>
         </div>
         <div class="quicklink-footer">
-          <a href="${escapeHtml(item.url)}" target="_blank" rel="noopener" class="quicklink-open-btn">
-            <span>Otevřít</span>
-            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-          </a>
+          ${openBtnHtml}
           <div class="quicklink-actions">
             <button type="button" class="btn btn-xs btn-secondary btn-edit-quicklink" data-id="${item.id}" title="Upravit">✏️</button>
             <button type="button" class="btn btn-xs btn-danger btn-del-quicklink" data-id="${item.id}" title="Smazat">&times;</button>
@@ -3570,6 +3683,15 @@ function renderQuickLinks() {
       </div>
     `;
   }).join('');
+
+  grid.querySelectorAll('.btn-launch-app').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const u = btn.getAttribute('data-url');
+      const t = btn.getAttribute('data-title');
+      launchAppOrUrl(u, t);
+    });
+  });
 
   grid.querySelectorAll('.btn-edit-quicklink').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -3586,27 +3708,61 @@ function renderQuickLinks() {
   });
 }
 
-function openQuickLinkModal(id = null) {
+function setQuickLinkModalType(targetType) {
+  const typeInput = document.getElementById('quicklink-type');
+  const btnTypeWeb = document.getElementById('btn-ql-type-web');
+  const btnTypeApp = document.getElementById('btn-ql-type-app');
+  const presetsGroup = document.getElementById('quicklink-app-presets-group');
+  const urlInput = document.getElementById('quicklink-url');
+  const catSelect = document.getElementById('quicklink-category');
+  const hintEl = document.getElementById('quicklink-url-hint');
+
+  if (typeInput) typeInput.value = targetType;
+  if (btnTypeWeb) btnTypeWeb.classList.toggle('active', targetType === 'web');
+  if (btnTypeApp) btnTypeApp.classList.toggle('active', targetType === 'app');
+  if (presetsGroup) presetsGroup.style.display = targetType === 'app' ? 'block' : 'none';
+
+  if (targetType === 'app') {
+    if (catSelect) catSelect.value = 'Aplikace';
+    if (urlInput) urlInput.placeholder = 'vscode://, spotify:, discord://, obsidian://, calculator:...';
+    if (hintEl) hintEl.textContent = 'Pro aplikace zadej URI protokol systému (např. vscode://, spotify:, discord://, tg://, obsidian://, calculator:).';
+  } else {
+    if (catSelect && catSelect.value === 'Aplikace') catSelect.value = 'Škola';
+    if (urlInput) urlInput.placeholder = 'https://...';
+    if (hintEl) hintEl.textContent = 'Pro webové stránky zadej klasické URL (https://...).';
+  }
+}
+
+function openQuickLinkModal(id = null, defaultType = null) {
   const modal = document.getElementById('modal-quicklink');
   const form = document.getElementById('form-quicklink');
   const titleEl = document.getElementById('modal-quicklink-title');
+  const catSelect = document.getElementById('quicklink-category');
   if (!modal || !form) return;
 
   form.reset();
+
   if (id) {
     const item = state.quickLinks.find(q => q.id === id);
     if (!item) return;
-    titleEl.textContent = 'Upravit rychlý odkaz';
+    titleEl.textContent = 'Upravit odkaz / aplikaci';
     document.getElementById('quicklink-id').value = item.id;
     document.getElementById('quicklink-title').value = item.title;
     document.getElementById('quicklink-url').value = item.url;
     document.getElementById('quicklink-category').value = item.category || 'Škola';
     document.getElementById('quicklink-icon').value = item.icon || '';
     document.getElementById('quicklink-desc').value = item.desc || '';
+
+    const isApp = item.category === 'Aplikace' || isAppProtocol(item.url);
+    setQuickLinkModalType(isApp ? 'app' : 'web');
   } else {
-    titleEl.textContent = 'Přidat rychlý odkaz';
+    titleEl.textContent = 'Přidat rychlý odkaz nebo aplikaci';
     document.getElementById('quicklink-id').value = '';
-    document.getElementById('quicklink-category').value = currentQuickLinkCategory !== 'all' ? currentQuickLinkCategory : 'Škola';
+    const initialType = defaultType || (currentQuickLinkCategory === 'Aplikace' ? 'app' : 'web');
+    setQuickLinkModalType(initialType);
+    if (catSelect) {
+      catSelect.value = currentQuickLinkCategory !== 'all' ? currentQuickLinkCategory : (initialType === 'app' ? 'Aplikace' : 'Škola');
+    }
   }
 
   modal.showModal();
@@ -3614,12 +3770,12 @@ function openQuickLinkModal(id = null) {
 }
 
 function deleteQuickLink(id) {
-  if (!confirm('Opravdu chceš smazat tento odkaz?')) return;
+  if (!confirm('Opravdu chceš smazat tento odkaz či aplikaci?')) return;
   markAsDeleted(id);
   state.quickLinks = state.quickLinks.filter(q => q.id !== id);
   saveState();
   renderQuickLinks();
-  showToast('Odkaz smazán');
+  showToast('Položka smazána');
 }
 
 // ==========================================================================
@@ -5177,9 +5333,9 @@ function setupEventListeners() {
 
   const prFilterInput = document.getElementById('pr-exercises-filter-input');
   if (prFilterInput) {
-    prFilterInput.addEventListener('input', (e) => {
+    prFilterInput.addEventListener('input', debounce((e) => {
       renderPrSelectionList(e.target.value);
-    });
+    }, 120));
   }
 
   const btnSavePr = document.getElementById('btn-save-pr-exercises');
@@ -5774,7 +5930,7 @@ function setupEventListeners() {
 
   // --- Search & Filters ---
   const projSearch = document.getElementById('project-search-input');
-  if (projSearch) projSearch.addEventListener('input', renderProjects);
+  if (projSearch) projSearch.addEventListener('input', debounce(renderProjects, 120));
 
   const projFilters = document.querySelectorAll('#project-filters .filter-pill');
   projFilters.forEach(btn => {
@@ -5787,7 +5943,7 @@ function setupEventListeners() {
   });
 
   const schoolSearch = document.getElementById('school-search-input');
-  if (schoolSearch) schoolSearch.addEventListener('input', renderSchool);
+  if (schoolSearch) schoolSearch.addEventListener('input', debounce(renderSchool, 120));
 
   const schoolFilters = document.querySelectorAll('#school-filters .filter-pill');
   schoolFilters.forEach(btn => {
@@ -6154,7 +6310,7 @@ function setupEventListeners() {
   if (btnAddQuickLink) btnAddQuickLink.addEventListener('click', () => openQuickLinkModal());
 
   const qlSearch = document.getElementById('quicklinks-search-input');
-  if (qlSearch) qlSearch.addEventListener('input', renderQuickLinks);
+  if (qlSearch) qlSearch.addEventListener('input', debounce(renderQuickLinks, 120));
 
   const qlPills = document.querySelectorAll('#quicklinks-category-pills .filter-pill');
   qlPills.forEach(pill => {
@@ -6163,6 +6319,29 @@ function setupEventListeners() {
       pill.classList.add('active');
       currentQuickLinkCategory = pill.getAttribute('data-cat') || 'all';
       renderQuickLinks();
+    });
+  });
+
+  const btnTypeWeb = document.getElementById('btn-ql-type-web');
+  const btnTypeApp = document.getElementById('btn-ql-type-app');
+  if (btnTypeWeb) btnTypeWeb.addEventListener('click', () => setQuickLinkModalType('web'));
+  if (btnTypeApp) btnTypeApp.addEventListener('click', () => setQuickLinkModalType('app'));
+
+  document.querySelectorAll('.ql-preset-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const titleInput = document.getElementById('quicklink-title');
+      const urlInput = document.getElementById('quicklink-url');
+      const catSelect = document.getElementById('quicklink-category');
+      const iconInput = document.getElementById('quicklink-icon');
+      const descInput = document.getElementById('quicklink-desc');
+
+      if (titleInput && chip.dataset.title) titleInput.value = chip.dataset.title;
+      if (urlInput && chip.dataset.url) urlInput.value = chip.dataset.url;
+      if (catSelect && chip.dataset.cat) catSelect.value = chip.dataset.cat;
+      if (iconInput && chip.dataset.icon) iconInput.value = chip.dataset.icon;
+      if (descInput && chip.dataset.desc) descInput.value = chip.dataset.desc;
+
+      setQuickLinkModalType('app');
     });
   });
 
@@ -6178,7 +6357,8 @@ function setupEventListeners() {
       const desc = document.getElementById('quicklink-desc')?.value.trim();
 
       if (!title || !url) return;
-      if (!/^https?:\/\//i.test(url)) {
+      // If it doesn't contain a scheme like http:, https:, vscode:, spotify:, discord:, etc., prepend https://
+      if (!/^[a-zA-Z0-9\-\+\.]+:/i.test(url)) {
         url = 'https://' + url;
       }
 
@@ -6211,7 +6391,7 @@ function setupEventListeners() {
         modalQuickLink.close();
       }
       renderQuickLinks();
-      showToast('Rychlý odkaz byl uložen 🔗');
+      showToast(category === 'Aplikace' || isAppProtocol(url) ? 'Aplikace byla uložena 🚀' : 'Rychlý odkaz byl uložen 🔗');
     });
   }
 

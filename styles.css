@@ -485,13 +485,15 @@ a {
   overflow-y: auto;
   padding: 24px 32px 80px 32px;
   -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
 }
 
 .tab-content {
   display: none;
-  animation: fadeIn 0.2s ease;
+  animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   max-width: 1280px;
   margin: 0 auto;
+  will-change: opacity, transform;
 }
 
 .tab-content.active {
@@ -4133,12 +4135,24 @@ a {
   gap: 14px;
   transition: transform var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
   position: relative;
+  content-visibility: auto;
+  contain-intrinsic-size: 0 135px;
 }
 
 .quicklink-card:hover {
   transform: translateY(-2px);
   border-color: rgba(99, 102, 241, 0.4);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+.quicklink-card.is-app {
+  border-color: rgba(16, 185, 129, 0.22);
+  background: linear-gradient(180deg, rgba(16, 185, 129, 0.04) 0%, var(--bg-card) 100%);
+}
+
+.quicklink-card.is-app:hover {
+  border-color: rgba(16, 185, 129, 0.5);
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.14);
 }
 
 .quicklink-header {
@@ -4159,6 +4173,12 @@ a {
   font-size: 20px;
   flex-shrink: 0;
   overflow: hidden;
+}
+
+.quicklink-favicon-wrap.quicklink-app-icon {
+  background: rgba(16, 185, 129, 0.12);
+  border-color: rgba(16, 185, 129, 0.25);
+  font-size: 22px;
 }
 
 .quicklink-favicon {
@@ -4197,6 +4217,12 @@ a {
   background: rgba(99, 102, 241, 0.12);
   color: #818cf8;
   white-space: nowrap;
+}
+
+.quicklink-badge.badge-app {
+  background: rgba(16, 185, 129, 0.16);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.25);
 }
 
 .quicklink-desc {
@@ -4239,6 +4265,8 @@ a {
   font-size: 12px;
   font-weight: 600;
   text-decoration: none;
+  border: none;
+  cursor: pointer;
   transition: all var(--transition-fast);
 }
 
@@ -4247,10 +4275,34 @@ a {
   color: #ffffff;
 }
 
+.quicklink-open-btn.btn-launch-app {
+  background: rgba(16, 185, 129, 0.16);
+  color: #6ee7b7;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.quicklink-open-btn.btn-launch-app:hover {
+  background: #10b981;
+  color: #ffffff;
+}
+
 .quicklink-actions {
   display: flex;
   align-items: center;
   gap: 4px;
+}
+
+.ql-preset-chip {
+  font-size: 11px;
+  padding: 4px 8px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.ql-preset-chip:hover {
+  background: rgba(99, 102, 241, 0.25);
+  border-color: var(--primary);
+  transform: translateY(-1px);
 }
 
 /* ==========================================================================
@@ -4467,5 +4519,24 @@ a {
 
 .finance-tx-amount.expense {
   color: #f43f5e;
+}
+
+/* ==========================================================================
+   PERFORMANCE & FLUIDITY ENHANCEMENTS
+   Off-screen rendering virtualization and GPU layer composition
+   ========================================================================== */
+.workout-log-card,
+.journal-entry-card,
+.school-task-card,
+.finance-tx-item,
+.time-overview-log-item,
+.pr-card {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 110px;
+}
+
+/* Hardware accelerated dialogs */
+.custom-dialog {
+  contain: layout;
 }
 
